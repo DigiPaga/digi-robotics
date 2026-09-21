@@ -292,3 +292,15 @@ This project is licensed under the [MIT License](LICENSE).
 <div align="center">
   <strong>Built with ❤️ for the future of autonomous commerce</strong>
 </div>
+
+---
+
+## 🚀 Deployment Status
+
+### ✅ Robinhood Testnet (Chain ID: 46630)
+- **AgentRegistry**: `0x7Fdf0074C6e40c5B4ABDaBcE8397DaE284194331`
+- **RoboticsMarketplace**: `0xFd6F3e01c60870a8978665fF2EE872861590bEc3`
+- **Explorer**: [View on Robinhood Testnet Explorer](https://testnet.chain.robinhood.com/)
+
+### ⏳ Arbitrum Sepolia (Chain ID: 421614)
+- **Status**: Deployment script ready, awaiting testnet faucet funds.
