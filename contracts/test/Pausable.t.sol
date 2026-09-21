@@ -5,8 +5,9 @@ import "forge-std/Test.sol";
 import "../src/utils/Pausable.sol";
 
 contract MockPausable is Pausable {
-    function doSomething() external whenNotPaused returns (bool) {
-        return true;
+    uint256 public value;
+    function doSomething() external whenNotPaused {
+        value = 1;
     }
 }
 
@@ -20,7 +21,7 @@ contract PausableTest is Test {
         pausable = new MockPausable();
     }
 
-    function test_InitialState() public {
+    function test_InitialState() public view {
         assertFalse(pausable.paused());
         assertEq(pausable.owner(), owner);
     }
