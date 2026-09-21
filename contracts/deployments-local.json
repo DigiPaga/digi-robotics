@@ -1,0 +1,10 @@
+{
+  "chainId": 31337,
+  "chainName": "Anvil Local",
+  "deployments": {
+    "AgentRegistry": "0x7Fdf0074C6e40c5B4ABDaBcE8397DaE284194331",
+    "RoboticsMarketplace": "0xFd6F3e01c60870a8978665fF2EE872861590bEc3"
+  },
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "timestamp": "2026-09-15"
+}
