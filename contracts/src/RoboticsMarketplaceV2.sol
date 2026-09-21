@@ -12,7 +12,7 @@ contract RoboticsMarketplaceV2 is Pausable {
     IERC20 public immutable paymentToken;
     IAgentRegistry public immutable agentRegistry;
     address public feeRecipient;
-    uint256 public feePercentage; // Basis points (100 = 1%)
+    uint256 public feePercentage;
 
     struct Asset {
         uint256 id;
@@ -58,6 +58,7 @@ contract RoboticsMarketplaceV2 is Pausable {
 
     function purchaseWithAgent(uint256 assetId, address agentAddress) external whenNotPaused {
         Asset storage asset = assets[assetId];
+        require(!asset.isSold, "Asset already sold");
         require(agentRegistry.isAgentActive(agentAddress), "Invalid agent");
 
         uint256 fee = (asset.price * feePercentage) / 10000;
@@ -74,16 +75,17 @@ contract RoboticsMarketplaceV2 is Pausable {
         emit AssetPurchased(assetId, msg.sender, agentAddress, asset.price);
     }
 
+    // CORRECCIÓN: Usar 'this.' para llamar a una función external
     function batchListAssets(string[] calldata ipfsURIs, uint256[] calldata prices) external whenNotPaused {
         require(ipfsURIs.length == prices.length, "Length mismatch");
         for (uint256 i = 0; i < ipfsURIs.length; i++) {
-            listAsset(ipfsURIs[i], prices[i]);
+            this.listAsset(ipfsURIs[i], prices[i]);
         }
     }
 
     function setFeePercentage(uint256 _feePercentage) external {
         require(msg.sender == owner, "Not owner");
-        require(_feePercentage <= 1000, "Max 10%"); // 1000 basis points = 10%
+        require(_feePercentage <= 1000, "Max 10%");
         feePercentage = _feePercentage;
         emit FeeUpdated(_feePercentage);
     }
