@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  x402-server:
+    build:
+      context: ./x402-server
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - ARBITRUM_SEPOLIA_RPC=${ARBITRUM_SEPOLIA_RPC}
+      - ROBINHOOD_TESTNET_RPC=${ROBINHOOD_TESTNET_RPC}
+      - PRIVATE_KEY=${PRIVATE_KEY}
+      - PINATA_JWT=${PINATA_JWT}
+      - ZERODEV_PROJECT_ID=${ZERODEV_PROJECT_ID}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_X402_SERVER_URL=http://x402-server:3001
+      - NEXT_PUBLIC_ALCHEMY_KEY=${ALCHEMY_API_KEY}
+    depends_on:
+      - x402-server
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  redis_data:
