@@ -327,6 +327,7 @@ This project follows [ETHSKILLS](https://ethskills.com) guidelines for productio
 - **Slither**: Static analysis for Solidity
 - **Foundry**: Testing and fuzzing
 - **OpenZeppelin**: Battle-tested contract libraries
+- **ZeroDev**: Account Abstraction (ERC-4337) for AI agent Session Keys and gasless human onboarding.
 
 ---
 
@@ -344,3 +345,4 @@ This project follows [ETHSKILLS](https://ethskills.com) guidelines for productio
 - **Slither**: Static analysis for Solidity (planned)
 - **Foundry**: Testing, fuzzing, and deployment
 - **OpenZeppelin**: Battle-tested contract libraries
+- **ZeroDev**: Account Abstraction (ERC-4337) for AI agent Session Keys and gasless human onboarding.
