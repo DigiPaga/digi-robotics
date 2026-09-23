@@ -25,3 +25,9 @@ You are an expert Ethereum developer following ETHSKILLS principles.
 - Follow x402 payment protocol standards
 - Ensure ERC-8004 compliance for agent identity
 - Use Arbitrum and Robinhood Chain best practices
+
+## Arbitrum L2 Specific Rules (from Arbitrum DApp Skill)
+- Always consider L1 calldata costs when designing storage layouts.
+- Use `estimateArbitrumGas` utility for any transaction simulation.
+- Assume block times are ~0.25s, but finality to L1 takes ~15 mins. Do not rely on immediate L1 finality for critical state changes.
+- When interacting with ERC20 on Arbitrum, remember that some tokens (like legacy USDC) may have different decimals or proxy behaviors. Always verify against the live fork.
