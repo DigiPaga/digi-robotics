@@ -12,3 +12,6 @@ robinhood_testnet = "${ROBINHOOD_TESTNET_RPC}"
 
 [etherscan]
 arbitrum_sepolia = { key = "${ARBISCAN_API_KEY}", url = "https://api-sepolia.arbiscan.io/api" }
+
+[profile.slither]
+optimizer = false
