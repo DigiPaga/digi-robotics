@@ -1,6 +1,6 @@
 # Retail User Journey: Data Collection  Monetization
 
-```mermaid
+`` mermaid
 
 Retail User Journey: Data Collection & Monetization
 sequenceDiagram
