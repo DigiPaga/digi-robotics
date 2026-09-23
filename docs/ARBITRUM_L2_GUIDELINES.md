@@ -23,3 +23,11 @@ Contracts are verified on Arbiscan using Foundry's `--verify` flag with the Ethe
 ## 5. Testing Strategy
 - Unit tests run locally via Anvil.
 - Integration tests fork the actual Arbitrum Sepolia state to ensure compatibility with real network conditions (e.g., actual USDC contract behavior).
+
+## 6. Future Roadmap: Arbitrum Stylus (Rust/WASM) Integration (V2)
+While the current V1 contracts are optimized in Solidity, V2 will leverage **Arbitrum Stylus** for compute-heavy, gas-intensive operations that are prohibitively expensive in the EVM:
+- **On-Chain ScanTech Validation**: Running lightweight Rust-based computer vision checks directly on-chain to verify dataset quality (e.g., motion blur detection, hand visibility) before releasing x402 payments.
+- **Complex ZK Proof Verification**: Using Stylus to verify Zero-Knowledge proofs for privacy-preserving data submissions at a fraction of the EVM gas cost.
+- **High-Frequency Agent Matching**: Rust-based order book or matching engine logic for the B2B bounty system, enabling sub-cent transaction fees for micro-bounties.
+
+*Reference: [Arbitrum Stylus Quickstart](https://docs.arbitrum.io/stylus/quickstart)*
