@@ -327,3 +327,20 @@ This project follows [ETHSKILLS](https://ethskills.com) guidelines for productio
 - **Slither**: Static analysis for Solidity
 - **Foundry**: Testing and fuzzing
 - **OpenZeppelin**: Battle-tested contract libraries
+
+---
+
+## 🎓 ETHSKILLS Integration
+
+This project follows [ETHSKILLS](https://ethskills.com) guidelines for production-grade Ethereum development.
+
+### Core Principles Applied:
+- ✅ **Security First**: All contracts audited against common vulnerabilities
+- ✅ **Gas Optimization**: Efficient storage and computation patterns
+- ✅ **Testing Coverage**: Comprehensive unit and fuzz tests with Foundry
+- ✅ **Documentation**: NatSpec comments and inline explanations
+
+### Tools Used:
+- **Slither**: Static analysis for Solidity (planned)
+- **Foundry**: Testing, fuzzing, and deployment
+- **OpenZeppelin**: Battle-tested contract libraries
