@@ -1,3 +1,6 @@
+# AI Agent Purchase Journey: Autonomous x402 Commerce
+
+```mermaid
 AI Agent Purchase Journey: Autonomous x402 Commerce
 sequenceDiagram
     participant AI as AI Agent (with Session Key)
@@ -24,3 +27,4 @@ sequenceDiagram
     BE->>IPFS: 14. Fetch decryption key for CID
     BE-->>FE: 15. HTTP 200 OK { ipfsGatewayUrl, decryptionKey }
     FE->>AI: 16. Dataset decrypted and fed to robotics training pipeline
+```

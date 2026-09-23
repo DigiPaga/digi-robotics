@@ -1,3 +1,6 @@
+# Retail User Journey: Data Collection  Monetization
+
+```mermaid
 Retail User Journey: Data Collection & Monetization
 sequenceDiagram
     participant U as Retail User (Smartphone)
@@ -19,3 +22,4 @@ sequenceDiagram
     SC->>BE: 9. PaymentSettled Event triggered (USDC)
     BE->>ZD: 10. Notify user of successful sale
     ZD->>U: 11. USDC balance updated + Yield starts accruing
+```

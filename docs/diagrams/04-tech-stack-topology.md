@@ -1,3 +1,6 @@
+# Technology Stack  Chain Topology
+
+```mermaid
 Technology Stack & Chain Topology
 graph LR
     subgraph Layer 1: Base Settlement
@@ -46,3 +49,4 @@ graph LR
     classDef infra fill:#161c29,stroke:#64748b,stroke-width:1px,color:#cbd5e1
     class ARB,RH,ETH chain
     class NEXT,EXP,IPFS,DB,ZB,ZP,ZS infra
+```

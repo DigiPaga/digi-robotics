@@ -1,6 +1,9 @@
 # System Architecture Overview
 
 ```mermaid
+# System Architecture Overview
+
+```mermaid
 graph TD
     subgraph Client Layer
         A[Retail User / Data Collector]
@@ -46,3 +49,4 @@ graph TD
     K -.->|On-chain Events| I
     A -->|9. Encrypted Upload| L
     L --> M
+```
