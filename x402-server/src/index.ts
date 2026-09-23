@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { purchaseRouter } from './routes/purchase';
 import { bountyRouter } from './routes/bounties';
 import { submissionRouter } from './routes/submissions';
+import { hardwareRouter } from './routes/hardware';
 import { orchestrator } from './agents/orchestrator';
 import logger from './utils/logger';
 
@@ -18,12 +19,8 @@ app.use(express.json());
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
-    message: 'DigiRobotics x402 Backend with Autonomous Agents',
+    message: 'DigiRobotics x402 Backend with Autonomous Agents & Hardware Marketplace',
     timestamp: new Date().toISOString(),
-    agents: {
-      scout: 'active',
-      b2bOutreach: 'active',
-    },
   });
 });
 
@@ -40,10 +37,11 @@ app.post('/api/agents/b2b/run', async (req, res) => {
   res.json({ success: true, message: 'B2B campaign completed' });
 });
 
-// Rutas de la aplicación
+// Application Routes
 app.use('/api/purchase', purchaseRouter);
 app.use('/api/bounties', bountyRouter);
 app.use('/api/submissions', submissionRouter);
+app.use('/api/hardware', hardwareRouter); // NEW: Hardware marketplace
 
 app.use((err: any, req: any, res: any, next: any) => {
   logger.error('Unhandled error', err);
@@ -53,9 +51,7 @@ app.use((err: any, req: any, res: any, next: any) => {
 app.listen(PORT, () => {
   logger.info(`x402 Server listening on port ${PORT}`);
   logger.info(`📊 Health: http://localhost:${PORT}/health`);
-  logger.info(`🤖 Autonomous Agents: Starting...`);
-  
-  // Start autonomous agents
+  logger.info(`🛠️ Hardware: http://localhost:${PORT}/api/hardware`);
   orchestrator.start();
 });
 
