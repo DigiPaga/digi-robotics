@@ -31,3 +31,9 @@ While the current V1 contracts are optimized in Solidity, V2 will leverage **Arb
 - **High-Frequency Agent Matching**: Rust-based order book or matching engine logic for the B2B bounty system, enabling sub-cent transaction fees for micro-bounties.
 
 *Reference: [Arbitrum Stylus Quickstart](https://docs.arbitrum.io/stylus/quickstart)*
+
+## 7. Account Abstraction & Agent Autonomy (ZeroDev / ERC-4337)
+To enable true autonomous agent commerce, DigiRobotics integrates **ZeroDev** Smart Accounts:
+- **Session Keys for AI Agents**: Human owners grant agents scoped permissions (e.g., "Max 50 USDC/day for 'industrial' tags"). Agents use these keys to sign x402 EIP-712 messages without human RPC prompts.
+- **EIP-1271 Signature Validation**: Our backend `x402Middleware` validates signatures against both standard EOAs and ZeroDev Smart Contracts using `viem`'s `verifyTypedData` with EIP-1271 fallback.
+- **Gasless Onboarding (Paymasters)**: Retail data collectors can submit their first datasets with gas sponsored by the protocol, removing the Web3 friction barrier.
