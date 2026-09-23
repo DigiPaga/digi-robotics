@@ -1,0 +1,28 @@
+name: Arbitrum Fork Testing
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-arbitrum-fork:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Install dependencies
+        run: cd contracts && forge install
+
+      - name: Run Arbitrum Sepolia Fork Tests
+        env:
+          ARBITRUM_SEPOLIA_RPC: ${{ secrets.ARBITRUM_SEPOLIA_RPC }}
+        run: |
+          cd contracts
+          # Test against real Arbitrum Sepolia state (e.g., USDC contract interactions)
+          forge test --fork-url $ARBITRUM_SEPOLIA_RPC --match-contract ForkTest -vvv
