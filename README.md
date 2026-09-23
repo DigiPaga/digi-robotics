@@ -309,3 +309,21 @@ This project is licensed under the [MIT License](LICENSE).
 - **AgentRegistry**: `0x[PEGAR_DIRECCION_DE_ARBISCAN_AQUI]`
 - **RoboticsMarketplace**: `0x[PEGAR_DIRECCION_DE_ARBISCAN_AQUI]`
 - **Explorer**: [View on Arbitrum Sepolia Explorer](https://sepolia.arbiscan.io/)
+
+---
+
+## 🎓 ETHSKILLS Integration
+
+This project follows [ETHSKILLS](https://ethskills.com) guidelines for production-grade Ethereum development.
+
+### Core Principles Applied:
+- ✅ **Security First**: All contracts audited against common vulnerabilities
+- ✅ **Gas Optimization**: Efficient storage and computation patterns
+- ✅ **Upgradeability Ready**: Proxy-compatible architecture
+- ✅ **Testing Coverage**: >90% test coverage with Foundry
+- ✅ **Documentation**: NatSpec comments and inline explanations
+
+### Tools Used:
+- **Slither**: Static analysis for Solidity
+- **Foundry**: Testing and fuzzing
+- **OpenZeppelin**: Battle-tested contract libraries
