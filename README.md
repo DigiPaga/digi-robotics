@@ -306,8 +306,8 @@ This project is licensed under the [MIT License](LICENSE).
 - **Status**: Deployment script ready, awaiting testnet faucet funds.
 
 ### ✅ Arbitrum Sepolia (Chain ID: 421614)
-- **AgentRegistry**: `0x[PEGAR_DIRECCION_DE_ARBISCAN_AQUI]`
-- **RoboticsMarketplace**: `0x[PEGAR_DIRECCION_DE_ARBISCAN_AQUI]`
+- **AgentRegistry**: `0x7Fdf0074C6e40c5B4ABDaBcE8397DaE284194331`
+- **RoboticsMarketplace**: `0x7Fdf0074C6e40c5B4ABDaBcE8397DaE284194331`
 - **Explorer**: [View on Arbitrum Sepolia Explorer](https://sepolia.arbiscan.io/)
 
 ---
