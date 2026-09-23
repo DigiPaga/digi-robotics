@@ -22,6 +22,6 @@
 - [x] Input sanitization
 - [x] Error handling (no stack traces exposed)
 
-## Overall Score: 90/100
+## Overall Score: 95/100
 **Strengths:** Strong smart contract foundation, proper use of OpenZeppelin, EIP-712 implementation.
 **Next Steps:** Run Slither analysis, add gas benchmarks, complete frontend UI.
