@@ -1,9 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { assetRouter } from './routes/assets';
 import { catalogRouter } from './routes/catalog';
-import { verifyRouter } from './routes/verify';
+import { purchaseRouter } from './routes/purchase';
+import logger from './utils/logger';
 
 dotenv.config();
 
@@ -13,29 +13,21 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// Health check
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    message: 'DigiPaga x402 Server is running',
-    timestamp: new Date().toISOString()
-  });
+  res.json({ status: 'ok', message: 'DigiRobotics x402 Backend is running', timestamp: new Date().toISOString() });
 });
 
-// API Routes
-app.use('/api/assets', assetRouter);
+// Rutas de la aplicación
 app.use('/api/catalog', catalogRouter);
-app.use('/api/verify', verifyRouter);
+app.use('/api/purchase', purchaseRouter);
 
-// Error handling
 app.use((err: any, req: any, res: any, next: any) => {
-  console.error('Server error:', err);
+  logger.error('Unhandled error', err);
   res.status(500).json({ error: 'Internal server error' });
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 x402 Server running on port ${PORT}`);
-  console.log(`📊 Health: http://localhost:${PORT}/health`);
+  logger.info(`x402 Server listening on port ${PORT}`);
 });
 
 export default app;
