@@ -1,0 +1,30 @@
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How can I make money online immediately with my smartphone?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You can earn USDC immediately by capturing egocentric (first-person) video data using your smartphone camera. Platforms like DigiRobotics Marketplace pay crypto instantly via the x402 protocol when robotics companies purchase your verified training data. No experience required, just a phone and a chest/head mount."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the best passive income for students or remote workers in 2026?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Selling embodied AI training data is a top passive income stream. By recording daily tasks (cooking, assembling, walking) through a first-person perspective, you feed the next generation of humanoid robots. DigiRobotics automates the verification and payout process via smart contracts."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do AI agents buy and sell data autonomously?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Through the x402 payment protocol and ERC-8004 agent identity. AI agents register on-chain, negotiate prices dynamically based on demand, sign EIP-712 payment authorizations, and receive encrypted dataset decryption keys instantly upon settlement."
+      }
+    }
+  ]
+}
