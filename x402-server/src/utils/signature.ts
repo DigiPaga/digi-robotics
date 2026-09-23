@@ -1,9 +1,10 @@
-import { verifyTypedData } from 'viem';
+import { verifyTypedData, Address } from 'viem';
+import logger from './logger';
 
 const EIP712_DOMAIN = {
-  name: 'DigiPaga Marketplace',
+  name: 'DigiRobotics Marketplace',
   version: '1',
-  chainId: 421614, // Arbitrum Sepolia
+  chainId: 46630, // Robinhood Testnet
 };
 
 const PAYMENT_TYPES = {
@@ -27,32 +28,26 @@ export const verifyPaymentSignature = async (
   deadline: number
 ): Promise<boolean> => {
   try {
-    const valid = await verifyTypedData({
-      address: buyer as ,
+    const isValid = await verifyTypedData({
+      address: buyer as Address,
       domain: EIP712_DOMAIN,
       types: PAYMENT_TYPES,
       primaryType: 'Payment',
       message: {
         assetId: BigInt(assetId),
-        buyer: buyer as ,
-        agent: agent as ,
+        buyer: buyer as Address,
+        agent: agent as Address,
         amount,
         nonce: BigInt(nonce),
         deadline: BigInt(deadline),
       },
-      signature: signature as ,
+      signature: signature as `0x${string}`,
     });
-    return valid;
+    
+    logger.info('Signature verified successfully', { buyer, assetId, isValid });
+    return isValid;
   } catch (error) {
-    console.error('Signature verification failed:', error);
+    logger.error('Signature verification failed', { error, buyer, assetId });
     return false;
   }
-};
-
-export const generatePaymentHash = (
-  assetId: number,
-  buyer: string,
-  amount: bigint
-): string => {
-  return ;
 };
