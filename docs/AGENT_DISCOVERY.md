@@ -17,3 +17,8 @@ GET `/api/submissions?category=industrial&minScore=85&status=verified`
 3. Action: Agent signs EIP-712 Payment message (assetId, buyer, amount, nonce, deadline)
 4. Submit: POST `/api/purchase/{id}` with headers: X-Agent-Address, X-Signature, X-Payment-Proof
 5. Result: 200 OK with ipfsGatewayUrl and decryptionKey.
+
+## 7. Future Roadmap: Zero-Knowledge Data Verification (V2)
+To maximize privacy for data collectors, DigiRobotics is integrating ZK-SNARKs. 
+- **Proof of Quality**: Collectors can generate a ZK proof that their video meets specific criteria (e.g., "contains human hands", "resolution >= 1080p") *without* revealing the raw video.
+- **Conditional x402 Release**: The smart contract will only release the USDC bounty if the ZK proof verifies successfully, creating a fully trustless, privacy-preserving data economy.
