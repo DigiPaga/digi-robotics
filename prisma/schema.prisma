@@ -1,0 +1,54 @@
+// DigiRobotics Database Schema (Prisma)
+// Defines the data model for production deployment.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Agent {
+  id            String   @id @default(uuid())
+  address       String   @unique
+  agentType     String
+  trustScore    Int      @default(100)
+  metadataURI   String?
+  submissions   Submission[]
+  purchases     Purchase[]
+  createdAt     DateTime @default(now())
+}
+
+model Submission {
+  id              String   @id @default(uuid())
+  uploaderAddress String
+  title           String
+  category        String
+  qualityScore    Int
+  ipfsCid         String
+  status          String   @default("pending")
+  priceUSDC       Float
+  uploader        Agent    @relation(fields: [uploaderAddress], references: [address])
+  createdAt       DateTime @default(now())
+}
+
+model Bounty {
+  id              String   @id @default(uuid())
+  requesterAddress String
+  title           String
+  requiredTags    String[]
+  bountyAmount    Float
+  status          String   @default("open")
+  createdAt       DateTime @default(now())
+}
+
+model Purchase {
+  id              String   @id @default(uuid())
+  assetId         String
+  buyerAddress    String
+  amountUSDC      Float
+  txHash          String?
+  createdAt       DateTime @default(now())
+}
