@@ -2,7 +2,6 @@
 
 ```mermaid
 
-
 graph LR
     subgraph L1 ["Layer 1: Base Settlement"]
         ETH((Ethereum Mainnet))
