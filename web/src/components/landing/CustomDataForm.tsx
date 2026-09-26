@@ -2,6 +2,7 @@
 
 import { LoaderCircle, Send } from "lucide-react";
 import { useState } from "react";
+import { primaryAction } from "@/components/ui/Primitives";
 
 type Status = { kind: "idle" | "loading" | "success" | "error"; message: string };
 const fieldClass = "mt-2 min-h-13 max-w-4xl mx-auto rounded-lg border border-white/15 bg-[#111721] px-4 py-3 text-[17px] text-white placeholder:text-white/35 transition focus:border-[var(--primary)] focus:outline-none";
@@ -34,8 +35,8 @@ export function CustomDataForm() {
     <div className="lg:col-span-2"><label htmlFor="scenario" className="font-heading text-base">Task or scenario</label><textarea required minLength={20} id="scenario" name="scenario" rows={4} placeholder="Describe the task, environment, and observable outcome." className={fieldClass} /></div>
     <div className="lg:col-span-2"><label htmlFor="requirements" className="font-heading text-base">Additional requirements <span className="text-white/45">(optional)</span></label><textarea id="requirements" name="requirements" rows={3} placeholder="Capture devices, camera views, acceptance criteria, or constraints." className={fieldClass} /></div>
     <div className="flex flex-col items-start gap-4 lg:col-span-2 sm:flex-row sm:items-center">
-      <button disabled={status.kind === "loading"} className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-7 py-3 text-[15px] font-semibold uppercase tracking-[.04em] text-[#10150f] transition hover:brightness-110 disabled:cursor-wait disabled:opacity-60">{status.kind === "loading" ? <LoaderCircle className="animate-spin" size={18} aria-hidden="true" /> : <Send size={18} aria-hidden="true" />}{status.kind === "loading" ? "Submitting…" : "Submit data request"}</button>
-      <p id="form-status" role="status" aria-live="polite" className={`text-[15px] leading-6 ${status.kind === "success" ? "text-[var(--primary)]" : status.kind === "error" ? "text-[#ff9e91]" : "text-white/55"}`}>{status.message || "Requests are submitted only when a persistence endpoint is configured."}</p>
+      <button disabled={status.kind === "loading" || status.kind === "success"} className={`inline-flex min-h-13 items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-7 py-3 text-[15px] font-semibold uppercase tracking-[.04em] text-[var(--page-bg)] disabled:cursor-default disabled:opacity-60 ${primaryAction}`}>{status.kind === "loading" ? <LoaderCircle className="animate-spin" size={18} aria-hidden="true" /> : <Send size={18} aria-hidden="true" />}{status.kind === "loading" ? "Submitting…" : status.kind === "success" ? "✓ Request received" : "Submit data request"}</button>
+      <p id="form-status" role="status" aria-live="polite" className={`text-[15px] leading-6 ${status.kind === "success" ? "text-[var(--primary)]" : status.kind === "error" ? "text-[#ff9e91]" : "text-white/55"}`}>{status.message || "We’ll use your request to plan a targeted contributor campaign."}</p>
     </div>
   </form>;
 }

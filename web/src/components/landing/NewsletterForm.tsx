@@ -2,6 +2,7 @@
 
 import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
+import { secondaryAction } from "@/components/ui/Primitives";
 
 type State = "idle" | "submitting" | "success" | "error";
 
@@ -48,7 +49,7 @@ export function NewsletterForm() {
         placeholder="EMAIL ADDRESS"
         className="min-h-13 min-w-0 flex-1 rounded-full border border-white/15 bg-[#111721] px-5 py-3 font-mono text-[12px] uppercase tracking-[.1em] text-white placeholder:text-white/40 transition focus:border-[var(--primary)] focus:outline-none disabled:opacity-60"
       />
-      <button type="submit" disabled={state === "submitting" || state === "success"} className="inline-flex min-h-13 shrink-0 items-center justify-center gap-2 rounded-full border border-white/25 px-6 py-3 font-mono text-[11px] font-medium uppercase tracking-[.1em] text-white transition hover:border-[var(--primary)] hover:text-[var(--primary)] disabled:cursor-default disabled:border-[var(--primary)]/40 disabled:text-[var(--primary)]">
+      <button type="submit" disabled={state === "submitting" || state === "success"} className={`inline-flex min-h-13 shrink-0 items-center justify-center gap-2 rounded-full border border-white/25 px-6 py-3 font-mono text-[11px] font-medium uppercase tracking-[.1em] text-white hover:text-[var(--primary)] disabled:cursor-default disabled:border-[var(--primary)]/40 disabled:text-[var(--primary)] ${secondaryAction}`}>
         {state === "submitting" ? <><LoaderCircle size={16} className="animate-spin" aria-hidden="true" />Joining…</> : state === "success" ? "✓ You're on the list" : "Get marketplace updates"}
       </button>
       <p id="newsletter-status" role="status" aria-live="polite" className={`text-left text-[13px] leading-5 sm:absolute sm:left-0 sm:top-full sm:mt-2 ${state === "error" ? "text-[#ff9e91]" : "text-[var(--primary)]"}`}>{message}</p>

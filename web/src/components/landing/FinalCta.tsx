@@ -1,5 +1,5 @@
 import { AuthButton } from "@/components/auth/AuthButton";
-import { SecondaryLink, shell } from "@/components/ui/Primitives";
+import { SecondaryLink, primaryAction, shell } from "@/components/ui/Primitives";
 import { NewsletterForm } from "./NewsletterForm";
 
 export function FinalCta() {
@@ -11,7 +11,7 @@ export function FinalCta() {
       <h2 className="mx-auto mt-6 max-w-5xl font-display text-[clamp(3rem,7vw,7.8rem)] font-bold uppercase leading-[.9] tracking-[-.06em]">The first DigiRobotics campaigns are coming.</h2>
       <p className="mx-auto mt-7 max-w-2xl text-[19px] leading-[1.5] text-[var(--muted-foreground)] lg:text-[21px]">Register now to contribute first-person data, request a custom campaign, or receive marketplace launch updates.</p>
       <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-        <AuthButton className="inline-flex min-h-13 items-center justify-center rounded-full bg-[var(--primary)] px-7 py-3 text-[15px] font-semibold uppercase tracking-[.04em] text-[#10150f] motion-safe:animate-[breathe_2.6s_ease-in-out_infinite]">Join as a contributor ↗</AuthButton>
+        <AuthButton className={`inline-flex min-h-13 items-center justify-center rounded-full bg-[var(--primary)] px-7 py-3 text-[15px] font-semibold uppercase tracking-[.04em] text-[var(--page-bg)] ${primaryAction}`}>Join as a contributor ↗</AuthButton>
         <SecondaryLink href="#custom-data">Request custom data</SecondaryLink>
       </div>
       <NewsletterForm />
