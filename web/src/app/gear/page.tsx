@@ -15,7 +15,7 @@ export default function GearPage() {
       <div className={shell}>
         <Eyebrow>Capture gear / Launch catalog</Eyebrow>
         <SectionTitle className="mt-5">Tools for high-quality human perspective.</SectionTitle>
-        <p className="mt-6 max-w-3xl text-[19px] leading-[1.5] text-[var(--muted-foreground)] lg:text-[21px]">Browse the equipment we’re evaluating for future data campaigns. Everything is coming soon; join an item waitlist and we’ll notify you as access opens.</p>
+        <p className="mt-6 max-w-3xl text-[19px] leading-[1.5] text-[var(--muted-foreground)] lg:text-[21px]">Order selected demo gear with mUSDG on Arbitrum Sepolia, or join the waitlist for equipment still in evaluation.</p>
         <GearCatalog />
       </div>
     </section>
