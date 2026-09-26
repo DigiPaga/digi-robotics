@@ -1,5 +1,0 @@
-User-agent: *
-Allow: /
-Allow: /marketplace/
-Disallow: /api/
-Sitemap: https://digirobotics.com/sitemap.xml
