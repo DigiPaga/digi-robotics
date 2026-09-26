@@ -7,6 +7,7 @@ import "@fontsource/ubuntu/500.css";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { AuthFlowProvider } from "@/components/auth/AuthFlowProvider";
+import { ThirdwebSessionProvider } from "@/components/auth/ThirdwebSessionProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -38,7 +39,19 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en">
-      <body><AuthFlowProvider>{children}</AuthFlowProvider></body>
+      <body>
+        {/*
+          Thirdweb used to mount only inside the sign-in modal. Closing that modal
+          destroyed its React context before the embedded wallet could restore its
+          durable browser session. Keeping one provider at the app root lets
+          Thirdweb reconnect its persisted in-app wallet across routes and refreshes.
+          This flow does not issue an app JWT or auth cookie, so cookie domain,
+          SameSite, Secure, and maxAge settings do not apply here.
+        */}
+        <ThirdwebSessionProvider>
+          <AuthFlowProvider>{children}</AuthFlowProvider>
+        </ThirdwebSessionProvider>
+      </body>
     </html>
   );
 }
