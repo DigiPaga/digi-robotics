@@ -1,15 +1,17 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { AuthButton } from "@/components/auth/AuthButton";
+import { primaryAction, secondaryAction } from "@/components/ui/Primitives";
 
 const links = [
-  { label: "BECOME A CONTRIBUTOR", href: "#contributors" },
-  { label: "ENTER MARKETPLACE", href: "#marketplace" },
-  { label: "REQUEST CUSTOM DATA", href: "#custom-data" },
-  { label: "GADGETS FOR CAPTURE", href: "#capture-gear" },
+  { label: "Become a contributor", href: "/#contributors" },
+  { label: "Enter marketplace", href: "/#marketplace" },
+  { label: "Request custom data", href: "/#custom-data" },
+  { label: "Gadgets for capture", href: "/gear" },
 ];
 
 export function Navbar() {
@@ -51,32 +53,32 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-white/[.08] bg-[#141923]/95 backdrop-blur-lg">
       <nav aria-label="Primary navigation" className="mx-auto flex h-[76px] max-w-[1440px] items-center gap-6 px-5 sm:px-8 lg:px-12 xl:px-16">
-        <a href="#top" aria-label="DigiRobotics home" className="mr-auto shrink-0">
+        <Link href="/#top" aria-label="DigiRobotics home" className="mr-auto shrink-0">
           <Image src="/digirobotics/brand/digirobotics-logo.png" alt="DigiRobotics" width={210} height={48} className="h-auto w-[168px] lg:w-[190px]" priority />
-        </a>
+        </Link>
 
         <div className="hidden items-center gap-8 xl:flex">
-          <a href="#contributors" className="shrink-0 whitespace-nowrap py-3 font-mono text-[10px] font-medium uppercase tracking-[.1em] text-white/80 transition hover:text-[var(--primary)]">BECOME A CONTRIBUTOR</a>
+          <Link href="/#contributors" className="shrink-0 whitespace-nowrap py-3 text-[13px] font-medium tracking-normal text-white/80 transition-colors duration-300 ease-out hover:text-[var(--primary)]">Become a contributor</Link>
           <div className="relative">
-            <button aria-expanded={menu === "marketplace"} aria-controls="marketplace-menu" onClick={() => setMenu(menu === "marketplace" ? null : "marketplace")} className="flex min-h-11 shrink-0 items-center gap-1 whitespace-nowrap font-mono text-[10px] font-medium uppercase tracking-[.1em] text-white/80 transition hover:text-[var(--primary)]">ENTER MARKETPLACE <ChevronDown size={14} aria-hidden="true" /></button>
+            <button aria-expanded={menu === "marketplace"} aria-controls="marketplace-menu" onClick={() => setMenu(menu === "marketplace" ? null : "marketplace")} className="flex min-h-11 shrink-0 items-center gap-1 whitespace-nowrap text-[13px] font-medium tracking-normal text-white/80 transition-colors duration-300 ease-out hover:text-[var(--primary)]">Enter marketplace <ChevronDown size={14} aria-hidden="true" /></button>
             {menu === "marketplace" ? <div id="marketplace-menu" className="absolute left-0 top-[calc(100%+14px)] w-[340px] rounded-xl border border-white/10 bg-[#171d29] p-5 shadow-2xl">
               <p className="font-mono text-[11px] uppercase tracking-[.16em] text-[var(--primary)]">Phase 1 preview</p>
               <p className="mt-3 text-base leading-6 text-white/75">Human activity · Software interaction · Sensor capture</p>
-              <a href="#marketplace" onClick={() => setMenu(null)} className="mt-5 inline-flex min-h-11 items-center text-[13px] font-semibold uppercase tracking-[.08em] text-white hover:text-[var(--primary)]">Explore the marketplace →</a>
+              <Link href="/#marketplace" onClick={() => setMenu(null)} className="mt-5 inline-flex min-h-11 items-center text-[13px] font-semibold text-white transition-colors duration-300 ease-out hover:text-[var(--primary)]">Explore the marketplace →</Link>
             </div> : null}
           </div>
           <div className="relative">
-            <button aria-expanded={menu === "data"} aria-controls="data-menu" onClick={() => setMenu(menu === "data" ? null : "data")} className="flex min-h-11 shrink-0 items-center gap-1 whitespace-nowrap font-mono text-[10px] font-medium uppercase tracking-[.1em] text-white/80 transition hover:text-[var(--primary)]">REQUEST CUSTOM DATA <ChevronDown size={14} aria-hidden="true" /></button>
+            <button aria-expanded={menu === "data"} aria-controls="data-menu" onClick={() => setMenu(menu === "data" ? null : "data")} className="flex min-h-11 shrink-0 items-center gap-1 whitespace-nowrap text-[13px] font-medium tracking-normal text-white/80 transition-colors duration-300 ease-out hover:text-[var(--primary)]">Request custom data <ChevronDown size={14} aria-hidden="true" /></button>
             {menu === "data" ? <div id="data-menu" className="absolute left-0 top-[calc(100%+14px)] w-[320px] rounded-xl border border-white/10 bg-[#171d29] p-5 shadow-2xl">
-              {[["Audiovisual Data", "video + audio"], ["Software Interaction Data", "screens + workflows"], ["Hardware and Sensor Data", "devices + signals"]].map(([title, note]) => <a key={title} href="#custom-data" onClick={() => setMenu(null)} className="block border-b border-white/[.07] py-3 last:border-0"><span className="block font-heading text-base">{title}</span><span className="font-mono text-[10px] uppercase tracking-[.12em] text-white/45">{note}</span></a>)}
+              {[["Audiovisual Data", "video + audio"], ["Software Interaction Data", "screens + workflows"], ["Hardware and Sensor Data", "devices + signals"]].map(([title, note]) => <Link key={title} href="/#custom-data" onClick={() => setMenu(null)} className="block border-b border-white/[.07] py-3 transition-colors duration-300 ease-out hover:text-[var(--primary)] last:border-0"><span className="block font-heading text-base">{title}</span><span className="font-mono text-[10px] uppercase tracking-[.12em] text-white/45">{note}</span></Link>)}
             </div> : null}
           </div>
-          <a href="#capture-gear" className="shrink-0 whitespace-nowrap py-3 font-mono text-[10px] font-medium uppercase tracking-[.1em] text-white/80 transition hover:text-[var(--primary)]">GADGETS FOR CAPTURE</a>
+          <Link href="/gear" className="shrink-0 whitespace-nowrap py-3 text-[13px] font-medium tracking-normal text-white/80 transition-colors duration-300 ease-out hover:text-[var(--primary)]">Gadgets for capture</Link>
         </div>
 
         <div className="hidden items-center gap-6 sm:flex">
-          <AuthButton className="min-h-11 shrink-0 whitespace-nowrap font-mono text-[10px] font-medium uppercase tracking-[.1em] text-white/75 transition hover:text-[var(--primary)]">Sign in</AuthButton>
-          <AuthButton className="min-h-11 shrink-0 whitespace-nowrap rounded-full bg-[var(--primary)] px-5 font-mono text-[11px] font-semibold uppercase tracking-[.1em] text-[#11160f] transition hover:brightness-110">Join now</AuthButton>
+          <AuthButton className={'min-h-11 shrink-0 whitespace-nowrap rounded-full border border-transparent px-3 text-[13px] font-medium tracking-normal text-white/75 ' + secondaryAction + ' hover:text-[var(--primary)]'}>Sign in</AuthButton>
+          <AuthButton className={'min-h-11 shrink-0 whitespace-nowrap rounded-full bg-[var(--primary)] px-5 text-[13px] font-semibold tracking-normal text-[var(--page-bg)] ' + primaryAction}>Join now</AuthButton>
         </div>
         <button ref={menuButtonRef} aria-label="Open navigation" aria-expanded={mobileOpen} aria-controls="mobile-nav" onClick={() => setMobileOpen(true)} className="grid size-11 place-items-center rounded-full border border-white/15 xl:hidden"><Menu aria-hidden="true" size={21} /></button>
       </nav>
@@ -87,9 +89,9 @@ export function Navbar() {
           <button aria-label="Close navigation" onClick={() => setMobileOpen(false)} className="grid size-11 place-items-center rounded-full border border-white/15"><X aria-hidden="true" size={21} /></button>
         </div>
         <div className="flex flex-col py-7">
-          {links.map((link, index) => <a key={link.href} href={link.href} onClick={() => setMobileOpen(false)} className="flex min-h-16 items-center justify-between border-b border-white/[.08] font-heading text-lg"><span className="font-mono text-[11px] text-[var(--primary)]">0{index + 1}</span>{link.label}</a>)}
+          {links.map((link, index) => <Link key={link.href} href={link.href} onClick={() => setMobileOpen(false)} className="flex min-h-16 items-center justify-between border-b border-white/[.08] text-lg font-medium"><span className="font-mono text-[11px] text-[var(--primary)]">0{index + 1}</span>{link.label}</Link>)}
         </div>
-        <AuthButton onClick={() => setMobileOpen(false)} className="min-h-14 w-full rounded-full bg-[var(--primary)] px-6 text-[15px] font-semibold uppercase text-[#11160f]">Join now</AuthButton>
+        <AuthButton onClick={() => setMobileOpen(false)} className={'min-h-14 w-full rounded-full bg-[var(--primary)] px-6 text-[15px] font-semibold text-[var(--page-bg)] ' + primaryAction}>Join now</AuthButton>
       </div> : null}
     </header>
   );
