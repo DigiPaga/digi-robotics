@@ -346,3 +346,14 @@ This project follows [ETHSKILLS](https://ethskills.com) guidelines for productio
 - **Foundry**: Testing, fuzzing, and deployment
 - **OpenZeppelin**: Battle-tested contract libraries
 - **ZeroDev**: Account Abstraction (ERC-4337) for AI agent Session Keys and gasless human onboarding.
+
+---
+
+## 🤝 Hackathon Sponsors & Integrations
+
+This project is built leveraging the best Web3 infrastructure, with special thanks to our hackathon sponsors:
+
+- **Paxos:** We utilize **USDG** and **PYUSD** as the primary stablecoin settlement layers for creator payouts, ensuring regulatory compliance and instant finality.
+- **QuickNode:** Powers our high-performance, low-latency RPC connections to Arbitrum and Robinhood Chain, ensuring our AI agents never experience timeout failures during x402 settlements.
+- **Dune Analytics:** We track on-chain marketplace metrics (Total Data Volume, Active Agents, Creator Earnings) via our [Dune Dashboard](https://dune.com/your-dashboard-link) *(Link to be updated post-deployment)*.
+- **ZeroDev:** Enables true agentic autonomy via ERC-4337 Session Keys and gasless onboarding for retail data collectors.
