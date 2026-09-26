@@ -19,7 +19,7 @@ const datasets: Dataset[] = [
 export function MarketplaceSection() {
   return <section id="marketplace" className="scroll-mt-24 py-24 sm:py-32 lg:py-40">
     <div className={shell}>
-      <Reveal><Eyebrow>02 / Training data marketplace</Eyebrow><SectionTitle className="mt-5">Real-world skills, ready for robotics.</SectionTitle><p className="mt-6 max-w-2xl text-[19px] leading-[1.5] text-[var(--muted-foreground)] lg:text-[21px]">Preview first-person task data designed for perception, planning, manipulation, and embodied AI research.</p></Reveal>
+      <Reveal><Eyebrow>02 / Training data marketplace</Eyebrow><SectionTitle className="mt-5">5.4 Billion Smartphones. One New Way to Earn.</SectionTitle><p className="mt-6 max-w-3xl text-[19px] leading-[1.5] text-[var(--muted-foreground)] lg:text-[21px]">The next era of content creation is robotics training data. Get paid in stablecoins for capturing it. Preview first-person task data designed for perception, planning, manipulation, and embodied AI research.</p></Reveal>
       <div className="mt-14 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {datasets.map(({ title, category, copy, action, icon: Icon }, index) => <article key={title} className="group overflow-hidden rounded-2xl border border-white/[.09] bg-[var(--surface)] transition duration-500 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-1 hover:border-[var(--primary)]/55 focus-within:border-[var(--primary)]/55">
           <div className="relative aspect-[8/5] overflow-hidden border-b border-white/[.08] bg-[#10151e]">
