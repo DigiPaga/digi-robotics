@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { Check, Radio, Upload, WalletCards } from "lucide-react";
 import { AuthButton } from "@/components/auth/AuthButton";
-import { Eyebrow, SectionTitle, shell } from "@/components/ui/Primitives";
+import { Eyebrow, SectionTitle, primaryAction, shell } from "@/components/ui/Primitives";
 import { Reveal } from "@/components/ui/Reveal";
 
 const steps = [
@@ -20,7 +20,7 @@ export function ContributorSection() {
         <ol className="mt-9 border-t border-white/10">
           {steps.map(([number, label, description, Icon]) => <li key={number} className="grid min-h-24 grid-cols-[42px_1fr_32px] items-center gap-3 border-b border-white/10 py-4"><span className="font-mono text-[12px] text-[var(--primary)]">{number}</span><span><strong className="block font-heading text-base font-medium sm:text-lg">{label}</strong><span className="mt-1 block text-[15px] leading-5 text-[var(--muted-foreground)] sm:text-[16px]">{description}</span></span><Icon aria-hidden="true" size={20} className="text-white/45" /></li>)}
         </ol>
-        <AuthButton className="mt-8 min-h-13 rounded-full bg-[var(--primary)] px-6 py-3 text-[15px] font-semibold uppercase tracking-[.04em] text-[#10150f] transition hover:brightness-110">Join the first capture campaigns ↗</AuthButton>
+        <AuthButton className={`mt-8 min-h-13 rounded-full bg-[var(--primary)] px-6 py-3 text-[15px] font-semibold uppercase tracking-[.04em] text-[var(--page-bg)] ${primaryAction}`}>Join the first capture campaigns ↗</AuthButton>
         <p className="mt-5 flex items-center gap-2 text-[16px] font-medium text-[var(--primary)]"><Check size={18} aria-hidden="true" /> Gmail or email OTP. No previous robotics experience required.</p>
       </Reveal>
       <Reveal delay={0.12} className="relative">
