@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { AuthFlowProvider } from "@/components/auth/AuthFlowProvider";
 import { ThirdwebSessionProvider } from "@/components/auth/ThirdwebSessionProvider";
+import { CartProvider } from "@/components/cart/CartProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -49,7 +50,9 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
           SameSite, Secure, and maxAge settings do not apply here.
         */}
         <ThirdwebSessionProvider>
-          <AuthFlowProvider>{children}</AuthFlowProvider>
+          <CartProvider>
+            <AuthFlowProvider>{children}</AuthFlowProvider>
+          </CartProvider>
         </ThirdwebSessionProvider>
       </body>
     </html>
