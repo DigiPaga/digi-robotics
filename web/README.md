@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DigiRobotics web app
 
-## Getting Started
+The production frontend for `digirobotics.xyz`, built with Next.js 16, React 19, Tailwind CSS 4, Thirdweb embedded wallets, ZeroDev, and Kit.
 
-First, run the development server:
+## Routes
+
+| Route | Purpose |
+| :--- | :--- |
+| `/` | Marketing landing page, contributor registration, marketplace preview, and custom-data intake. |
+| `/getting-started` | Post-registration contributor instructions. |
+| `/gear` | Filterable capture-equipment catalog and item-specific Kit waitlists. |
+| `/api/subscribe` | Newsletter and gear-waitlist subscription intake. |
+| `/api/data-requests` | Custom-data request intake backed by the shared Kit integration. |
+
+## Local setup
 
 ```bash
+npm install
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Purpose |
+| :--- | :--- |
+| `NEXT_PUBLIC_THIRDWEB_CLIENT_ID` | Enables Google and email-OTP embedded-wallet registration. |
+| `NEXT_PUBLIC_ZERODEV_PROJECT_ID` | ZeroDev project identifier. |
+| `NEXT_PUBLIC_ZERODEV_RPC_URL` | Optional ZeroDev-compatible RPC override. |
+| `NEXT_PUBLIC_CHAIN_ID` | Chain used by the Thirdweb connection UI. |
+| `KIT_API_KEY` | Server-only Kit API v4 key. |
+| `KIT_FORM_ID` | Kit form receiving newsletter, gear, and data-request subscribers. |
 
-## Learn More
+Never expose `KIT_API_KEY` through a `NEXT_PUBLIC_` variable.
 
-To learn more about Next.js, take a look at the following resources:
+## Validation
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run lint
+npx tsc --noEmit
+npx next build --webpack
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The webpack build command is a useful fallback in restricted environments where Turbopack cannot open its temporary local process port.
