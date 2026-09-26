@@ -1,23 +1,14 @@
 "use client";
 
 import { useId, useState } from "react";
-import { Camera, CircleGauge, Code2, Lightbulb, LoaderCircle, Mic2, Move3d } from "lucide-react";
+import Link from "next/link";
+import { Camera, Check, CircleGauge, Code2, Lightbulb, LoaderCircle, Mic2, Move3d, ShoppingCart } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { secondaryAction } from "@/components/ui/Primitives";
+import { primaryAction, secondaryAction } from "@/components/ui/Primitives";
+import { useCart } from "@/components/cart/CartProvider";
+import { gearCategories, gearItems, type GearCategory } from "@/data/gear";
 
-const categories = [
-  "Recording Devices",
-  "Mounting & Stabilization",
-  "Audio & Communication",
-  "Motion Capture & Sensors",
-  "Lighting & Environment",
-  "Software & Processing",
-] as const;
-
-type Category = (typeof categories)[number];
-type GearItem = { name: string; description: string; category: Category };
-
-const categoryIcons: Record<Category, LucideIcon> = {
+const categoryIcons: Record<GearCategory, LucideIcon> = {
   "Recording Devices": Camera,
   "Mounting & Stabilization": Move3d,
   "Audio & Communication": Mic2,
@@ -25,39 +16,6 @@ const categoryIcons: Record<Category, LucideIcon> = {
   "Lighting & Environment": Lightbulb,
   "Software & Processing": Code2,
 };
-
-const items: GearItem[] = [
-  { category: "Recording Devices", name: "Smartphone (iPhone 15+/Android flagship)", description: "A high-resolution everyday camera for reliable first-person video capture." },
-  { category: "Recording Devices", name: "GoPro Hero 12/13", description: "A rugged action camera for wide-angle tasks in active environments." },
-  { category: "Recording Devices", name: "Insta360 GO 3", description: "A compact wearable camera for lightweight hands-free recording." },
-  { category: "Recording Devices", name: "DJI Osmo Action 4", description: "A stabilized action camera suited to long, movement-heavy captures." },
-  { category: "Recording Devices", name: "Meta Quest 3 / Apple Vision Pro", description: "Spatial headsets for first-person mixed-reality and scene understanding data." },
-  { category: "Recording Devices", name: "Intel RealSense D435i/D455", description: "Depth cameras for synchronized RGB, motion, and spatial measurements." },
-  { category: "Recording Devices", name: "OAK-D Lite (Luxonis)", description: "An edge AI camera for stereo depth and on-device visual processing." },
-  { category: "Recording Devices", name: "Structure Sensor 3", description: "A mobile depth sensor for scanning rooms, objects, and workspaces." },
-  { category: "Mounting & Stabilization", name: "Head Strap Mount", description: "A hands-free head mount for consistent eye-level point-of-view footage." },
-  { category: "Mounting & Stabilization", name: "Chest Harness Mount", description: "A stable chest-level mount for longer physical task recordings." },
-  { category: "Mounting & Stabilization", name: "Wrist Mount Straps", description: "Wearable straps for close-range hand and tool interaction capture." },
-  { category: "Mounting & Stabilization", name: "DJI Osmo Mobile 8", description: "A smartphone gimbal for smooth walking and inspection sequences." },
-  { category: "Mounting & Stabilization", name: "Insta360 Flow 2 Pro", description: "A portable tracking gimbal for stabilized mobile capture sessions." },
-  { category: "Mounting & Stabilization", name: "Magnetic Quick-Release Mounts", description: "Fast-swapping mounts for moving one camera between capture positions." },
-  { category: "Mounting & Stabilization", name: "Flexible Tripod (GorillaPod-style)", description: "An adaptable support for unusual angles and compact workspaces." },
-  { category: "Audio & Communication", name: "Wireless Lavalier Microphone (DJI Mic 2 / Rode Wireless GO III)", description: "Clean wireless voice and environmental audio for mobile tasks." },
-  { category: "Audio & Communication", name: "Shotgun Microphone (Rode VideoMic)", description: "Directional audio capture that reduces distracting off-axis sound." },
-  { category: "Audio & Communication", name: "Bone Conduction Headset Microphone", description: "Hands-free communication that keeps the contributor aware of surroundings." },
-  { category: "Audio & Communication", name: "3.5mm Audio Adapter", description: "A compact adapter for connecting supported microphones to capture devices." },
-  { category: "Motion Capture & Sensors", name: "Xsens Link Motion Capture Suit", description: "Full-body inertial motion capture for precise human movement datasets." },
-  { category: "Motion Capture & Sensors", name: "MANUS Metagloves", description: "Detailed finger and hand tracking for dexterous manipulation tasks." },
-  { category: "Motion Capture & Sensors", name: "Rokoko Smartsuit Pro + Smartgloves", description: "A wearable body-and-hand capture system for coordinated motion sequences." },
-  { category: "Motion Capture & Sensors", name: "Custom IMU Sensor Nodes (ESP32-C3 + MPU6050)", description: "Configurable sensor nodes for task-specific motion and orientation signals." },
-  { category: "Motion Capture & Sensors", name: "Apple Watch / Fitbit / Garmin", description: "Consumer wearables for time-aligned movement and activity measurements." },
-  { category: "Motion Capture & Sensors", name: "Smart Insoles (Sensoria, Moticon)", description: "Pressure-aware insoles for gait, balance, and foot-loading data." },
-  { category: "Lighting & Environment", name: "Portable LED Light Panel (Aputure MC / Lume Cube)", description: "Compact adjustable lighting for consistent indoor capture quality." },
-  { category: "Lighting & Environment", name: "Headlamp with Adjustable Beam", description: "Wearable illumination for low-light, hands-busy environments." },
-  { category: "Lighting & Environment", name: "Ring Light with Smartphone Mount", description: "Even frontal lighting with an integrated mobile capture position." },
-  { category: "Software & Processing", name: "3D Scanning Apps (Polycam, Metaroom, 3D Scanner App, Skanect)", description: "Mobile and desktop tools for turning environments into spatial assets." },
-  { category: "Software & Processing", name: "Visual Model Software (YOLOv10, OpenCV, MediaPipe, Apple Vision Framework)", description: "Vision tooling for detection, tracking, pose estimation, and analysis." },
-];
 
 type FormState = "idle" | "submitting" | "success" | "error";
 
@@ -104,12 +62,14 @@ function NotifyForm({ item }: { item: string }) {
 }
 
 export function GearCatalog() {
-  const [filter, setFilter] = useState<Category | "All">("All");
-  const visible = filter === "All" ? items : items.filter((item) => item.category === filter);
+  const [filter, setFilter] = useState<GearCategory | "All">("All");
+  const [added, setAdded] = useState<string | null>(null);
+  const { addItem, itemCount } = useCart();
+  const visible = filter === "All" ? gearItems : gearItems.filter((item) => item.category === filter);
 
   return <>
     <div className="mt-10 flex flex-wrap gap-2" aria-label="Filter gear by category">
-      {(["All", ...categories] as const).map((category) => <button key={category} onClick={() => setFilter(category)} aria-pressed={filter === category} className={`min-h-11 rounded-full border px-4 text-[13px] font-medium transition-all duration-300 ease-out hover:-translate-y-0.5 ${filter === category ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--page-bg)]" : "border-white/15 text-white/70 hover:border-[var(--primary)]/50 hover:bg-white/5 hover:text-white"}`}>{category}</button>)}
+      {(["All", ...gearCategories] as const).map((category) => <button key={category} onClick={() => setFilter(category)} aria-pressed={filter === category} className={`min-h-11 rounded-full border px-4 text-[13px] font-medium transition-all duration-300 ease-out hover:-translate-y-0.5 ${filter === category ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--page-bg)]" : "border-white/15 text-white/70 hover:border-[var(--primary)]/50 hover:bg-white/5 hover:text-white"}`}>{category}</button>)}
     </div>
     <p className="mt-5 font-mono text-[11px] uppercase tracking-[.14em] text-white/45">Showing {visible.length} items</p>
     <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -119,12 +79,18 @@ export function GearCatalog() {
           <div className="grid min-h-40 place-items-center rounded-xl border border-dashed border-white/20 bg-[var(--page-bg)] text-center">
             <div><Icon aria-hidden="true" className="mx-auto text-[var(--primary)]" size={30} /><p className="mt-3 font-mono text-[10px] uppercase tracking-[.14em] text-white/45">Product imagery coming soon</p></div>
           </div>
-          <div className="mt-5 flex items-start justify-between gap-4"><p className="font-mono text-[10px] uppercase tracking-[.12em] text-white/45">{item.category}</p><span className="shrink-0 rounded-full border border-[var(--primary)]/25 bg-[var(--primary)]/[.06] px-2.5 py-1 font-mono text-[9px] uppercase tracking-[.12em] text-[var(--primary)]">Coming soon</span></div>
+          <div className="mt-5 flex items-start justify-between gap-4"><p className="font-mono text-[10px] uppercase tracking-[.12em] text-white/45">{item.category}</p><span className="shrink-0 rounded-full border border-[var(--primary)]/25 bg-[var(--primary)]/[.06] px-2.5 py-1 font-mono text-[9px] uppercase tracking-[.12em] text-[var(--primary)]">{item.price ? "In stock" : "Coming soon"}</span></div>
           <h2 className="mt-4 font-heading text-[22px] leading-[1.08] transition-colors duration-300 ease-out group-hover:text-[var(--primary)]">{item.name}</h2>
           <p className="mt-3 flex-1 text-[15px] leading-6 text-[var(--muted-foreground)]">{item.description}</p>
-          <NotifyForm item={item.name} />
+          {item.price ? <div className="mt-6 flex items-center justify-between gap-3 border-t border-white/[.08] pt-5">
+            <div><p className="font-heading text-xl">{item.price} <span className="font-mono text-[10px] text-white/45">mUSDG</span></p><p className="mt-1 text-[11px] text-white/40">Demo price</p></div>
+            <button onClick={() => { addItem({ id: item.id, name: item.name, price: item.price! }); setAdded(item.id); window.setTimeout(() => setAdded(null), 1200); }} className={`inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--primary)] px-4 text-[13px] font-semibold text-[var(--page-bg)] ${primaryAction}`}>
+              {added === item.id ? <Check size={16} aria-hidden="true" /> : <ShoppingCart size={16} aria-hidden="true" />}{added === item.id ? "Added" : "Add to cart"}
+            </button>
+          </div> : <NotifyForm item={item.name} />}
         </article>;
       })}
     </div>
+    {itemCount > 0 ? <Link href="/checkout" className={`fixed bottom-20 right-5 z-50 inline-flex min-h-12 items-center gap-2 rounded-full bg-[var(--primary)] px-5 text-[13px] font-semibold text-[var(--page-bg)] shadow-2xl sm:right-8 ${primaryAction}`}><ShoppingCart size={17} aria-hidden="true" />Checkout · {itemCount}</Link> : null}
   </>;
 }
