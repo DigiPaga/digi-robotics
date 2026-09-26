@@ -2,19 +2,22 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronDown, Menu, X } from "lucide-react";
+import { ChevronDown, Menu, ShoppingBag, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { AuthButton } from "@/components/auth/AuthButton";
 import { primaryAction, secondaryAction } from "@/components/ui/Primitives";
+import { useCart } from "@/components/cart/CartProvider";
 
 const links = [
   { label: "Become a contributor", href: "/#contributors" },
   { label: "Enter marketplace", href: "/#marketplace" },
   { label: "Request custom data", href: "/#custom-data" },
   { label: "Gadgets for capture", href: "/gear" },
+  { label: "Your orders", href: "/orders" },
 ];
 
 export function Navbar() {
+  const { itemCount } = useCart();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menu, setMenu] = useState<"marketplace" | "data" | null>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -77,6 +80,10 @@ export function Navbar() {
         </div>
 
         <div className="hidden items-center gap-6 sm:flex">
+          <Link href="/checkout" aria-label={`Cart with ${itemCount} items`} className="relative grid size-11 shrink-0 place-items-center rounded-full border border-white/15 text-white/75 transition-colors hover:border-[var(--primary)]/50 hover:text-[var(--primary)]">
+            <ShoppingBag size={18} aria-hidden="true" />
+            {itemCount > 0 ? <span className="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-[var(--primary)] px-1 font-mono text-[9px] font-bold text-[var(--page-bg)]">{itemCount}</span> : null}
+          </Link>
           <AuthButton className={'min-h-11 shrink-0 whitespace-nowrap rounded-full border border-transparent px-3 text-[13px] font-medium tracking-normal text-white/75 ' + secondaryAction + ' hover:text-[var(--primary)]'}>Sign in</AuthButton>
           <AuthButton className={'min-h-11 shrink-0 whitespace-nowrap rounded-full bg-[var(--primary)] px-5 text-[13px] font-semibold tracking-normal text-[var(--page-bg)] ' + primaryAction}>Join now</AuthButton>
         </div>
@@ -91,6 +98,7 @@ export function Navbar() {
         <div className="flex flex-col py-7">
           {links.map((link, index) => <Link key={link.href} href={link.href} onClick={() => setMobileOpen(false)} className="flex min-h-16 items-center justify-between border-b border-white/[.08] text-lg font-medium"><span className="font-mono text-[11px] text-[var(--primary)]">0{index + 1}</span>{link.label}</Link>)}
         </div>
+        <Link href="/checkout" onClick={() => setMobileOpen(false)} className="mb-3 flex min-h-14 items-center justify-center gap-2 rounded-full border border-white/15 text-sm font-semibold"><ShoppingBag size={17} aria-hidden="true" />Cart · {itemCount}</Link>
         <AuthButton onClick={() => setMobileOpen(false)} className={'min-h-14 w-full rounded-full bg-[var(--primary)] px-6 text-[15px] font-semibold text-[var(--page-bg)] ' + primaryAction}>Join now</AuthButton>
       </div> : null}
     </header>
