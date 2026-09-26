@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { subscribeToKit } from "@/lib/kit";
 
 type DataRequest = {
   workEmail: string;
@@ -14,9 +15,6 @@ function validString(value: unknown, minimum = 1): value is string {
 }
 
 export async function POST(request: Request) {
-  const endpoint = process.env.DATA_REQUEST_ENDPOINT?.trim();
-  if (!endpoint) return NextResponse.json({ message: "Data-request intake is not configured yet. Please contact the DigiRobotics team directly." }, { status: 503 });
-
   let body: Partial<DataRequest>;
   try { body = (await request.json()) as Partial<DataRequest>; }
   catch { return NextResponse.json({ message: "The request body was not valid JSON." }, { status: 400 }); }
@@ -26,15 +24,17 @@ export async function POST(request: Request) {
   }
 
   try {
-    const upstream = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...body, source: "digirobotics.xyz", submittedAt: new Date().toISOString() }),
-      cache: "no-store",
-    });
-    if (!upstream.ok) return NextResponse.json({ message: "The request service did not accept this submission. Please try again later." }, { status: 502 });
+    const notes = [
+      `Company: ${body.company!.trim()}`,
+      `Data type: ${body.dataType!.trim()}`,
+      `Estimated captures: ${body.captureEstimate!.trim()}`,
+      `Task/scenario: ${body.scenario!.trim()}`,
+      `Additional requirements: ${body.requirements?.trim() || "None provided"}`,
+    ].join("\n").slice(0, 5000);
+    await subscribeToKit({ email: body.workEmail!.trim().toLowerCase(), source: "data_request", notes });
     return NextResponse.json({ accepted: true }, { status: 201 });
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.message === "KIT_NOT_CONFIGURED") return NextResponse.json({ message: "Data-request intake is not configured yet. Please try again later." }, { status: 503 });
     return NextResponse.json({ message: "The request service is temporarily unavailable. Please try again later." }, { status: 502 });
   }
 }
