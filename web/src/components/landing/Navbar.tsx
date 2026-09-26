@@ -1,0 +1,96 @@
+"use client";
+
+import Image from "next/image";
+import { ChevronDown, Menu, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { AuthButton } from "@/components/auth/AuthButton";
+
+const links = [
+  { label: "BECOME A CONTRIBUTOR", href: "#contributors" },
+  { label: "ENTER MARKETPLACE", href: "#marketplace" },
+  { label: "REQUEST CUSTOM DATA", href: "#custom-data" },
+  { label: "GADGETS FOR CAPTURE", href: "#capture-gear" },
+];
+
+export function Navbar() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [menu, setMenu] = useState<"marketplace" | "data" | null>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const menuButton = menuButtonRef.current;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    drawerRef.current?.querySelector<HTMLElement>("a,button")?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileOpen(false);
+      if (event.key === "Tab" && drawerRef.current) {
+        const focusable = [...drawerRef.current.querySelectorAll<HTMLElement>("a,button")];
+        const first = focusable[0];
+        const last = focusable.at(-1);
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+        if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown", onKey);
+      menuButton?.focus();
+    };
+  }, [mobileOpen]);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => event.key === "Escape" && setMenu(null);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  return (
+    <header className="sticky top-0 z-50 border-b border-white/[.08] bg-[#141923]/95 backdrop-blur-lg">
+      <nav aria-label="Primary navigation" className="mx-auto flex h-[76px] max-w-[1440px] items-center gap-6 px-5 sm:px-8 lg:px-12 xl:px-16">
+        <a href="#top" aria-label="DigiRobotics home" className="mr-auto shrink-0">
+          <Image src="/digirobotics/brand/digirobotics-logo.png" alt="DigiRobotics" width={210} height={48} className="h-auto w-[168px] lg:w-[190px]" priority />
+        </a>
+
+        <div className="hidden items-center gap-1 xl:flex">
+          <a href="#contributors" className="rounded-full px-3 py-3 text-[13px] font-semibold tracking-[.035em] text-white/80 transition hover:text-[var(--primary)]">BECOME A CONTRIBUTOR</a>
+          <div className="relative">
+            <button aria-expanded={menu === "marketplace"} aria-controls="marketplace-menu" onClick={() => setMenu(menu === "marketplace" ? null : "marketplace")} className="flex min-h-11 items-center gap-1 rounded-full px-3 text-[13px] font-semibold tracking-[.035em] text-white/80 transition hover:text-[var(--primary)]">ENTER MARKETPLACE <ChevronDown size={15} aria-hidden="true" /></button>
+            {menu === "marketplace" ? <div id="marketplace-menu" className="absolute left-0 top-[calc(100%+14px)] w-[340px] rounded-xl border border-white/10 bg-[#171d29] p-5 shadow-2xl">
+              <p className="font-mono text-[11px] uppercase tracking-[.16em] text-[var(--primary)]">Phase 1 preview</p>
+              <p className="mt-3 text-base leading-6 text-white/75">Human activity · Software interaction · Sensor capture</p>
+              <a href="#marketplace" onClick={() => setMenu(null)} className="mt-5 inline-flex min-h-11 items-center text-[13px] font-semibold uppercase tracking-[.08em] text-white hover:text-[var(--primary)]">Explore the marketplace →</a>
+            </div> : null}
+          </div>
+          <div className="relative">
+            <button aria-expanded={menu === "data"} aria-controls="data-menu" onClick={() => setMenu(menu === "data" ? null : "data")} className="flex min-h-11 items-center gap-1 rounded-full px-3 text-[13px] font-semibold tracking-[.035em] text-white/80 transition hover:text-[var(--primary)]">REQUEST CUSTOM DATA <ChevronDown size={15} aria-hidden="true" /></button>
+            {menu === "data" ? <div id="data-menu" className="absolute left-0 top-[calc(100%+14px)] w-[320px] rounded-xl border border-white/10 bg-[#171d29] p-5 shadow-2xl">
+              {[["Audiovisual Data", "video + audio"], ["Software Interaction Data", "screens + workflows"], ["Hardware and Sensor Data", "devices + signals"]].map(([title, note]) => <a key={title} href="#custom-data" onClick={() => setMenu(null)} className="block border-b border-white/[.07] py-3 last:border-0"><span className="block font-heading text-base">{title}</span><span className="font-mono text-[10px] uppercase tracking-[.12em] text-white/45">{note}</span></a>)}
+            </div> : null}
+          </div>
+          <a href="#capture-gear" className="rounded-full px-3 py-3 text-[13px] font-semibold tracking-[.035em] text-white/80 transition hover:text-[var(--primary)]">GADGETS FOR CAPTURE</a>
+        </div>
+
+        <div className="hidden items-center gap-2 sm:flex">
+          <AuthButton className="min-h-11 rounded-full px-4 text-[14px] font-semibold uppercase tracking-[.05em] text-white hover:text-[var(--primary)]">Sign in</AuthButton>
+          <AuthButton className="min-h-11 rounded-full bg-[var(--primary)] px-5 text-[14px] font-semibold uppercase tracking-[.05em] text-[#11160f] transition hover:brightness-110">Join now</AuthButton>
+        </div>
+        <button ref={menuButtonRef} aria-label="Open navigation" aria-expanded={mobileOpen} aria-controls="mobile-nav" onClick={() => setMobileOpen(true)} className="grid size-11 place-items-center rounded-full border border-white/15 xl:hidden"><Menu aria-hidden="true" size={21} /></button>
+      </nav>
+
+      {mobileOpen ? <div id="mobile-nav" ref={drawerRef} className="fixed inset-x-0 top-0 z-[60] min-h-dvh bg-[#131822] p-5 xl:hidden">
+        <div className="flex items-center justify-between border-b border-white/10 pb-5">
+          <Image src="/digirobotics/brand/digirobotics-logo.png" alt="DigiRobotics" width={180} height={42} className="h-auto w-[168px]" />
+          <button aria-label="Close navigation" onClick={() => setMobileOpen(false)} className="grid size-11 place-items-center rounded-full border border-white/15"><X aria-hidden="true" size={21} /></button>
+        </div>
+        <div className="flex flex-col py-7">
+          {links.map((link, index) => <a key={link.href} href={link.href} onClick={() => setMobileOpen(false)} className="flex min-h-16 items-center justify-between border-b border-white/[.08] font-heading text-lg"><span className="font-mono text-[11px] text-[var(--primary)]">0{index + 1}</span>{link.label}</a>)}
+        </div>
+        <AuthButton onClick={() => setMobileOpen(false)} className="min-h-14 w-full rounded-full bg-[var(--primary)] px-6 text-[15px] font-semibold uppercase text-[#11160f]">Join now</AuthButton>
+      </div> : null}
+    </header>
+  );
+}
