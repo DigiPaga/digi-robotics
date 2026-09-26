@@ -26,7 +26,7 @@ export function CustomDataForm() {
     }
   }
 
-  return <form id="request-form" onSubmit Request={submit} className="mt-16 grid gap-6 rounded-2xl border border-white/10 bg-[#141a25] p-6 sm:p-9 lg:grid-cols-2 lg:p-12" aria-describedby="form-status">
+  return <form id="request-form" onSubmit={submit} className="mt-16 grid gap-6 rounded-2xl border border-white/10 bg-[#141a25] p-6 sm:p-9 lg:grid-cols-2 lg:p-12" aria-describedby="form-status">
     <div><label htmlFor="workEmail" className="font-heading text-base">Work email</label><input required type="email" autoComplete="email" id="workEmail" name="workEmail" placeholder="you@company.com" className={fieldClass} /></div>
     <div><label htmlFor="company" className="font-heading text-base">Company or project</label><input required id="company" name="company" autoComplete="organization" placeholder="Project name" className={fieldClass} /></div>
     <div><label htmlFor="dataType" className="font-heading text-base">Data type</label><select required id="dataType" name="dataType" defaultValue="" className={fieldClass}><option value="" disabled>Select a data type</option><option>Audiovisual</option><option>Software interaction</option><option>Hardware and sensor</option><option>Mixed campaign</option></select></div>
@@ -34,7 +34,7 @@ export function CustomDataForm() {
     <div className="lg:col-span-2"><label htmlFor="scenario" className="font-heading text-base">Task or scenario</label><textarea required minLength={20} id="scenario" name="scenario" rows={4} placeholder="Describe the task, environment, and observable outcome." className={fieldClass} /></div>
     <div className="lg:col-span-2"><label htmlFor="requirements" className="font-heading text-base">Additional requirements <span className="text-white/45">(optional)</span></label><textarea id="requirements" name="requirements" rows={3} placeholder="Capture devices, camera views, acceptance criteria, or constraints." className={fieldClass} /></div>
     <div className="flex flex-col items-start gap-4 lg:col-span-2 sm:flex-row sm:items-center">
-      <button disabled={status.kind === "loading"} className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-7 py-3 text-[15px] font-semibold uppercase tracking-[.04em] text-[#10150f] transition hover:brightness-110 disabled:cursor-wait disabled:opacity-60">{status.kind === "loading" ? <LoaderCircle className="animate-spin" size={18} aria-hidden="true" /> : <Send size={18} aria-hidden="true" />}{status.kind === "loading" ? "Submit Requestting…" : "Submit Request data request"}</button>
+      <button disabled={status.kind === "loading"} className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-7 py-3 text-[15px] font-semibold uppercase tracking-[.04em] text-[#10150f] transition hover:brightness-110 disabled:cursor-wait disabled:opacity-60">{status.kind === "loading" ? <LoaderCircle className="animate-spin" size={18} aria-hidden="true" /> : <Send size={18} aria-hidden="true" />}{status.kind === "loading" ? "Submitting…" : "Submit data request"}</button>
       <p id="form-status" role="status" aria-live="polite" className={`text-[15px] leading-6 ${status.kind === "success" ? "text-[var(--primary)]" : status.kind === "error" ? "text-[#ff9e91]" : "text-white/55"}`}>{status.message || "Requests are submitted only when a persistence endpoint is configured."}</p>
     </div>
   </form>;
