@@ -4,7 +4,7 @@ import { LoaderCircle, Send } from "lucide-react";
 import { useState } from "react";
 
 type Status = { kind: "idle" | "loading" | "success" | "error"; message: string };
-const fieldClass = "mt-2 min-h-13 w-full rounded-lg border border-white/15 bg-[#111721] px-4 py-3 text-[17px] text-white placeholder:text-white/35 transition focus:border-[var(--primary)] focus:outline-none";
+const fieldClass = "mt-2 min-h-13 max-w-4xl mx-auto rounded-lg border border-white/15 bg-[#111721] px-4 py-3 text-[17px] text-white placeholder:text-white/35 transition focus:border-[var(--primary)] focus:outline-none";
 
 export function CustomDataForm() {
   const [status, setStatus] = useState<Status>({ kind: "idle", message: "" });
