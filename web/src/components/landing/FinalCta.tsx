@@ -1,5 +1,6 @@
 import { AuthButton } from "@/components/auth/AuthButton";
 import { SecondaryLink, shell } from "@/components/ui/Primitives";
+import { NewsletterForm } from "./NewsletterForm";
 
 export function FinalCta() {
   return <section id="join" className="relative scroll-mt-24 overflow-hidden py-28 sm:py-36 lg:py-48">
@@ -13,7 +14,7 @@ export function FinalCta() {
         <AuthButton className="inline-flex min-h-13 items-center justify-center rounded-full bg-[var(--primary)] px-7 py-3 text-[15px] font-semibold uppercase tracking-[.04em] text-[#10150f] motion-safe:animate-[breathe_2.6s_ease-in-out_infinite]">Join as a contributor ↗</AuthButton>
         <SecondaryLink href="#custom-data">Request custom data</SecondaryLink>
       </div>
-      <a href="mailto:hello@digirobotics.xyz?subject=Marketplace%20updates" className="mt-7 inline-flex min-h-11 items-center border-b border-white/30 font-mono text-[12px] uppercase tracking-[.15em] text-white transition hover:border-[var(--primary)] hover:text-[var(--primary)]">Get marketplace updates</a>
+      <NewsletterForm />
     </div>
   </section>;
 }
