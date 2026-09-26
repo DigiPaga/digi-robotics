@@ -1,11 +1,11 @@
 import Image from "next/image";
 import { ScanLine } from "lucide-react";
 import { AuthButton } from "@/components/auth/AuthButton";
-import { Eyebrow, SecondaryLink, shell } from "@/components/ui/Primitives";
+import { Eyebrow, SecondaryLink, primaryAction, shell } from "@/components/ui/Primitives";
 import { Reveal } from "@/components/ui/Reveal";
 
 const partners = [
-  ["/digirobotics/partners/arbitrum.png", "Built with Arbitrum", "w-full scale-[1.4] origin-left", "1.25fr"],
+  ["/digirobotics/partners/arbitrum.png", "Built with Arbitrum", "w-full scale-[1.61] origin-left", "1.25fr"],
   ["/digirobotics/partners/robinhood-chain.png", "Built with Robinhood Chain", "w-full", "1.25fr"],
   ["/digirobotics/partners/zerodev.png", "Built with ZeroDev", "w-4/5", "1fr"],
   ["/digirobotics/partners/paxos.png", "Built with Paxos", "w-4/5", "1fr"],
@@ -21,7 +21,7 @@ export function HeroSection() {
         </h1>
         <p className="mt-7 max-w-2xl text-[19px] leading-[1.5] text-[var(--muted-foreground)] lg:text-[20px]">The first stablecoin-native marketplace for agentic commerce in real-world data collection. Everyday content creation becomes robotics training data — contributors are paid in USDG or PYUSD, with autonomous AI agents purchasing around the clock.</p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <AuthButton className="inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--primary)] px-6 py-3 text-[15px] font-semibold uppercase tracking-[.04em] text-[#10150f] transition hover:-translate-y-0.5 hover:brightness-110">Become a contributor ↗</AuthButton>
+          <AuthButton className={`inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--primary)] px-6 py-3 text-[15px] font-semibold uppercase tracking-[.04em] text-[var(--page-bg)] ${primaryAction}`}>Become a contributor ↗</AuthButton>
           <SecondaryLink href="#custom-data">Request custom data</SecondaryLink>
         </div>
       </Reveal>
@@ -41,7 +41,7 @@ export function HeroSection() {
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-8">
         <span className="font-mono text-[11px] uppercase tracking-[.18em] text-white/55">Built with</span>
         <div className="grid w-full max-w-[560px] grid-cols-[1.25fr_1.25fr_1fr_1fr] items-center gap-4 sm:gap-6">
-          {partners.map(([src, alt, width]) => <div key={src} className="relative h-9"><Image src={src} alt={alt} fill sizes="140px" className={`object-contain object-left grayscale opacity-60 ${width}`} /></div>)}
+          {partners.map(([src, alt, width]) => <div key={src} className="group relative h-9 transition-transform duration-300 ease-out hover:-translate-y-0.5"><Image src={src} alt={alt} fill sizes="140px" className={`object-contain object-left opacity-70 transition-opacity duration-300 ease-out group-hover:opacity-100 ${width}`} /></div>)}
         </div>
       </div>
     </div>
