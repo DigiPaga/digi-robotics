@@ -55,10 +55,10 @@ export function Navbar() {
           <Image src="/digirobotics/brand/digirobotics-logo.png" alt="DigiRobotics" width={210} height={48} className="h-auto w-[168px] lg:w-[190px]" priority />
         </a>
 
-        <div className="hidden items-center gap-1 xl:flex">
-          <a href="#contributors" className="rounded-full px-3 py-3 text-[13px] font-semibold tracking-[.035em] text-white/80 transition hover:text-[var(--primary)]">BECOME A CONTRIBUTOR</a>
+        <div className="hidden items-center gap-8 xl:flex">
+          <a href="#contributors" className="shrink-0 whitespace-nowrap py-3 font-mono text-[10px] font-medium uppercase tracking-[.1em] text-white/80 transition hover:text-[var(--primary)]">BECOME A CONTRIBUTOR</a>
           <div className="relative">
-            <button aria-expanded={menu === "marketplace"} aria-controls="marketplace-menu" onClick={() => setMenu(menu === "marketplace" ? null : "marketplace")} className="flex min-h-11 items-center gap-1 rounded-full px-3 text-[13px] font-semibold tracking-[.035em] text-white/80 transition hover:text-[var(--primary)]">ENTER MARKETPLACE <ChevronDown size={15} aria-hidden="true" /></button>
+            <button aria-expanded={menu === "marketplace"} aria-controls="marketplace-menu" onClick={() => setMenu(menu === "marketplace" ? null : "marketplace")} className="flex min-h-11 shrink-0 items-center gap-1 whitespace-nowrap font-mono text-[10px] font-medium uppercase tracking-[.1em] text-white/80 transition hover:text-[var(--primary)]">ENTER MARKETPLACE <ChevronDown size={14} aria-hidden="true" /></button>
             {menu === "marketplace" ? <div id="marketplace-menu" className="absolute left-0 top-[calc(100%+14px)] w-[340px] rounded-xl border border-white/10 bg-[#171d29] p-5 shadow-2xl">
               <p className="font-mono text-[11px] uppercase tracking-[.16em] text-[var(--primary)]">Phase 1 preview</p>
               <p className="mt-3 text-base leading-6 text-white/75">Human activity · Software interaction · Sensor capture</p>
@@ -66,17 +66,17 @@ export function Navbar() {
             </div> : null}
           </div>
           <div className="relative">
-            <button aria-expanded={menu === "data"} aria-controls="data-menu" onClick={() => setMenu(menu === "data" ? null : "data")} className="flex min-h-11 items-center gap-1 rounded-full px-3 text-[13px] font-semibold tracking-[.035em] text-white/80 transition hover:text-[var(--primary)]">REQUEST CUSTOM DATA <ChevronDown size={15} aria-hidden="true" /></button>
+            <button aria-expanded={menu === "data"} aria-controls="data-menu" onClick={() => setMenu(menu === "data" ? null : "data")} className="flex min-h-11 shrink-0 items-center gap-1 whitespace-nowrap font-mono text-[10px] font-medium uppercase tracking-[.1em] text-white/80 transition hover:text-[var(--primary)]">REQUEST CUSTOM DATA <ChevronDown size={14} aria-hidden="true" /></button>
             {menu === "data" ? <div id="data-menu" className="absolute left-0 top-[calc(100%+14px)] w-[320px] rounded-xl border border-white/10 bg-[#171d29] p-5 shadow-2xl">
               {[["Audiovisual Data", "video + audio"], ["Software Interaction Data", "screens + workflows"], ["Hardware and Sensor Data", "devices + signals"]].map(([title, note]) => <a key={title} href="#custom-data" onClick={() => setMenu(null)} className="block border-b border-white/[.07] py-3 last:border-0"><span className="block font-heading text-base">{title}</span><span className="font-mono text-[10px] uppercase tracking-[.12em] text-white/45">{note}</span></a>)}
             </div> : null}
           </div>
-          <a href="#capture-gear" className="rounded-full px-3 py-3 text-[13px] font-semibold tracking-[.035em] text-white/80 transition hover:text-[var(--primary)]">GADGETS FOR CAPTURE</a>
+          <a href="#capture-gear" className="shrink-0 whitespace-nowrap py-3 font-mono text-[10px] font-medium uppercase tracking-[.1em] text-white/80 transition hover:text-[var(--primary)]">GADGETS FOR CAPTURE</a>
         </div>
 
-        <div className="hidden items-center gap-2 sm:flex">
-          <AuthButton className="min-h-11 rounded-full px-4 text-[14px] font-semibold uppercase tracking-[.05em] text-white hover:text-[var(--primary)]">Sign in</AuthButton>
-          <AuthButton className="min-h-11 rounded-full bg-[var(--primary)] px-5 text-[14px] font-semibold uppercase tracking-[.05em] text-[#11160f] transition hover:brightness-110">Join now</AuthButton>
+        <div className="hidden items-center gap-6 sm:flex">
+          <AuthButton className="min-h-11 shrink-0 whitespace-nowrap font-mono text-[10px] font-medium uppercase tracking-[.1em] text-white/75 transition hover:text-[var(--primary)]">Sign in</AuthButton>
+          <AuthButton className="min-h-11 shrink-0 whitespace-nowrap rounded-full bg-[var(--primary)] px-5 font-mono text-[11px] font-semibold uppercase tracking-[.1em] text-[#11160f] transition hover:brightness-110">Join now</AuthButton>
         </div>
         <button ref={menuButtonRef} aria-label="Open navigation" aria-expanded={mobileOpen} aria-controls="mobile-nav" onClick={() => setMobileOpen(true)} className="grid size-11 place-items-center rounded-full border border-white/15 xl:hidden"><Menu aria-hidden="true" size={21} /></button>
       </nav>
