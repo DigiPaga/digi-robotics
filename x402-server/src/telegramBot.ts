@@ -60,10 +60,11 @@ bot.on('video', async (ctx) => {
 
     ctx.reply('📤 Uploading to IPFS...');
     const fileBuffer = await readFile(localPath);
-    const upload = await pinata.upload.file(fileBuffer, {
+    const uploadFile = new File([new Uint8Array(fileBuffer)], fileName, { type: 'video/mp4' });
+    const upload = await pinata.upload.file(uploadFile, {
       metadata: {
         name: `DigiRobotics_Capture_${Date.now()}`,
-        keyvalues: {
+        keyValues: {
           type: 'egocentric_video',
           uploader: ctx.from?.id.toString() || 'anonymous',
           timestamp: new Date().toISOString()
