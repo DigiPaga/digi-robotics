@@ -1,6 +1,20 @@
 # Stablecoin ecommerce demo
 
-The capture-gear checkout is the human-facing counterpart to DigiRobotics’ x402 rail. An autonomous client receives an HTTP 402 challenge and satisfies it programmatically; a person instead sees a cart, shipping form, wallet balance, and confirmation screen. Both flows demonstrate programmable payment settlement, while this demo intentionally simulates physical fulfillment.
+The capture-gear checkout and autonomous agent demo are separate payment rails. Human checkout uses a ZeroDev Kernel account to perform a direct mUSDG ERC-20 transfer on Arbitrum Sepolia. `/agent-demo` uses a server-side EOA and a genuine x402 v2 EIP-3009 payment in Base Sepolia test USDC. A direct ERC-20 transfer is never described as x402.
+
+## Real x402 agent demo
+
+| Property | Value |
+| :--- | :--- |
+| UI | `/agent-demo` |
+| Backend | `x402-server`, default `http://localhost:3001` |
+| Mode | `REAL_X402_TEST_ASSET` |
+| Network | Base Sepolia (`84532`) |
+| Asset | Test USDC, `0x036CbD53842c5426634e7929541eC2318f3dCF7e` |
+| Price | `0.05 USDC` |
+| Signer | Server-side EOA; not Thirdweb or ZeroDev |
+
+Set `NEXT_PUBLIC_X402_BACKEND_URL` in `web/.env.local`. It is the only agent-demo frontend variable. See `x402-server/docs/AGENT_DEMO_RUNBOOK.md` for the compatibility audit, server configuration, funding, 402 proof, and settlement verification.
 
 ## Deployed demo contract
 

@@ -1,11 +1,18 @@
 # DigiPaga Marketplace
+
 [![Arbitrum](https://img.shields.io/badge/Arbitrum-2D3748?style=for-the-badge&logo=arbitrum&logoColor=white)](https://arbitrum.io)
 [![Buildathon](https://img.shields.io/badge/Buildathon-Arbitrum%20Open%20House%20Singapore-2D3748?style=for-the-badge)](https://openhouse.arbitrum.io)
 [![Solidity](https://img.shields.io/badge/Solidity-0.8.20-363636?style=for-the-badge&logo=solidity&logoColor=white)](https://soliditylang.org)
-[![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
-> **Dual-rail marketplace enabling autonomous AI agents and humans to discover, purchase, and trade digital assets via x402 payments on Arbitrum and Robinhood Chain.**
+> **Dual-rail marketplace for human stablecoin checkout and real autonomous x402 dataset purchases.**
+
+## Real x402 agent demo
+
+`/agent-demo` proves the complete x402 v2 cycle on Base Sepolia: an unpaid request receives HTTP 402, a deterministic server agent validates the requirements, signs an EIP-3009 authorization for `0.05` test USDC, retries the same resource, and unlocks a short-lived robotics dataset URL only after facilitator settlement. The separate Arbitrum Sepolia mUSDG human checkout remains a direct ERC-20 payment and is not labeled x402.
+
+Runbook: [`x402-server/docs/AGENT_DEMO_RUNBOOK.md`](x402-server/docs/AGENT_DEMO_RUNBOOK.md)
 
 ---
 
@@ -37,20 +44,21 @@ The result? Billions in potential automated commerce remain locked behind manual
 
 ## 💡 Solution
 
-**DigiPaga Marketplace** is a dual-rail platform that bridges autonomous agents and human users through:
-1. **Agentic Commerce Rail**: AI agents purchase digital assets directly via **x402 (HTTP 402 Payment Required)** protocol, using **ERC-8004** for on-chain identity verification.
-2. **Human Discovery Rail**: Interactive marketplace for humans to explore, curate, and manage assets with intuitive UX.
+**DigiPaga Marketplace** currently exposes two deliberately separate rails:
 
-Both rails settle on **Arbitrum** and **Robinhood Chain**, enabling sub-second finality and near-zero gas fees.
+1. **Agentic commerce:** a real x402 v2 `exact` purchase on Base Sepolia test USDC, using a server-side EOA and the public x402 facilitator.
+2. **Human checkout:** the existing Thirdweb/ZeroDev experience and direct mUSDG transfer on Arbitrum Sepolia.
+
+The agent demo does not claim ERC-8004 identity, ZeroDev sponsorship, or Robinhood Chain settlement. Those remain future integration targets.
 
 ---
 ## 🌟 Key Features
 
 ### For AI Agents
 - ✅ **x402 Native Payments**: HTTP 402 status code + EIP-3009/EIP-712 signatures for trustless micro-payments
-- ✅ **ERC-8004 Identity**: On-chain agent registration and reputation tracking
-- ✅ **Account Abstraction**: ZeroDev-powered smart accounts for gasless transactions
-- ✅ **Multi-Chain**: Deploy on Arbitrum Sepolia, Arbitrum One, or Robinhood Chain
+- ✅ **Strict Spend Policy**: Exact network, token, domain, recipient, host, amount, timeout, and one-payment enforcement
+- ✅ **Settlement Evidence**: Facilitator receipt, onchain transaction receipt, and exact seller balance delta
+- ✅ **Protected Delivery**: No access URL is issued before successful settlement
 
 ### For Humans
 - ✅ **Dual-Rail Discovery**: Visual marketplace with filtering, search, and curation
@@ -67,43 +75,14 @@ Both rails settle on **Arbitrum** and **Robinhood Chain**, enabling sub-second f
 ---
 ## 🏗️ Architecture
 
-```mermaid
-graph TB
-    subgraph "Frontend Layer"
-        A[Next.js 14 App]
-        B[Wagmi + ZeroDev]
-        C[Tailwind CSS]
-    end
-    subgraph "x402 Payment Server"
-        D[Express.js Server]
-        E[x402 Middleware]
-        F[Signature Verification]
-        G[IPFS Gateway]
-    end
-    subgraph "Smart Contracts - Arbitrum/RH Chain"
-        H[AgentRegistry<br/>ERC-8004]
-        I[Marketplace<br/>Core Logic]
-        J[AssetVault<br/>Escrow]
-        K[X402Facilitator<br/>Payment Settlement]
-    end
-    subgraph "External Services"
-        L[Pinata IPFS]
-        M[Arbitrum RPC]
-        N[Chainlink Oracles]
-    end
-    A -->|HTTP Request| D
-    D -->|402 Payment Required| A
-    A -->|Sign EIP-712| B
-    B -->|Submit Payment| D
-    D -->|Verify Signature| F
-    F -->|Settle On-Chain| K
-    K -->|Transfer USDC| I
-    I -->|Unlock Asset| J
-    J -->|IPFS CID| G
-    G -->|Deliver Content| A
-    H -.->|Agent Identity| F
-    M -.-> RPC Calls
-    L -.-> Asset Storage
+```text
+Next.js /agent-demo → Express run API + SSE → deterministic discovery/policy
+                                              ↓
+                                 server-only x402 EIP-3009 buyer
+                                              ↓
+protected resource ← HTTP 402 / paid retry → public facilitator → Base Sepolia USDC
+       ↓ only after confirmed settlement
+five-minute signed dataset URL
 ```
 
 ---
@@ -111,30 +90,11 @@ graph TB
 
 ### x402 Payment Flow
 
-```mermaid
-sequenceDiagram
-    participant Agent as AI Agent
-    participant Server as x402 Server
-    participant Contract as Smart Contract
-    participant IPFS as IPFS/Pinata
-
-    Agent->>Server: GET /assets/123
-    Server-->>Agent: 402 Payment Required (0.50 USDC)
-    Note over Agent,Server: Agent signs EIP-3009 transfer
-    Agent->>Server: POST /purchase + Signature + Agent ID
-    Server->>Server: Verify ERC-8004 Identity
-    Server->>Contract: settlePayment()
-    Contract->>Contract: Transfer USDC
-    Contract-->>Server: PaymentSettled Event
-    Server->>IPFS: Fetch Asset CID
-    IPFS-->>Server: Encrypted Asset
-    Server-->>Agent: Asset + Decryption Key
-```
-
-### Smart Contract Interaction
-1. **Agent Registration**: Agent calls `AgentRegistry.registerAgent()` with metadata URI
-2. **Asset Listing**: Seller calls `Marketplace.listAsset()` with IPFS CID and price
-3. **Purchase Flow**: Agent signs EIP-3009 authorization, Server verifies, `X402Facilitator.settlePayment()` executes, `AssetVault` releases encrypted asset.
+1. The run API performs token/domain/balance preflight and deterministic discovery.
+2. The agent requests `GET /x402/datasets/:id/content` without payment and receives a machine-readable x402 v2 HTTP 402.
+3. Policy validates every payment field, then the server-side EOA signs one EIP-3009 authorization.
+4. The agent retries the same URL with `PAYMENT-SIGNATURE`; the public facilitator verifies and settles it.
+5. The server checks the receipt and seller balance delta, then issues a five-minute signed dataset URL.
 
 ---
 ## 🛠️ Tech Stack
@@ -150,12 +110,12 @@ sequenceDiagram
 - **Framework**: Express.js
 - **Language**: TypeScript 5.x
 - **Web3**: Viem, Ethers.js v6
-- **Payment Protocol**: x402 (HTTP 402 + EIP-712)
-- **Storage**: IPFS via Pinata
+- **Payment Protocol**: x402 v2.27 (`exact`, EIP-3009, upfront settlement)
+- **Storage**: server-only demo manifest; existing Pinata integration is preserved but not falsely presented as this demo's protected store
 
 ### Frontend
-- **Framework**: Next.js 14 (App Router, Server Actions)
-- **Styling**: Tailwind CSS 3.x
+- **Framework**: Next.js 16 (App Router), React 19
+- **Styling**: Tailwind CSS 4
 - **Web3**: Wagmi v2, Viem
 - **Account Abstraction**: ZeroDev SDK
 - **State**: TanStack Query (React Query)
@@ -168,7 +128,9 @@ sequenceDiagram
 ---
 ## 📜 Smart Contracts
 
-### Core Contracts
+### Legacy/prototype contracts
+
+These contracts are preserved in the repository but are not used by the real Phase 1 x402 payment path.
 
 | Contract | Purpose | Chain |
 |----------|---------|-------|
@@ -231,11 +193,11 @@ digi-robotics/
 │   ├── test/                # Foundry tests
 │   └── foundry.toml         # Foundry configuration
 ├── x402-server/             # Backend (Node.js + Express)
-│   ├── src/middleware/      # x402 payment middleware
-│   ├── src/facilitator/     # Chain-specific settlement
-│   ├── src/routes/          # API endpoints
-│   └── src/utils/           # Crypto utilities
-├── web/                     # Frontend (Next.js 14)
+│   ├── src/agent/           # Discovery, spend policy, buyer, run store
+│   ├── src/x402/            # Authentic x402 resource middleware
+│   ├── src/routes/          # Run/SSE/protected-resource routes
+│   └── src/data/            # Public metadata and server-only protected data
+├── web/                     # Frontend (Next.js 16)
 │   ├── src/app/             # App Router pages
 │   └── src/components/      # React components
 ├── docs/                    # Documentation
