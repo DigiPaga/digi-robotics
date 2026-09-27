@@ -13,6 +13,7 @@
     "@fontsource/jetbrains-mono": "^5.3.0",
     "@fontsource/syne": "^5.3.0",
     "@fontsource/ubuntu": "^5.3.0",
+    "@hookform/resolvers": "^5.9.1",
     "@x402/core": "^2.27.0",
     "@x402/evm": "^2.27.0",
     "@x402/extensions": "^2.27.0",
@@ -25,8 +26,10 @@
     "next": "16.3.6",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "react-hook-form": "^7.89.0",
     "thirdweb": "^5.121.6",
-    "viem": "^2.56.9"
+    "viem": "^2.56.9",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
