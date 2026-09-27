@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "CommonJS",
+    "module": "NodeNext",
     "lib": ["ES2022"],
     "outDir": "./dist",
     "rootDir": "./src",
@@ -10,8 +10,21 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node"
+    "moduleResolution": "NodeNext",
+    "types": ["node"]
   },
-  "include": ["src/**/*"],
+  "include": [
+    "src/server.ts",
+    "src/app.ts",
+    "src/telegramBot.ts",
+    "src/config/env.ts",
+    "src/agent/**/*.ts",
+    "src/data/**/*.ts",
+    "src/routes/agentDemo.ts",
+    "src/types/agentDemo.ts",
+    "src/utils/redact.ts",
+    "src/x402/**/*.ts",
+    "src/tests/**/*.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }

@@ -1,26 +1,14 @@
-import dotenv from 'dotenv';
-dotenv.config(); // THIS MUST BE THE VERY FIRST LINE
+import { createApp } from "./app";
+import { getEnv } from "./config/env";
 
-import express from 'express';
-import cors from 'cors';
+const env = getEnv();
+const app = createApp(env);
 
-// Import the bot AFTER the environment variables are loaded
-import './telegramBot';
-
-const app = express();
-const PORT = process.env.PORT || 3001;
-
-app.use(cors());
-app.use(express.json());
-
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'DigiRobotics x402 Server & Telegram Bot are running!',
-    status: 'healthy'
-  });
+app.listen(env.port, () => {
+  console.log(`DigiRobotics x402 server listening on http://localhost:${env.port} (${env.mode})`);
 });
 
-app.listen(PORT, () => {
-  console.log(`\n🚀 Server is running on http://localhost:${PORT}`);
-  console.log('🤖 Telegram Bot is listening for messages...\n');
-});
+if (process.env.TELEGRAM_BOT_TOKEN) {
+  const telegramBotModule = "./telegramBot.js";
+  void import(telegramBotModule).catch(error => console.error("Telegram bot failed to start:", error instanceof Error ? error.message : "unknown error"));
+}
