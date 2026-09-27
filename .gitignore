@@ -26,3 +26,5 @@ out/
 
 # Ignore nested project folder if it exists
 digi-robotics/
+contracts/cache/
+contracts/broadcast/
