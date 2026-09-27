@@ -1,9 +1,11 @@
+import dotenv from 'dotenv';
+dotenv.config(); // THIS MUST BE THE VERY FIRST LINE
+
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-import { assetRouter } from './routes/assets';
 
-dotenv.config();
+// Import the bot AFTER the environment variables are loaded
+import './telegramBot';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -11,16 +13,14 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'DigiPaga Robotics x402 Server is running' });
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'DigiRobotics x402 Server & Telegram Bot are running!',
+    status: 'healthy'
+  });
 });
 
-// Montar rutas de assets
-app.use('/api/assets', assetRouter);
-
 app.listen(PORT, () => {
-  console.log(\`🚀 x402 Server listening on port \${PORT}\`);
-  console.log(\`📂 Test catalog: http://localhost:\${PORT}/api/assets/catalog\`);
-  console.log(\`🔒 Test protected asset: http://localhost:\${PORT}/api/assets/asset-001\`);
+  console.log(`\n🚀 Server is running on http://localhost:${PORT}`);
+  console.log('🤖 Telegram Bot is listening for messages...\n');
 });
