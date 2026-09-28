@@ -280,12 +280,6 @@ The frontend receives genuine backend events through Server-Sent Events and disp
 
 ### Active Agent Demo Infrastructure
 
-| Network | Component | Purpose |
-|---|---|---|
-| Base Sepolia | Public x402 facilitator | Payment verification and settlement |
-| Base Sepolia | Test USDC | EIP-3009 `transferWithAuthorization` payment asset |
-| Base Sepolia | Server-side agent wallet | Signs bounded x402 payment authorizations |
-| Base Sepolia | Seller wallet | Receives dataset micropayments |
 
 ### Human Checkout Infrastructure
 
