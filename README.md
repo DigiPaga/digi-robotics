@@ -515,8 +515,8 @@ DigiRobotics uses infrastructure and tooling from the following ecosystem partne
 
 Built by the DigiPaga team for the Arbitrum Open House Singapore Buildathon.
 
-- **Oscar Andrade ([@ozkite](https://github.com/ozkite))** — Smart contracts and backend
-- **Otto ([@ottodevs](https://github.com/ottodevs))** — Frontend and integration
+- **Oscar ([@ozkite](https://github.com/ozkite))** — Product Design & Development
+- **Otto ([@ottodevs](https://github.com/ottodevs))** — Product Deployments & Integrations
 
 ---
 
