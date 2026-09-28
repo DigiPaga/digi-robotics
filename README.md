@@ -93,3 +93,101 @@ Next.js /agent-demo → Express run API + SSE → deterministic discovery/policy
 protected resource ← HTTP 402 / paid retry → public facilitator → Base Sepolia USDC
        ↓ only after confirmed settlement
 five-minute signed dataset URL
+
+🔄 How It Works: The x402 Flow
+Preflight: The run API performs token/domain/balance preflight and deterministic discovery.
+Challenge: The agent requests GET /x402/datasets/:id/content without payment and receives a machine-readable x402 v2 HTTP 402.
+Authorization: Policy validates every payment field, then the server-side EOA signs one EIP-3009 authorization.
+Settlement: The agent retries the same URL with the PAYMENT-SIGNATURE header; the public facilitator verifies and settles it on-chain.
+Fulfillment: The server checks the receipt and seller balance delta, then issues a five-minute signed dataset URL.
+🛠️ Tech Stack
+Layer
+Technologies
+Smart Contracts
+Foundry, Solidity 0.8.20, EIP-712, EIP-3009, ERC-8004
+Backend
+Node.js 20.x, Express.js, TypeScript, x402 v2.27
+Frontend
+Next.js 16 (App Router), React 19, Tailwind CSS 4
+Web3 & AA
+Viem, Wagmi v2, ZeroDev SDK (ERC-4337 Session Keys)
+Infrastructure
+QuickNode RPC, Pinata (IPFS), Dune Analytics, GitHub Actions
+📜 Smart Contracts
+Active Demo Contracts
+Network
+Contract
+Purpose
+Base Sepolia
+Public Facilitator
+x402 v2 payment settlement and verification
+Base Sepolia
+Test USDC
+EIP-3009 transferWithAuthorization token
+Legacy/Prototype Contracts (Preserved)
+Contract
+Purpose
+Chain
+AgentRegistry
+ERC-8004 agent identity management
+Arbitrum Sepolia, RH Testnet
+RoboticsMarketplace
+Asset listing and purchase logic
+Arbitrum Sepolia, RH Testnet
+AssetVault
+Escrow and IPFS delivery
+Arbitrum Sepolia, RH Testnet
+🚀 Getting Started
+Prerequisites
+Node.js: v20.x or higher
+Foundry: Install Guide
+Git: v2.x or higher
+Installation
+bash
+
+12345678
+Running Locally
+bash
+
+12345
+Access the demo at: http://localhost:3000/agent-demo
+📁 Project Structure
+text
+
+123456789101112131415
+🏆 Sponsors & Integrations
+This project is built leveraging the best Web3 infrastructure, with special thanks to our hackathon sponsors:
+<div align="center">
+<table>
+<tr>
+<td align="center"><strong>Arbitrum</strong><br/>L2 Scaling & Buildathon Host</td>
+<td align="center"><strong>Robinhood Chain</strong><br/>Testnet Infrastructure</td>
+<td align="center"><strong>Paxos</strong><br/>USDG/PYUSD Stablecoin Settlement</td>
+</tr>
+<tr>
+<td align="center"><strong>ZeroDev</strong><br/>ERC-4337 Account Abstraction</td>
+<td align="center"><strong>QuickNode</strong><br/>High-Performance RPC Nodes</td>
+<td align="center"><strong>Dune Analytics</strong><br/>On-chain Marketplace Metrics</td>
+</tr>
+</table>
+</div>
+
+👥 Team
+Built by the DigiPaga Team for the Arbitrum Open House Singapore Buildathon
+Oscar (@ozkite) - Smart Contracts & Backend
+Otto (@ottodevs) - Frontend & Integration
+🎓 ETHSKILLS Integration
+This project follows ETHSKILLS guidelines for production-grade Ethereum development, with specific optimizations for Arbitrum's L2 gas dynamics and sequencer behavior.
+Core Principles Applied:
+✅ Security First: All contracts audited against common vulnerabilities (Reentrancy, Access Control).
+✅ Gas Optimization: Efficient storage packing and computation patterns tailored for L2.
+✅ Testing Coverage: Comprehensive unit, fuzz, and invariant tests with Foundry.
+✅ Documentation: NatSpec comments and inline explanations throughout.
+Tools Used:
+Foundry: Testing, fuzzing, and deployment.
+OpenZeppelin: Battle-tested contract libraries.
+ZeroDev: Account Abstraction (ERC-4337) for AI agent Session Keys and gasless human onboarding.
+<div align="center">
+<strong>Built with ❤️ for the future of autonomous commerce.</strong><br/>
+<em>Submission Date: October 4, 2026 | Prize Pool: $115,000 USD</em>
+</div>
