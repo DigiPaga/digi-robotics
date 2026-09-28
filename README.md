@@ -517,6 +517,7 @@ Built by the DigiPaga team for the Arbitrum Open House Singapore Buildathon.
 
 - **Oscar ([@ozkite](https://github.com/ozkite))** — Product Design & Development
 - **Otto ([@ottodevs](https://github.com/ottodevs))** — Product Deployments & Integrations
+- **DigiAgent ([@digiagent(https://github.com/digiagent))** — Research & Technical Assistance 
 
 ---
 
