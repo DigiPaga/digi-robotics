@@ -14,18 +14,20 @@
 
 ---
 
+<a id="real-x402-agent-demo"></a>
+
 ## 🚀 Real x402 Agent Demo
 
-The `/agent-demo` route demonstrates a complete **x402 v2 payment cycle** on Base Sepolia:
+The `/agent-demo` route demonstrates a complete **x402 v2 payment cycle** across Robinhood Chain Testnet and Arbitrum Sepolia:
 
 1. An unpaid resource request receives a machine-readable **HTTP 402 Payment Required** response.
 2. A deterministic server-side agent validates the payment against strict spending policies.
-3. The agent signs an **EIP-3009 `transferWithAuthorization`** authorization using **EIP-712** typed data for `0.05` test USDC.
+3. The agent signs an **EIP-3009 `transferWithAuthorization`** authorization using **EIP-712** typed data for test stablecoins.
 4. The agent retries the protected resource with the x402 payment signature.
-5. The public x402 facilitator verifies and settles the payment on-chain.
+5. The x402 facilitator verifies and settles the payment on-chain.
 6. Only after confirmed settlement does the server issue a short-lived signed URL for the protected robotics dataset.
 
-> **Dual-rail architecture:** The autonomous-agent demo uses x402 with test USDC on Base Sepolia. The human checkout flow uses direct ERC-20 mUSDG transfers on Arbitrum Sepolia.
+> **Dual-rail architecture:** The autonomous-agent demo uses x402 with test stablecoins on Robinhood Chain Testnet and Arbitrum Sepolia. The human checkout flow uses direct mUSDG transfers through ZeroDev embedded wallets on Arbitrum Sepolia.
 
 📖 **Full runbook:** [`x402-server/docs/AGENT_DEMO_RUNBOOK.md`](x402-server/docs/AGENT_DEMO_RUNBOOK.md)
 
@@ -33,21 +35,26 @@ The `/agent-demo` route demonstrates a complete **x402 v2 payment cycle** on Bas
 
 ## 📋 Table of Contents
 
-- [Problem](#-problem)
-- [Solution](#-solution)
-- [Key Features](#-key-features)
-- [Architecture](#️-architecture)
-- [How It Works: The x402 Flow](#-how-it-works-the-x402-flow)
-- [Tech Stack](#️-tech-stack)
-- [Smart Contracts](#-smart-contracts)
-- [Getting Started](#-getting-started)
-- [Project Structure](#-project-structure)
-- [Sponsors and Integrations](#-sponsors-and-integrations)
-- [Team](#-team)
-- [ETHSKILLS Integration](#-ethskills-integration)
-- [License](#-license)
+- [Real x402 Agent Demo](#real-x402-agent-demo)
+- [Problem](#problem)
+- [Solution](#solution)
+- [Key Features](#key-features)
+- [Architecture](#architecture)
+- [How It Works: The x402 Flow](#x402-flow)
+- [Tech Stack](#tech-stack)
+- [Smart Contracts](#smart-contracts)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [Sponsors and Integrations](#sponsors)
+- [Team](#team)
+- [ETHSKILLS Integration](#ethskills)
+- [Security Notes](#security)
+- [Current Demo Status](#demo-status)
+- [License](#license)
 
 ---
+
+<a id="problem"></a>
 
 ## 🔥 Problem
 
@@ -65,12 +72,14 @@ As a result, valuable human dexterity data remains difficult to source while bil
 
 ---
 
+<a id="solution"></a>
+
 ## 💡 Solution
 
 **DigiRobotics** connects human contributors, robotics teams, datasets, and autonomous agents through two purpose-built payment rails:
 
 1. **Agentic Commerce**  
-   A real x402 v2 `exact` payment flow using test USDC on Base Sepolia. A server-side agent discovers a dataset, validates its payment requirements, signs an EIP-3009 authorization, and unlocks the resource after confirmed settlement.
+   A real x402 v2 `exact` payment flow using test stablecoins on Robinhood Chain Testnet and Arbitrum Sepolia. A server-side agent discovers a dataset, validates its payment requirements, signs an EIP-3009 authorization, and unlocks the resource after confirmed settlement.
 
 2. **Human Checkout**  
    A Thirdweb and ZeroDev embedded-wallet experience using direct mUSDG transfers on Arbitrum Sepolia, with no seed phrases required.
@@ -78,6 +87,8 @@ As a result, valuable human dexterity data remains difficult to source while bil
 Together, these rails create a marketplace where humans can capture and monetize robotics training data while autonomous agents discover, verify, purchase, and consume it.
 
 ---
+
+<a id="key-features"></a>
 
 ## 🌟 Key Features
 
@@ -95,8 +106,8 @@ Together, these rails create a marketplace where humans can capture and monetize
 - ✅ **Zero-friction onboarding:** Embedded wallets without seed phrases.
 - ✅ **Egocentric capture:** Contributors can upload first-person robotics training videos.
 - ✅ **Stablecoin rewards:** Contributors can receive USDG or PYUSD after validation.
-- ✅ **Telegram ingestion:** Video submissions can be captured through the DigiRobotics Telegram bot.
-- ✅ **Campaign discovery:** Contributors can find tasks requested by robotics teams.
+- ✅ **Telegram ingestion:** Videos can be submitted through the DigiRobotics Telegram bot.
+- ✅ **Campaign discovery:** Contributors can find capture tasks requested by robotics teams.
 
 ### For Robotics Teams
 
@@ -108,33 +119,45 @@ Together, these rails create a marketplace where humans can capture and monetize
 ### For Developers
 
 - ✅ **Full TypeScript stack:** Shared types across the frontend and backend.
-- ✅ **Foundry-based contracts:** Fast Solidity testing, deployment, fuzzing, and invariant testing.
+- ✅ **Foundry-based contracts:** Solidity testing, deployment, fuzzing, and invariant testing.
 - ✅ **Modular architecture:** Clear separation between the frontend, agent runtime, payment policy, protected resources, contracts, and storage.
 - ✅ **Fail-closed configuration:** Missing payment or wallet configuration does not expose protected content.
 
 ---
 
+<a id="architecture"></a>
+
 ## 🏗️ Architecture
+
+### Autonomous x402 Agent Rail
 
 ```mermaid
 flowchart LR
-    A["Next.js<br/>/agent-demo"] -->|"Create run"| B["Express Run API<br/>and SSE"]
-    B -->|"Search and evaluate"| C["Discovery and<br/>Policy Engine"]
-    C -->|"Approved candidate"| D["Server-Side<br/>x402 Buyer"]
+    A["Next.js<br/>/agent-demo"]
+    B["Express Run API<br/>and SSE"]
+    C["Discovery and<br/>Policy Engine"]
+    D["Server-Side<br/>x402 Buyer"]
+    E{"Protected Dataset<br/>Resource"}
+    F["x402<br/>Facilitator"]
+    G[("Robinhood Chain Testnet<br/>and Arbitrum Sepolia<br/>Test Stablecoins")]
+    H[("Protected Dataset<br/>Storage")]
 
-    D -->|"1. Unpaid GET"| E{"Protected Dataset<br/>Resource"}
-    E -->|"2. HTTP 402<br/>Payment Requirements"| D
-    D -->|"3. Retry with<br/>PAYMENT-SIGNATURE"| E
+    A -->|"Create run"| B
+    B -->|"Search and evaluate"| C
+    C -->|"Approved candidate"| D
 
-    E -->|"4. Verify and settle"| F["Public x402<br/>Facilitator"]
-    F -->|"5. Settle on-chain"| G[("Base Sepolia<br/>Test USDC")]
+    D -->|"1. Unpaid GET"| E
+    E -->|"2. HTTP 402 requirements"| D
+    D -->|"3. PAYMENT-SIGNATURE"| E
+
+    E -->|"4. Verify and settle"| F
+    F -->|"5. Settle on-chain"| G
     G -->|"6. Settlement receipt"| E
 
-    E -->|"7. Five-minute<br/>signed URL"| D
+    H -->|"Protected resource"| E
+    E -->|"7. Five-minute signed URL"| D
     D -->|"8. Run result"| B
-    B -->|"9. Live events"| A
-
-    H[("Protected Dataset<br/>Storage")] -->|"Signed access only"| E
+    B -->|"9. Live SSE events"| A
 
     classDef frontend fill:#161c29,stroke:#84cc16,stroke-width:2px,color:#ffffff
     classDef backend fill:#1a1f2e,stroke:#a0a0a0,stroke-width:1px,color:#ffffff
@@ -155,11 +178,18 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    A["Next.js Marketplace"] --> B["Thirdweb Authentication"]
-    B --> C["ZeroDev Embedded Wallet"]
-    C --> D["Direct mUSDG Transfer"]
-    D --> E[("Arbitrum Sepolia")]
-    E --> F["Human Checkout Confirmation"]
+    A["Next.js Marketplace"]
+    B["Thirdweb Authentication"]
+    C["ZeroDev Embedded Wallet"]
+    D["Direct mUSDG Transfer"]
+    E[("Arbitrum Sepolia")]
+    F["Human Checkout Confirmation"]
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
 
     classDef frontend fill:#161c29,stroke:#84cc16,stroke-width:2px,color:#ffffff
     classDef wallet fill:#1a1f2e,stroke:#84cc16,stroke-width:2px,color:#ffffff
@@ -171,6 +201,8 @@ flowchart LR
 ```
 
 ---
+
+<a id="x402-flow"></a>
 
 ## 🔄 How It Works: The x402 Flow
 
@@ -192,19 +224,19 @@ The agent searches the configured dataset registry and evaluates compatible reso
 
 ### 3. Challenge
 
-The agent requests:
+The agent requests the protected resource without a payment signature:
 
 ```http
 GET /x402/datasets/:id/content
 ```
 
-Because no payment signature is attached, the server responds with:
+The resource server responds with:
 
 ```http
 HTTP/1.1 402 Payment Required
 ```
 
-The response includes machine-readable x402 payment requirements.
+The response contains machine-readable x402 payment requirements.
 
 ### 4. Policy Validation
 
@@ -214,7 +246,7 @@ Before signing, the agent validates:
 - Asset address.
 - Payment scheme.
 - Atomic amount.
-- Recipient.
+- Payment recipient.
 - Resource URL.
 - Host allowlist.
 - Spending limit.
@@ -223,7 +255,7 @@ Before signing, the agent validates:
 
 ### 5. Authorization
 
-The server-side EOA signs an EIP-3009 authorization using EIP-712 typed data.
+The server-side agent wallet signs an EIP-3009 authorization using EIP-712 typed data.
 
 No agent private key is exposed to the browser.
 
@@ -231,7 +263,7 @@ No agent private key is exposed to the browser.
 
 The agent retries the protected resource with the x402 payment signature.
 
-The facilitator verifies the authorization and settles the payment on Base Sepolia.
+The facilitator verifies the authorization and settles the payment on Robinhood Chain Testnet or Arbitrum Sepolia, depending on the selected resource and configured payment rail.
 
 ### 7. Fulfillment
 
@@ -241,7 +273,9 @@ After settlement, the backend verifies:
 - On-chain transaction receipt.
 - Successful receipt status.
 - Expected seller balance delta.
-- Correct asset and amount.
+- Correct asset.
+- Correct amount.
+- Correct payment recipient.
 
 The backend then issues a short-lived signed dataset URL.
 
@@ -258,6 +292,8 @@ The frontend receives genuine backend events through Server-Sent Events and disp
 - Dataset unlock status.
 
 ---
+
+<a id="tech-stack"></a>
 
 ## 🛠️ Tech Stack
 
@@ -276,28 +312,34 @@ The frontend receives genuine backend events through Server-Sent Events and disp
 
 ---
 
+<a id="smart-contracts"></a>
+
 ## 📜 Smart Contracts
 
-### Active Agent Demo Infrastructure
-
-
-### Human Checkout Infrastructure
+### Active Agent Demo and Human Checkout Infrastructure
 
 | Network | Component | Purpose |
 |---|---|---|
-| Arbitrum Sepolia | MockUSDG | Human marketplace checkout asset |
-| Arbitrum Sepolia | ZeroDev account | Embedded smart-account experience |
+| Arbitrum Sepolia | MockUSDG (`mUSDG`) | Human marketplace checkout asset |
+| Arbitrum Sepolia | ZeroDev smart account | Embedded account experience and session keys |
 | Arbitrum Sepolia | Thirdweb authentication | User authentication and onboarding |
+| Arbitrum Sepolia | Test stablecoin payment rail | Testnet x402 and direct payment experimentation |
+| Robinhood Chain Testnet | Test USDG or PYUSD | Agentic x402 payment asset |
+| Robinhood Chain Testnet | Server-side agent wallet | Signs bounded EIP-3009 payment authorizations |
+| Robinhood Chain Testnet and Arbitrum Sepolia | x402 facilitator integration | Payment verification and settlement |
+| Mainnet — planned | Production USDG and PYUSD | Production settlement for robotics data purchases |
 
 ### Legacy and Prototype Contracts
 
 | Contract | Purpose | Networks |
 |---|---|---|
-| `AgentRegistry` | ERC-8004 agent identity management | Arbitrum Sepolia, Robinhood Chain testnet |
-| `RoboticsMarketplace` | Dataset listing and purchase logic | Arbitrum Sepolia, Robinhood Chain testnet |
-| `AssetVault` | Escrow and IPFS delivery | Arbitrum Sepolia, Robinhood Chain testnet |
+| `AgentRegistry` | ERC-8004 agent identity management | Arbitrum Sepolia, Robinhood Chain Testnet |
+| `RoboticsMarketplace` | Dataset listing and purchase logic | Arbitrum Sepolia, Robinhood Chain Testnet |
+| `AssetVault` | Escrow and IPFS delivery | Arbitrum Sepolia, Robinhood Chain Testnet |
 
 ---
+
+<a id="getting-started"></a>
 
 ## 🚀 Getting Started
 
@@ -323,9 +365,13 @@ npm install
 cp .env.example .env
 ```
 
-Configure the required backend environment variables in `x402-server/.env`.
+Configure the required backend environment variables in:
 
-Do not commit real wallet keys or API credentials.
+```text
+x402-server/.env
+```
+
+Do not commit real wallet keys, bot tokens, or API credentials.
 
 ### 3. Install Frontend Dependencies
 
@@ -335,7 +381,11 @@ npm install
 cp .env.example .env.local
 ```
 
-Configure the frontend API URL and other public environment variables in `web/.env.local`.
+Configure the frontend API URL and other public environment variables in:
+
+```text
+web/.env.local
+```
 
 Never expose agent private keys through `NEXT_PUBLIC_*` variables.
 
@@ -392,7 +442,7 @@ An unpaid request should return HTTP 402:
 curl -i http://localhost:3001/x402/datasets/engine-assembly-pov/content
 ```
 
-Expected status:
+Expected response status:
 
 ```http
 HTTP/1.1 402 Payment Required
@@ -403,6 +453,8 @@ For the complete funding, configuration, and verification procedure, see:
 [`x402-server/docs/AGENT_DEMO_RUNBOOK.md`](x402-server/docs/AGENT_DEMO_RUNBOOK.md)
 
 ---
+
+<a id="project-structure"></a>
 
 ## 📁 Project Structure
 
@@ -438,6 +490,8 @@ digi-robotics/
 
 ---
 
+<a id="sponsors"></a>
+
 ## 🏆 Sponsors and Integrations
 
 DigiRobotics uses infrastructure and tooling from the following ecosystem partners:
@@ -445,15 +499,17 @@ DigiRobotics uses infrastructure and tooling from the following ecosystem partne
 | Sponsor or Integration | Contribution |
 |---|---|
 | Arbitrum | L2 infrastructure and Buildathon host |
-| Robinhood Chain | Testnet experimentation |
+| Robinhood Chain | Testnet infrastructure and payment experimentation |
 | Paxos | USDG and PYUSD stablecoin ecosystem |
 | ZeroDev | ERC-4337 account abstraction |
 | Thirdweb | Authentication and wallet onboarding |
-| QuickNode | RPC infrastructure |
-| Pinata | IPFS storage and content delivery |
+| QuickNode | High-performance RPC infrastructure |
+| Pinata | IPFS storage and controlled dataset delivery |
 | Dune Analytics | On-chain marketplace analytics |
 
 ---
+
+<a id="team"></a>
 
 ## 👥 Team
 
@@ -463,6 +519,8 @@ Built by the DigiPaga team for the Arbitrum Open House Singapore Buildathon.
 - **Otto ([@ottodevs](https://github.com/ottodevs))** — Frontend and integration
 
 ---
+
+<a id="ethskills"></a>
 
 ## 🎓 ETHSKILLS Integration
 
@@ -489,6 +547,8 @@ This project follows ETHSKILLS guidance for production-oriented Ethereum develop
 
 ---
 
+<a id="security"></a>
+
 ## 🔐 Security Notes
 
 - Never commit `.env` or `.env.local` files.
@@ -496,28 +556,32 @@ This project follows ETHSKILLS guidance for production-oriented Ethereum develop
 - Never unlock protected content after transaction submission alone.
 - Always verify settlement and receipt status before fulfillment.
 - Restrict autonomous spending through explicit allowlists and maximum amounts.
-- Rotate any credentials that have been exposed during development.
+- Rotate credentials that have been exposed during development.
 - Use testnet assets only for the public demonstration.
 
 ---
+
+<a id="demo-status"></a>
 
 ## 🗺️ Current Demo Status
 
 | Capability | Status |
 |---|---|
 | Marketplace interface | ✅ Available |
-| Human mUSDG checkout | ✅ Testnet demo |
+| Human mUSDG checkout | ✅ Testnet demo — Arbitrum Sepolia |
 | x402 protected resource | ✅ Available |
 | Deterministic agent buyer | ✅ Available |
 | HTTP 402 challenge | ✅ Available |
 | EIP-3009 authorization | ✅ Available |
-| Facilitator settlement | ✅ Available |
+| Facilitator settlement | ✅ Robinhood Chain Testnet and Arbitrum Sepolia |
 | Signed dataset delivery | ✅ Available |
 | Telegram capture ingestion | 🧪 Prototype |
 | Production stablecoin settlement | 🚧 Planned |
 | Mainnet deployment | 🚧 Planned |
 
 ---
+
+<a id="license"></a>
 
 ## 📄 License
 
