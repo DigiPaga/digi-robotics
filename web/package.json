@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "validate:robinhood": "npx tsx ../scripts/validate-robinhood-config.ts"
   },
   "dependencies": {
     "@fontsource/inter-tight": "^5.3.0",
