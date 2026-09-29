@@ -18,3 +18,7 @@ arbitrum_sepolia = { key = "${ARBISCAN_API_KEY}", url = "https://api-sepolia.arb
 
 [profile.slither]
 optimizer = false
+
+[rpc_endpoints]
+robinhood_testnet = "https://sepolia.rpc.robinhood.com"
+arbitrum_sepolia = "https://arbitrum-sepolia-rpc.publicnode.com"
