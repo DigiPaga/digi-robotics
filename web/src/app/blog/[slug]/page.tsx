@@ -13,6 +13,10 @@ function humanDate(value: string): string {
   return new Intl.DateTimeFormat("en", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${value}T00:00:00Z`));
 }
 
+// Posts are read from content/blog at build time. A deployed Worker has no content
+// directory to read, so slugs outside generateStaticParams are a 404, not a render.
+export const dynamicParams = false;
+
 export async function generateStaticParams() {
   const posts = await getAllBlogPostMetadata();
   return posts.map(({ slug }) => ({ slug }));
