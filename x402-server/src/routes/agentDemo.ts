@@ -10,7 +10,7 @@ import { BuyerError, X402Buyer } from "../agent/x402Buyer";
 import { RunStore } from "../agent/runStore";
 import type { ErrorCode } from "../types/agentDemo";
 import { safeErrorMessage } from "../utils/redact";
-import { explorerTxUrl, getX402Chain } from "../x402/chains";
+import { explorerTxUrl, getX402Chain, MOCK_USDG_TOKEN, X402_CHAINS } from "../x402/chains";
 import { createProtectedDatasetMiddleware, type X402SettlementLocals } from "../x402/resourceServer";
 
 function shortAddress(value: string): string {
@@ -38,16 +38,17 @@ export function createAgentDemoRouter(env: AgentDemoEnv, store = new RunStore(en
       selectedMode: env.mode,
       runtime: { node: process.version, minimumNode: ">=20.9.0", x402Version: 2 },
       mockUSDG: {
-        address: "0x39271d08C111912B1F32465745f3123a878C83Bb",
-        network: "eip155:421614",
-        symbol: "mUSDG",
-        decimals: 6,
-        eip3009: false,
-        permit2: "token-compatible after approval, but the selected public facilitator does not advertise Arbitrum Sepolia",
-        compatible: false,
+        symbol: MOCK_USDG_TOKEN.symbol,
+        decimals: MOCK_USDG_TOKEN.decimals,
+        eip712: { name: MOCK_USDG_TOKEN.name, version: MOCK_USDG_TOKEN.version },
+        eip3009: true,
+        networks: Object.values(X402_CHAINS).filter(chain => chain.supportsMockUsdg).map(chain => chain.network),
+        selected: env.mode === "REAL_MUSDG_X402",
       },
       selectedAsset: { network: env.network, chainId: env.chainId, address: env.assetAddress, symbol: env.assetSymbol, decimals: env.assetDecimals, transferMethod: "eip3009" },
-      facilitator: { url: env.facilitatorUrl, requiredCapability: { x402Version: 2, scheme: "exact", network: env.network } },
+      facilitator: env.mode === "REAL_MUSDG_X402"
+        ? { url: "in-process", settlement: env.settlementContract ? { via: "X402Facilitator", contract: env.settlementContract } : { via: "token.transferWithAuthorization" }, requiredCapability: { x402Version: 2, scheme: "exact", network: env.network } }
+        : { url: env.facilitatorUrl, requiredCapability: { x402Version: 2, scheme: "exact", network: env.network } },
       buyer: { address: agentAddress, model: "server-side EOA signer", zeroDevUsed: false },
       seller: { address: env.payTo, distinctFromBuyer: agentAddress?.toLowerCase() !== env.payTo.toLowerCase() },
       thirdweb: { role: "human authentication/checkout only", usedByAgentDemo: false },
