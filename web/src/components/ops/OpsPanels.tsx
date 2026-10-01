@@ -44,13 +44,14 @@ export function OpsNotConfigured({ problems }: { problems: string[] }) {
   );
 }
 
-const ERROR_COPY: Record<string, string> = {
-  denied: "That Google account is not on the ops allowlist.",
-  failed: "Sign-in did not complete. Try again.",
-};
+/** A Map, not an object: `?error=constructor` must not resolve to an inherited property. */
+const ERROR_COPY: ReadonlyMap<string, string> = new Map([
+  ["denied", "That Google account is not on the ops allowlist."],
+  ["failed", "Sign-in did not complete. Try again."],
+]);
 
 export function OpsSignIn({ error }: { error?: string }) {
-  const message = error ? ERROR_COPY[error] : undefined;
+  const message = error ? ERROR_COPY.get(error) : undefined;
   return (
     <OpsFrame>
       <Card>
