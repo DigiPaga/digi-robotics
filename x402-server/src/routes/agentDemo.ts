@@ -88,8 +88,18 @@ export function createAgentDemoRouter(env: AgentDemoEnv, store = new RunStore(en
       res.write(`id: ${event.sequence}\nevent: run\ndata: ${JSON.stringify(event)}\n\n`);
     }
     const unsubscribe = store.subscribe(run.id, event => res.write(`id: ${event.sequence}\nevent: run\ndata: ${JSON.stringify(event)}\n\n`));
-    const heartbeat = setInterval(() => res.write(": heartbeat\n\n"), 15_000);
-    req.on("close", () => { clearInterval(heartbeat); unsubscribe(); });
+    const release = () => { clearInterval(heartbeat); unsubscribe(); };
+    const heartbeat = setInterval(() => {
+      // Not every host reports a client disconnect to the response, so the stream
+      // also ends when its run expires instead of holding a timer and a listener forever.
+      if (!store.get(run.id)) {
+        release();
+        res.end();
+        return;
+      }
+      res.write(": heartbeat\n\n");
+    }, 15_000);
+    req.on("close", release);
   });
 
   router.get("/x402/datasets/:id/content", paidRouteRateLimit, (req, res, next) => {
