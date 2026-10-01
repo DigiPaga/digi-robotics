@@ -40,20 +40,24 @@ contract RoboticsMarketplaceV2 is Pausable {
     }
 
     function listAsset(string calldata ipfsURI, uint256 price) external whenNotPaused {
+        _listAsset(msg.sender, ipfsURI, price);
+    }
+
+    function _listAsset(address seller, string calldata ipfsURI, uint256 price) internal {
         require(price > 0, "Price must be > 0");
         uint256 assetId = ++_nextAssetId;
-        
+
         assets[assetId] = Asset({
             id: assetId,
-            seller: msg.sender,
+            seller: seller,
             ipfsURI: ipfsURI,
             price: price,
             isSold: false,
             createdAt: block.timestamp
         });
 
-        sellerAssets[msg.sender].push(assetId);
-        emit AssetListed(assetId, msg.sender, price);
+        sellerAssets[seller].push(assetId);
+        emit AssetListed(assetId, seller, price);
     }
 
     function purchaseWithAgent(uint256 assetId, address agentAddress) external whenNotPaused {
@@ -75,11 +79,10 @@ contract RoboticsMarketplaceV2 is Pausable {
         emit AssetPurchased(assetId, msg.sender, agentAddress, asset.price);
     }
 
-    // CORRECCIÓN: Usar 'this.' para llamar a una función external
     function batchListAssets(string[] calldata ipfsURIs, uint256[] calldata prices) external whenNotPaused {
         require(ipfsURIs.length == prices.length, "Length mismatch");
         for (uint256 i = 0; i < ipfsURIs.length; i++) {
-            this.listAsset(ipfsURIs[i], prices[i]);
+            _listAsset(msg.sender, ipfsURIs[i], prices[i]);
         }
     }
 
