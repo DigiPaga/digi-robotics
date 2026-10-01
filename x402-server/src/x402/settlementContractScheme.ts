@@ -13,6 +13,7 @@ export const x402FacilitatorAbi = parseAbi([
   "error UnauthorizedSettler(address caller)",
   "error ZeroAmount()",
   "error InvalidPayee(address payee)",
+  "error PayeeIsSystemContract(address payee)",
   "error SettlementAmountMismatch(uint256 expected, uint256 received)",
 ]);
 

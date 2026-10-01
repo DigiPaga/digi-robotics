@@ -46,6 +46,8 @@ contract X402Facilitator is IX402Facilitator, Ownable2Step, ReentrancyGuardTrans
     error ZeroAmount();
     /// @notice The payee is the zero address or the payer itself.
     error InvalidPayee(address payee);
+    /// @notice The payee is this facilitator or the token, where received funds would be stuck.
+    error PayeeIsSystemContract(address payee);
     /// @notice The payee's balance did not grow by exactly the authorized amount.
     error SettlementAmountMismatch(uint256 expected, uint256 received);
 
@@ -68,6 +70,7 @@ contract X402Facilitator is IX402Facilitator, Ownable2Step, ReentrancyGuardTrans
         if (!isSettler[msg.sender]) revert UnauthorizedSettler(msg.sender);
         if (auth.value == 0) revert ZeroAmount();
         if (auth.to == address(0) || auth.to == auth.from) revert InvalidPayee(auth.to);
+        if (auth.to == address(this) || auth.to == token) revert PayeeIsSystemContract(auth.to);
 
         uint256 balanceBefore = IERC20(token).balanceOf(auth.to);
         IERC3009(token)

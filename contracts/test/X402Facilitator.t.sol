@@ -297,6 +297,21 @@ contract X402FacilitatorTest is ERC3009Signer {
         _settle(auth, signature);
     }
 
+    function test_RevertWhen_PayeeIsFacilitatorOrToken() public {
+        Authorization memory auth = _auth(keccak256("settle-system-payee"));
+        auth.to = address(facilitator);
+        bytes memory signature = _signed(auth);
+        vm.expectRevert(abi.encodeWithSelector(X402Facilitator.PayeeIsSystemContract.selector, address(facilitator)));
+        _settle(auth, signature);
+
+        auth.to = address(token);
+        signature = _signed(auth);
+        vm.expectRevert(abi.encodeWithSelector(X402Facilitator.PayeeIsSystemContract.selector, address(token)));
+        _settle(auth, signature);
+
+        assertFalse(token.authorizationState(agent, auth.nonce));
+    }
+
     function test_RevertWhen_TokenDoesNotDeliver() public {
         X402Facilitator silent = new X402Facilitator(address(new SilentERC3009()), owner);
         Authorization memory auth = _auth(keccak256("settle-silent"));
