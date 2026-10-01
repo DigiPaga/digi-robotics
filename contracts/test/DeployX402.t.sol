@@ -31,6 +31,31 @@ contract DeployX402Test is Test {
         assertEq(token.version(), "1");
     }
 
+    function test_RevertWhen_PublicChainWithoutSettler() public {
+        vm.chainId(421_614);
+        vm.expectRevert(abi.encodeWithSelector(DeployX402Script.SettlerRequired.selector, 421_614));
+        script.deploy(deployerKey, address(0));
+    }
+
+    function test_RevertWhen_PublicChainSettlerIsDeployer() public {
+        vm.chainId(46_630);
+        vm.expectRevert(abi.encodeWithSelector(DeployX402Script.SettlerMustDifferFromOwner.selector, deployer));
+        script.deploy(deployerKey, deployer);
+    }
+
+    function test_PublicChainDeploysWithSeparateSettler() public {
+        address settler = makeAddr("hot-settler");
+        vm.chainId(46_630);
+        (, X402Facilitator facilitator) = script.deploy(deployerKey, settler);
+        assertTrue(facilitator.isSettler(settler));
+        assertEq(facilitator.owner(), deployer);
+    }
+
+    function test_AnvilDeploysWithoutSettler() public {
+        (, X402Facilitator facilitator) = script.deploy(deployerKey, address(0));
+        assertTrue(facilitator.isSettler(deployer));
+    }
+
     function test_RevertWhen_UnsupportedChain() public {
         vm.chainId(42_161);
         vm.expectRevert(abi.encodeWithSelector(DeployX402Script.UnsupportedChain.selector, 42_161));

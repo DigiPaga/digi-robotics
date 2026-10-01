@@ -40,13 +40,14 @@ The first MockUSDG deployment on Arbitrum Sepolia (`0x39271d08C111912B1F32465745
 Roles and funding:
 
 - Buyer (`PRIVATE_KEY`): holds mUSDG only. EIP-3009 is gasless for the payer. Fund it with `faucet()` from the buyer address (once per day) or a normal transfer.
-- Facilitator signer (`X402_FACILITATOR_PRIVATE_KEY`): pays settlement gas, so it needs native ETH. When settling through the contract it must be an approved settler (the deployer is by default; pass `X402_SETTLER` to the deploy script for another key).
+- Facilitator signer (`X402_FACILITATOR_PRIVATE_KEY`): pays settlement gas, so it needs native ETH. Use a separate hot key, never the owner/deployer key. Pass its address as `X402_SETTLER` to the deploy script, which approves it as a settler; on Arbitrum Sepolia and Robinhood Chain Testnet the script reverts if `X402_SETTLER` is unset or equals the deployer. The owner key stays cold and only manages settlers (`setSettler`); if the hot key leaks, the owner revokes it.
 - Treasury (`X402_PAY_TO`): receives payments.
 
 Deploy and configure:
 
 ```bash
 cd contracts
+export X402_SETTLER=<address of the X402_FACILITATOR_PRIVATE_KEY hot key>
 forge script script/DeployX402.s.sol --rpc-url arbitrum_sepolia_public            # dry run
 forge script script/DeployX402.s.sol --rpc-url arbitrum_sepolia_public --broadcast
 cat deployments/x402-421614.json
@@ -57,7 +58,7 @@ X402_MODE=REAL_MUSDG_X402
 X402_NETWORK=eip155:421614
 X402_ASSET_ADDRESS=<MockUSDG>
 X402_SETTLEMENT_CONTRACT=<X402Facilitator>
-X402_FACILITATOR_PRIVATE_KEY=<settler key>
+X402_FACILITATOR_PRIVATE_KEY=<settler hot key, not the deployer>
 X402_PAY_TO=<treasury EOA>
 AGENT_ALLOWED_PAY_TO=<treasury EOA>
 ```

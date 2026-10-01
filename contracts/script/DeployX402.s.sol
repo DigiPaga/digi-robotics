@@ -8,11 +8,14 @@ import {X402Facilitator} from "../src/X402Facilitator.sol";
 
 /// @notice Deploys MockUSDG (EIP-3009) and X402Facilitator on a supported testnet.
 /// @dev Environment:
-///        PRIVATE_KEY        deployer key (required). Becomes facilitator owner and first settler.
-///        X402_SETTLER       optional extra settlement operator (the x402-server facilitator signer).
+///        PRIVATE_KEY        deployer key (required). Becomes facilitator owner (and, as owner, a settler).
+///        X402_SETTLER       settlement operator: the address of X402_FACILITATOR_PRIVATE_KEY in
+///                           x402-server. Required on Arbitrum Sepolia and Robinhood Chain Testnet,
+///                           and must differ from the deployer there, so the owner key stays cold
+///                           and the hot server key can only settle. Optional on Anvil.
 ///
 ///      Dry run (no transactions sent):
-///        forge script script/DeployX402.s.sol --rpc-url arbitrum_sepolia_public
+///        X402_SETTLER=<server hot key address> forge script script/DeployX402.s.sol --rpc-url arbitrum_sepolia_public
 ///      Broadcast:
 ///        forge script script/DeployX402.s.sol --rpc-url robinhood_testnet --broadcast
 ///
@@ -28,15 +31,28 @@ contract DeployX402Script is Script {
     uint256 internal constant ANVIL = 31_337;
 
     error UnsupportedChain(uint256 chainId);
+    /// @notice X402_SETTLER is unset on a public chain.
+    error SettlerRequired(uint256 chainId);
+    /// @notice X402_SETTLER equals the deployer (owner) on a public chain.
+    error SettlerMustDifferFromOwner(address settler);
 
     function run() external returns (MockUSDG token, X402Facilitator facilitator) {
+        return deploy(vm.envUint("PRIVATE_KEY"), vm.envOr("X402_SETTLER", address(0)));
+    }
+
+    function deploy(uint256 deployerKey, address extraSettler)
+        public
+        returns (MockUSDG token, X402Facilitator facilitator)
+    {
         if (block.chainid != ARBITRUM_SEPOLIA && block.chainid != ROBINHOOD_TESTNET && block.chainid != ANVIL) {
             revert UnsupportedChain(block.chainid);
         }
 
-        uint256 deployerKey = vm.envUint("PRIVATE_KEY");
         address deployer = vm.addr(deployerKey);
-        address extraSettler = vm.envOr("X402_SETTLER", address(0));
+        if (block.chainid != ANVIL) {
+            if (extraSettler == address(0)) revert SettlerRequired(block.chainid);
+            if (extraSettler == deployer) revert SettlerMustDifferFromOwner(extraSettler);
+        }
 
         vm.startBroadcast(deployerKey);
         token = new MockUSDG();
