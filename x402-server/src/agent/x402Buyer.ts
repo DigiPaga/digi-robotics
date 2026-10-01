@@ -54,7 +54,23 @@ export class X402Buyer {
     if (version !== this.env.assetVersion) throw new BuyerError("UNSUPPORTED_ASSET", `Configured EIP-712 version ${this.env.assetVersion} does not match onchain version ${version}`);
     if (symbol !== this.env.assetSymbol) throw new BuyerError("UNSUPPORTED_ASSET", `Configured symbol ${this.env.assetSymbol} does not match onchain symbol ${symbol}`);
     if (balance < this.env.maxSpendAtomic) throw new BuyerError("INSUFFICIENT_BALANCE", `Agent balance ${formatUnits(balance, decimals)} ${symbol} is below the ${formatUnits(this.env.maxSpendAtomic, decimals)} ${symbol} policy cap`);
+    if (this.env.mode === "REAL_MUSDG_X402") await this.preflightLocalSettlement();
     return { address: this.account.address, decimals, symbol, balance, balanceDisplay: formatUnits(balance, decimals), sellerBalance };
+  }
+
+  /**
+   * REAL_MUSDG_X402 settles in-process, so this server also pays settlement gas and chooses the
+   * payee. Fail before signing if either would lose or strand funds.
+   */
+  private async preflightLocalSettlement() {
+    const payToCode = await this.publicClient.getCode({ address: this.env.payTo });
+    if (payToCode && payToCode !== "0x") {
+      throw new BuyerError("CONFIGURATION_ERROR", "X402_PAY_TO is a contract; REAL_MUSDG_X402 requires an EOA treasury that can move the received mUSDG");
+    }
+    if (!this.env.facilitatorPrivateKey) throw new BuyerError("CONFIGURATION_ERROR", "X402_FACILITATOR_PRIVATE_KEY is not configured");
+    const facilitator = privateKeyToAccount(this.env.facilitatorPrivateKey).address;
+    const gasBalance = await this.publicClient.getBalance({ address: facilitator });
+    if (gasBalance === 0n) throw new BuyerError("CONFIGURATION_ERROR", `Facilitator signer ${facilitator} has no native ETH to pay settlement gas`);
   }
 
   async requestUnpaid(resourceUrl: string): Promise<{ paymentRequired: PaymentRequired; requirement: PaymentRequirements }> {
