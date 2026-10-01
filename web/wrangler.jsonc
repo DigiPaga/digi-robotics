@@ -10,12 +10,16 @@
 		"directory": ".open-next/assets",
 		"binding": "ASSETS"
 	},
-	"routes": [{ "pattern": "digirobotics.xyz", "custom_domain": true }],
+	// Zone routes, not a custom domain: the apex and www already have proxied DNS records that
+	// Cloudflare will not hand over to a Workers custom domain. Routes run the Worker in front of them.
+	"routes": [
+		{ "pattern": "digirobotics.xyz/*", "zone_name": "digirobotics.xyz" },
+		{ "pattern": "www.digirobotics.xyz/*", "zone_name": "digirobotics.xyz" }
+	],
 	"workers_dev": true,
 	"preview_urls": false,
-	// Orders written by POST /api/orders. No database_id on purpose: the first
-	// `wrangler deploy` creates the database and writes its id back here.
-	"d1_databases": [{ "binding": "ORDERS_DB", "database_name": "digirobotics-orders" }],
+	// Orders written by POST /api/orders.
+	"d1_databases": [{ "binding": "ORDERS_DB", "database_name": "digirobotics-orders", "database_id": "0188eace-9732-4c88-99a2-0c6c17191b74" }],
 	// Non-secret runtime config. Secrets are set with `wrangler secret put`, see .dev.vars.example.
 	"vars": {
 		"OPS_BASE_URL": "https://digirobotics.xyz",
