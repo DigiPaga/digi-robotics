@@ -8,7 +8,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test src/tests/**/*.test.ts",
+    "test": "node --import tsx --test src/tests/*.test.ts",
     "test:live": "node --import tsx --test src/tests/live-x402.test.ts",
     "lint": "eslint src/app.ts src/server.ts src/agent src/config/env.ts src/data src/routes/agentDemo.ts src/types/agentDemo.ts src/utils/redact.ts src/x402 src/tests --max-warnings=0"
   },

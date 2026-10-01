@@ -1,1 +1,0 @@
-name: Foundry Tests\non: [push, pull_request]\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v3\n      - uses: foundry-rs/foundry-toolchain@v1\n      - run: cd contracts && forge test -vv

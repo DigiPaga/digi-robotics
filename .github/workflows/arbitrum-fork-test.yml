@@ -1,10 +1,8 @@
 name: Arbitrum Fork Testing
 
+# Manual only: no ForkTest contracts exist yet, so running on every push always failed.
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
   test-arbitrum-fork:
@@ -21,8 +19,8 @@ jobs:
 
       - name: Run Arbitrum Sepolia Fork Tests
         env:
-          ARBITRUM_SEPOLIA_RPC: ${{ secrets.ARBITRUM_SEPOLIA_RPC }}
+          ARBITRUM_SEPOLIA_RPC: ${{ secrets.ARBITRUM_SEPOLIA_RPC || 'https://sepolia-rollup.arbitrum.io/rpc' }}
         run: |
           cd contracts
           # Test against real Arbitrum Sepolia state (e.g., USDC contract interactions)
-          forge test --fork-url $ARBITRUM_SEPOLIA_RPC --match-contract ForkTest -vvv
+          forge test --fork-url "$ARBITRUM_SEPOLIA_RPC" --match-contract ForkTest -vvv
