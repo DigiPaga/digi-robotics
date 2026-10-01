@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { OpsSignIn } from "./OpsPanels";
+import { OpsNotConfigured, OpsSignIn } from "./OpsPanels";
 
 describe("OpsSignIn", () => {
   it("shows the copy for a known error code", () => {
@@ -16,4 +16,13 @@ describe("OpsSignIn", () => {
       expect(screen.getByRole("link", { name: /continue with google/i })).toHaveAttribute("href", "/ops/login");
     },
   );
+});
+
+describe("OpsNotConfigured", () => {
+  it("shows a generic message without naming any env variable", () => {
+    const { container } = render(<OpsNotConfigured />);
+    expect(screen.getByRole("heading", { name: "Ops is not configured." })).toBeInTheDocument();
+    expect(container.textContent).not.toMatch(/GOOGLE_|OPS_|SECRET|ALLOWED|env/i);
+    expect(container.querySelector("li")).toBeNull();
+  });
 });

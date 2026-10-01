@@ -25,7 +25,8 @@ function Card({ children }: { children: ReactNode }) {
   return <div className="mx-auto max-w-xl rounded-3xl border border-white/10 bg-[var(--surface)] p-8 sm:p-10">{children}</div>;
 }
 
-export function OpsNotConfigured({ problems }: { problems: string[] }) {
+/** Deliberately generic: this page is public, so it never says what is missing. */
+export function OpsNotConfigured() {
   return (
     <OpsFrame>
       <Card>
@@ -33,12 +34,8 @@ export function OpsNotConfigured({ problems }: { problems: string[] }) {
         <div className="mt-5"><Eyebrow>Ops / Not configured</Eyebrow></div>
         <h1 className="mt-3 font-heading text-3xl font-medium tracking-[-.02em]">Ops is not configured.</h1>
         <p className="mt-4 text-base leading-7 text-[var(--muted-foreground)]">
-          Sign-in stays disabled until the server has its OAuth client, session secret and allowlist. Nobody can get in while this page shows.
+          Sign-in is disabled and nobody can get in while this page shows. If you operate this deployment, the server log says what to fix.
         </p>
-        <ul className="mt-6 space-y-2 font-mono text-xs text-white/60">
-          {problems.map((problem) => <li key={problem}>· {problem}</li>)}
-        </ul>
-        <p className="mt-6 text-sm text-white/45">See web/.env.example for the variable names.</p>
       </Card>
     </OpsFrame>
   );
