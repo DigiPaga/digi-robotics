@@ -6,6 +6,7 @@ import { createPublicClient, erc20Abi, formatUnits, http, parseAbi } from "viem"
 import { privateKeyToAccount } from "viem/accounts";
 import type { AgentDemoEnv } from "../config/env";
 import type { UnlockedDataset } from "../types/agentDemo";
+import { getX402Chain } from "../x402/chains";
 import { validatePaymentPolicy } from "./policy";
 
 const eip3009ProbeAbi = parseAbi([
@@ -30,7 +31,7 @@ export class X402Buyer {
     this.publicClient = createPublicClient({
       chain: {
         id: env.chainId,
-        name: "Base Sepolia",
+        name: getX402Chain(env.network)?.name ?? env.network,
         nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
         rpcUrls: { default: { http: [env.rpcUrl] } },
       },

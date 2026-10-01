@@ -10,6 +10,7 @@ import { BuyerError, X402Buyer } from "../agent/x402Buyer";
 import { RunStore } from "../agent/runStore";
 import type { ErrorCode } from "../types/agentDemo";
 import { safeErrorMessage } from "../utils/redact";
+import { explorerTxUrl, getX402Chain } from "../x402/chains";
 import { createProtectedDatasetMiddleware, type X402SettlementLocals } from "../x402/resourceServer";
 
 function shortAddress(value: string): string {
@@ -123,7 +124,7 @@ async function executeRun(runId: string, env: AgentDemoEnv, store: RunStore, dis
   try {
     if (env.mode === "BLOCKED") throw new BuyerError("CONFIGURATION_ERROR", "Compatibility mode is BLOCKED; configure a supported facilitator, asset, and funded signer");
     const buyer = new X402Buyer(env);
-    store.emit(runId, "preflight", "Reading token metadata and buyer balance from Base Sepolia.");
+    store.emit(runId, "preflight", `Reading token metadata and buyer balance from ${getX402Chain(env.network)?.name ?? env.network}.`);
     const preflight = await buyer.preflight();
     store.emit(runId, "preflight", "Buyer preflight passed with onchain EIP-3009 token support.", {
       agentAddress: shortAddress(preflight.address),
@@ -178,7 +179,7 @@ async function executeRun(runId: string, env: AgentDemoEnv, store: RunStore, dis
       asset: env.assetSymbol,
       amount: `${env.priceDisplay} ${env.assetSymbol}`,
       transactionHash: result.receipt.transaction,
-      explorerUrl: `https://sepolia.basescan.org/tx/${result.receipt.transaction}`,
+      explorerUrl: explorerTxUrl(env.network, result.receipt.transaction),
     });
   } catch (error) {
     store.fail(runId, mapErrorCode(error), safeErrorMessage(error));
