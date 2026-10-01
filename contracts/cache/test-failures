@@ -1,1 +1,0 @@
-{"version":1,"failures":[{"contract":"test/Pausable.t.sol:PausableTest","test":"test_RevertWhenPaused"}]}
