@@ -35,27 +35,44 @@ export interface OpsBalancesSnapshot {
 
 const RPC_TIMEOUT_MS = 8_000;
 
+/** Upper bound on the rows one snapshot reads, however long the configured list is. */
+export const MAX_OPS_WALLETS = 10;
+
+/**
+ * One client per chain with JSON-RPC batching: every read issued in the same
+ * tick travels in a single HTTP request, so a snapshot costs one request per
+ * chain instead of up to three per wallet per chain. Each call still gets its
+ * own result or error inside the batch.
+ */
 function clientFor(chain: Chain) {
-  return createPublicClient({ chain, transport: http(chain.rpcUrls.default.http[0], { timeout: RPC_TIMEOUT_MS, retryCount: 1 }) });
+  return createPublicClient({
+    chain,
+    transport: http(chain.rpcUrls.default.http[0], { batch: true, timeout: RPC_TIMEOUT_MS, retryCount: 1 }),
+  });
 }
+
+type OpsClient = ReturnType<typeof clientFor>;
 
 export function isLowBalance(wei: bigint, minEth: number): boolean {
   if (!(minEth > 0)) return false;
   return wei < parseEther(minEth.toFixed(18));
 }
 
-async function readCell(chain: Chain, wallet: OpsWallet, token: Address | null): Promise<BalanceCell> {
-  const client = clientFor(chain);
-  const [eth, musdg] = await Promise.allSettled([
+async function readCell(
+  client: OpsClient,
+  chainId: number,
+  wallet: OpsWallet,
+  token: Address | null,
+  decimals: Promise<number | null>,
+): Promise<BalanceCell> {
+  const [eth, musdg, tokenDecimals] = await Promise.allSettled([
     client.getBalance({ address: wallet.address }),
     token
-      ? Promise.all([
-          client.readContract({ address: token, abi: erc20Abi, functionName: "balanceOf", args: [wallet.address] }),
-          client.readContract({ address: token, abi: erc20Abi, functionName: "decimals" }),
-        ])
+      ? client.readContract({ address: token, abi: erc20Abi, functionName: "balanceOf", args: [wallet.address] })
       : Promise.resolve(null),
+    decimals,
   ]);
-  const cell: BalanceCell = { chainId: chain.id, ethWei: null, eth: null, low: false, musdg: null, error: null };
+  const cell: BalanceCell = { chainId, ethWei: null, eth: null, low: false, musdg: null, error: null };
   if (eth.status === "fulfilled") {
     cell.ethWei = eth.value.toString();
     cell.eth = formatEther(eth.value);
@@ -63,25 +80,38 @@ async function readCell(chain: Chain, wallet: OpsWallet, token: Address | null):
   } else {
     cell.error = "RPC unavailable";
   }
-  if (musdg.status === "fulfilled" && musdg.value) {
-    const [balance, decimals] = musdg.value;
-    cell.musdg = formatUnits(balance, decimals);
-  } else if (musdg.status === "rejected") {
-    cell.error = cell.error ?? "mUSDG read failed";
+  if (token) {
+    const unit = tokenDecimals.status === "fulfilled" ? tokenDecimals.value : null;
+    if (musdg.status === "fulfilled" && musdg.value !== null && unit !== null) {
+      cell.musdg = formatUnits(musdg.value, unit);
+    } else {
+      cell.error = cell.error ?? "mUSDG read failed";
+    }
   }
   return cell;
 }
 
-/** Server-side balance snapshot for every configured wallet on every ops chain. */
+/** All cells of one chain. Everything here is issued in the same tick, so it is one batch. */
+function readChain(chain: Chain, wallets: readonly OpsWallet[], token: Address | null): Promise<BalanceCell[]> {
+  const client = clientFor(chain);
+  // Decimals are a property of the token, not of the wallet: read once per chain.
+  const decimals: Promise<number | null> = token
+    ? client.readContract({ address: token, abi: erc20Abi, functionName: "decimals" }).catch(() => null)
+    : Promise.resolve(null);
+  return Promise.all(wallets.map((wallet) => readCell(client, chain.id, wallet, token, decimals)));
+}
+
+/** Server-side balance snapshot for the configured wallets (first MAX_OPS_WALLETS) on every ops chain. */
 export async function fetchOpsBalances(env: Record<string, string | undefined> = process.env): Promise<OpsBalancesSnapshot> {
-  const { wallets, warning } = readOpsWallets(env);
+  const { wallets: configured, warning: configWarning } = readOpsWallets(env);
+  const wallets = configured.slice(0, MAX_OPS_WALLETS);
+  const capWarning = configured.length > wallets.length
+    ? `Showing the first ${wallets.length} of ${configured.length} configured wallets.`
+    : null;
+  const warning = [configWarning, capWarning].filter(Boolean).join(" ") || null;
   const tokens = readMusdgTokens(env);
-  const rows = await Promise.all(
-    wallets.map(async (wallet) => ({
-      wallet,
-      cells: await Promise.all(OPS_CHAINS.map((chain) => readCell(chain, wallet, tokens[chain.id] ?? null))),
-    })),
-  );
+  const byChain = await Promise.all(OPS_CHAINS.map((chain) => readChain(chain, wallets, tokens[chain.id] ?? null)));
+  const rows = wallets.map((wallet, index) => ({ wallet, cells: byChain.map((cells) => cells[index]) }));
   return {
     refreshedAt: new Date().toISOString(),
     chains: OPS_CHAINS.map((chain) => ({
