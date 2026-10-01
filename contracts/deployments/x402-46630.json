@@ -1,0 +1,8 @@
+{
+  "MockUSDG": "0xBbB4155d20D739faABC3af41A3344FAEfD76dDD4",
+  "X402Facilitator": "0xB7D6F2aC244C8562CEd113AAf1a1A41C253FE816",
+  "chainId": 46630,
+  "deployer": "0x962B67f92E9BAfc3A584fe2EA3ad871AcA3509d6",
+  "eip712Name": "Mock USDG (Demo)",
+  "eip712Version": "1"
+}
