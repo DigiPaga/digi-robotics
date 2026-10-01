@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { HTTPFacilitatorClient } from "@x402/core/server";
 import { privateKeyToAccount } from "viem/accounts";
 import { createLocalFacilitator } from "../x402/localFacilitator";
+import { defaultFacilitator } from "../x402/resourceServer";
 import { testEnv } from "./fixtures";
 
 // Well-known Anvil development key; it holds no value on any public network.
@@ -25,4 +27,14 @@ test("local facilitator advertises x402 v2 exact on the configured network with 
 
 test("local facilitator refuses to start without a facilitator key", () => {
   assert.throws(() => createLocalFacilitator({ ...musdgEnv, facilitatorPrivateKey: undefined }), /X402_FACILITATOR_PRIVATE_KEY/);
+});
+
+test("REAL_MUSDG_X402 uses the in-process facilitator; other modes keep the HTTP facilitator", async () => {
+  const local = defaultFacilitator(musdgEnv);
+  assert.equal(local instanceof HTTPFacilitatorClient, false);
+  assert.deepEqual((await local.getSupported()).kinds.map(kind => kind.network), ["eip155:421614"]);
+
+  const hosted = defaultFacilitator(testEnv);
+  assert.ok(hosted instanceof HTTPFacilitatorClient);
+  assert.equal(hosted.url, "https://x402.org/facilitator");
 });

@@ -7,14 +7,24 @@ import { ExactEvmScheme } from "@x402/evm/exact/server";
 import { bazaarResourceServerExtension, declareDiscoveryExtension, validateBazaarRouteExtensions } from "@x402/extensions/bazaar";
 import type { AgentDemoEnv } from "../config/env";
 import { displayAmountToAtomic } from "../agent/policy";
+import { createLocalFacilitator } from "./localFacilitator";
 
 export interface X402SettlementLocals {
   settlement: SettleResponse;
 }
 
+/**
+ * REAL_MUSDG_X402 verifies and settles in-process (no hosted facilitator serves its chains);
+ * the other modes keep using the HTTP facilitator at X402_FACILITATOR_URL.
+ */
+export function defaultFacilitator(env: AgentDemoEnv): FacilitatorClient {
+  if (env.mode === "REAL_MUSDG_X402") return createLocalFacilitator(env);
+  return new HTTPFacilitatorClient({ url: env.facilitatorUrl, timeoutMs: env.requestTimeoutMs });
+}
+
 export function createProtectedDatasetMiddleware(
   env: AgentDemoEnv,
-  facilitator: FacilitatorClient = new HTTPFacilitatorClient({ url: env.facilitatorUrl, timeoutMs: env.requestTimeoutMs }),
+  facilitator: FacilitatorClient = defaultFacilitator(env),
 ): RequestHandler {
   const amount = displayAmountToAtomic(env.priceDisplay, env.assetDecimals).toString();
   const resourceServer = new x402ResourceServer(facilitator)
