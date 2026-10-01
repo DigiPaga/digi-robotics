@@ -269,6 +269,24 @@ describe("/ops/logout", () => {
     expect(response.status).toBe(403);
   });
 
+  it("accepts the Origin: null a no-referrer page sends, but only with Sec-Fetch-Site: same-origin", async () => {
+    configure();
+    const token = await sealSession(SECRET, "ottodevs@gmail.com");
+    const session = await openSession(SECRET, token);
+    const post = (headers: Record<string, string>) => logout(new Request("http://localhost:46200/ops/logout", {
+      method: "POST",
+      headers: { host: "localhost:46200", cookie: `digi_ops_session=${token}`, "content-type": "application/x-www-form-urlencoded", ...headers },
+      body: new URLSearchParams({ csrf: session!.csrf }),
+    }));
+    expect((await post({ origin: "null" })).status).toBe(403);
+    expect((await post({ origin: "null", "sec-fetch-site": "cross-site" })).status).toBe(403);
+    expect((await post({ origin: "null", "sec-fetch-site": "same-site" })).status).toBe(403);
+    expect((await post({ origin: "https://evil.example", "sec-fetch-site": "same-origin" })).status).toBe(403);
+    const ok = await post({ origin: "null", "sec-fetch-site": "same-origin" });
+    expect(ok.status).toBe(303);
+    expect(ok.headers.getSetCookie().join("\n")).toMatch(/digi_ops_session=;.*Max-Age=0/i);
+  });
+
   it("requires the session csrf token, then clears the session", async () => {
     configure();
     const token = await sealSession(SECRET, "ottodevs@gmail.com");

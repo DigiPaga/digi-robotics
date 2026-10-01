@@ -44,12 +44,15 @@ export function opsRedirect(request: Request, config: OpsConfig | null, path: st
 }
 
 /**
- * CSRF guard for state-changing ops requests. Browsers send Origin on POST;
- * when they do not, Sec-Fetch-Site must say same-origin. Anything else fails.
+ * CSRF guard for state-changing ops requests. A real Origin must equal ours.
+ * The ops pages send `Referrer-Policy: no-referrer`, which makes browsers
+ * submit same-origin form posts with `Origin: null`, so a null or missing
+ * Origin falls back to Sec-Fetch-Site, a header page scripts cannot set.
+ * Anything else fails.
  */
 export function isSameOrigin(request: Request, config: OpsConfig): boolean {
   const origin = request.headers.get("origin");
-  if (origin) {
+  if (origin && origin !== "null") {
     const expected = opsOrigin(request, config);
     return expected !== null && origin === expected;
   }
