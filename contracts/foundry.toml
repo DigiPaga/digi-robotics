@@ -10,15 +10,12 @@ gas_limit = 30000000
 
 # Fork testing configuration for Arbitrum Sepolia
 [rpc_endpoints]
-arbitrum_sepolia = "https://arb-sepolia.g.alchemy.com/v2/cac8395d6ec5f7bc9119"
+arbitrum_sepolia = "${ARBITRUM_SEPOLIA_RPC_URL}"
 arbitrum_sepolia_public = "https://sepolia-rollup.arbitrum.io/rpc"
+robinhood_testnet = "https://rpc.testnet.chain.robinhood.com"
 
 [etherscan]
 arbitrum_sepolia = { key = "${ARBISCAN_API_KEY}", url = "https://api-sepolia.arbiscan.io/api" }
 
 [profile.slither]
 optimizer = false
-
-[rpc_endpoints]
-robinhood_testnet = "https://sepolia.rpc.robinhood.com"
-arbitrum_sepolia = "https://arbitrum-sepolia-rpc.publicnode.com"
