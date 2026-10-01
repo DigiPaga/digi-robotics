@@ -1,8 +1,8 @@
 import "server-only";
 
-import { cookies } from "next/headers";
-import { readOpsConfig } from "./config";
-import { SESSION_COOKIE, sessionFromCookieValue, type OpsSession } from "./session";
+import { cookies, headers } from "next/headers";
+import { cookieSecure, readOpsConfig } from "./config";
+import { sessionCookieName, sessionFromCookieValue, type OpsSession } from "./session";
 
 export type OpsPageState =
   | { kind: "unconfigured" }
@@ -30,7 +30,11 @@ export async function getOpsPageState(): Promise<OpsPageState> {
     return { kind: "unconfigured" };
   }
   lastReported = "";
-  const raw = (await cookies()).get(SESSION_COOKIE)?.value;
+  const [jar, requestHeaders] = await Promise.all([cookies(), headers()]);
+  // Only consulted in development without OPS_BASE_URL; see cookieSecure.
+  const proto = requestHeaders.get("x-forwarded-proto")?.split(",")[0]?.trim() === "https" ? "https" : "http";
+  const secure = cookieSecure(result.config, `${proto}://localhost`, requestHeaders.get("host"));
+  const raw = jar.get(sessionCookieName(secure))?.value;
   const session = await sessionFromCookieValue(result.config, raw);
   return session ? { kind: "signed-in", session } : { kind: "signed-out" };
 }

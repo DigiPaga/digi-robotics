@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { b64url, b64urlDecode, seal, unseal } from "./crypto";
 import {
   newOauthState,
+  oauthCookieName,
+  oauthCookieOptions,
   openOauthState,
   openSession,
   OAUTH_MAX_AGE,
@@ -10,6 +12,8 @@ import {
   sealOauthState,
   sealSession,
   SESSION_MAX_AGE,
+  sessionCookieName,
+  sessionCookieOptions,
   sessionFromCookieValue,
 } from "./session";
 import { parseAllowlist } from "./allowlist";
@@ -130,10 +134,32 @@ describe("sealed cookie purpose tag", () => {
   });
 });
 
+describe("ops cookie names and attributes", () => {
+  it("uses the __Host- prefix for the session cookie only when Secure", () => {
+    expect(sessionCookieName(true)).toBe("__Host-digi_ops_session");
+    expect(sessionCookieName(false)).toBe("digi_ops_session");
+    for (const secure of [true, false]) {
+      const options = sessionCookieOptions(secure);
+      expect(options).toEqual({ httpOnly: true, secure, sameSite: "lax", path: "/", maxAge: SESSION_MAX_AGE });
+      expect(options).not.toHaveProperty("domain");
+    }
+  });
+
+  it("uses the __Secure- prefix for the /ops-scoped OAuth cookie only when Secure", () => {
+    expect(oauthCookieName(true)).toBe("__Secure-digi_ops_oauth");
+    expect(oauthCookieName(false)).toBe("digi_ops_oauth");
+    const options = oauthCookieOptions(true);
+    expect(options).toEqual({ httpOnly: true, secure: true, sameSite: "lax", path: "/ops", maxAge: OAUTH_MAX_AGE });
+    expect(options).not.toHaveProperty("domain");
+  });
+});
+
 describe("readCookie", () => {
   it("finds a cookie by exact name and keeps '=' inside values", () => {
     expect(readCookie("a=1; digi_ops_session=x.y=; b=2", "digi_ops_session")).toBe("x.y=");
     expect(readCookie("xdigi_ops_session=1", "digi_ops_session")).toBe("");
+    expect(readCookie("digi_ops_session=plain; __Host-digi_ops_session=prefixed", "__Host-digi_ops_session")).toBe("prefixed");
+    expect(readCookie("digi_ops_session=plain", "__Host-digi_ops_session")).toBe("");
     expect(readCookie(null, "a")).toBe("");
   });
 });

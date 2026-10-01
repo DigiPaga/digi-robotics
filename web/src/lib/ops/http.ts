@@ -1,8 +1,8 @@
 import "server-only";
 
 import { NextResponse } from "next/server";
-import { devRequestOrigin, readOpsConfig, type OpsConfig } from "./config";
-import { readCookie, SESSION_COOKIE, sessionFromCookieValue, type OpsSession } from "./session";
+import { cookieSecure, devRequestOrigin, readOpsConfig, type OpsConfig } from "./config";
+import { readCookie, sessionCookieName, sessionFromCookieValue, type OpsSession } from "./session";
 
 /** Applied to every /ops and /api/ops response. */
 export const OPS_RESPONSE_HEADERS: Readonly<Record<string, string>> = {
@@ -65,7 +65,8 @@ export type RequestAuth =
 export async function authenticateRequest(request: Request, env: Record<string, string | undefined> = process.env): Promise<RequestAuth> {
   const result = readOpsConfig(env);
   if (!result.ok) return { status: "unconfigured" };
-  const raw = readCookie(request.headers.get("cookie"), SESSION_COOKIE);
+  const secure = cookieSecure(result.config, request.url, requestHost(request), env);
+  const raw = readCookie(request.headers.get("cookie"), sessionCookieName(secure));
   const session = await sessionFromCookieValue(result.config, raw);
   return session
     ? { status: "authenticated", config: result.config, session }

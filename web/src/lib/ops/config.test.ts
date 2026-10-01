@@ -36,6 +36,19 @@ describe("readOpsConfig", () => {
     expect(redirectUri(noBase.config, "http://127.0.0.1:46121/ops/login", "digirobotics.test")).toBe("https://digirobotics.test/ops/callback");
   });
 
+  it("lets OPS_BASE_URL decide cookie security, and never the Host header in production", () => {
+    const https = readOpsConfig({ ...full, OPS_BASE_URL: "https://digirobotics.xyz" });
+    const loopback = readOpsConfig({ ...full, OPS_BASE_URL: "http://localhost:46200" });
+    const noBase = readOpsConfig(full);
+    if (!https.ok || !loopback.ok || !noBase.ok) throw new Error("expected ok");
+    const production = { NODE_ENV: "production" };
+    // A spoofed loopback Host must not downgrade the cookies.
+    expect(cookieSecure(https.config, "http://localhost:3000/ops", "localhost:3000", production)).toBe(true);
+    expect(cookieSecure(https.config, "http://localhost:3000/ops", "localhost:3000", { NODE_ENV: "development" })).toBe(true);
+    expect(cookieSecure(loopback.config, "http://10.0.0.1/ops", "evil.example", production)).toBe(false);
+    expect(cookieSecure(noBase.config, "http://localhost:3000/ops", "localhost:3000", production)).toBe(true);
+  });
+
   it("requires OPS_BASE_URL in production and nowhere else", () => {
     const production = readOpsConfig({ ...full, NODE_ENV: "production" });
     expect(production.ok).toBe(false);
@@ -61,10 +74,13 @@ describe("readOpsConfig", () => {
   });
 
   it("marks cookies Secure except on plain-http loopback", () => {
-    expect(cookieSecure("http://localhost:46200/ops", "localhost:46200")).toBe(false);
-    expect(cookieSecure("http://127.0.0.1:46200/ops")).toBe(false);
-    expect(cookieSecure("http://127.0.0.1:46121/ops", "digirobotics.test")).toBe(true);
-    expect(cookieSecure("https://localhost/ops")).toBe(true);
+    const noBase = readOpsConfig(full);
+    if (!noBase.ok) throw new Error("expected ok");
+    const dev = { NODE_ENV: "development" };
+    expect(cookieSecure(noBase.config, "http://localhost:46200/ops", "localhost:46200", dev)).toBe(false);
+    expect(cookieSecure(noBase.config, "http://127.0.0.1:46200/ops", null, dev)).toBe(false);
+    expect(cookieSecure(noBase.config, "http://127.0.0.1:46121/ops", "digirobotics.test", dev)).toBe(true);
+    expect(cookieSecure(noBase.config, "https://localhost/ops", null, dev)).toBe(true);
     expect(publicOrigin("http://127.0.0.1:1/ops", "ops.example.com")).toBe("https://ops.example.com");
   });
 });

@@ -126,8 +126,16 @@ export function redirectUri(config: OpsConfig, requestUrl: string, host?: string
   return `${origin}/ops/callback`;
 }
 
-/** Cookies are Secure everywhere except plain-http loopback during local development. */
-export function cookieSecure(requestUrl: string, host?: string | null): boolean {
+/**
+ * Cookies are Secure everywhere except plain-http loopback during local
+ * development. This also picks the cookie names (`__Host-` / `__Secure-` need
+ * Secure), so it has to give the same answer when a cookie is set and when it
+ * is read: OPS_BASE_URL decides whenever it is set, which is always the case in
+ * production. Only development without it looks at the request.
+ */
+export function cookieSecure(config: OpsConfig, requestUrl: string, host?: string | null, env: Env = process.env): boolean {
+  if (config.baseUrl) return !config.baseUrl.startsWith("http://");
+  if (isProduction(env)) return true;
   const url = effectiveUrl(requestUrl, host);
   return !(url.protocol === "http:" && isLoopbackHost(url.hostname));
 }

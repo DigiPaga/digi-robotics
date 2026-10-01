@@ -15,9 +15,19 @@ function configure() {
   vi.stubEnv("OPS_ALLOWED_EMAILS", "ottodevs@gmail.com");
 }
 
+function setCookieHeader(response: Response, name: string): string {
+  return response.headers.getSetCookie().find((item) => item.startsWith(`${name}=`)) ?? "";
+}
+
 function setCookieValue(response: Response, name: string): string {
-  const header = response.headers.getSetCookie().find((item) => item.startsWith(`${name}=`)) ?? "";
-  return header.slice(name.length + 1).split(";")[0];
+  return setCookieHeader(response, name).slice(name.length + 1).split(";")[0];
+}
+
+/** A production deployment behind https: prefixed cookie names, OPS_BASE_URL is the only origin. */
+function configureProduction() {
+  configure();
+  vi.stubEnv("NODE_ENV", "production");
+  vi.stubEnv("OPS_BASE_URL", "https://ops.example.test");
 }
 
 afterEach(() => {
@@ -48,6 +58,8 @@ describe("/ops/login", () => {
     expect(cookie).toMatch(/HttpOnly/i);
     expect(cookie).toMatch(/SameSite=lax/i);
     expect(cookie).toMatch(/Path=\/ops/);
+    // Plain http on localhost: no Secure, so no prefixed name either.
+    expect(cookie).not.toMatch(/Secure|__Secure-|__Host-/);
   });
 });
 
@@ -55,9 +67,7 @@ describe("in production", () => {
   const evil = { host: "evil.example", "x-forwarded-host": "evil.example" };
 
   it("builds redirect_uri from OPS_BASE_URL whatever the Host header says", async () => {
-    configure();
-    vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("OPS_BASE_URL", "https://ops.example.test");
+    configureProduction();
     const response = await login(new Request("http://127.0.0.1:3000/ops/login", { headers: evil }));
     expect(response.status).toBe(302);
     const location = new URL(response.headers.get("location")!);
@@ -67,9 +77,7 @@ describe("in production", () => {
   });
 
   it("sends callback failures to OPS_BASE_URL, not to the Host header", async () => {
-    configure();
-    vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("OPS_BASE_URL", "https://ops.example.test");
+    configureProduction();
     const response = await callback(new Request("http://127.0.0.1:3000/ops/callback?code=c&state=s", { headers: evil }));
     expect(response.headers.get("location")).toBe("https://ops.example.test/ops?error=failed");
   });
@@ -86,10 +94,32 @@ describe("in production", () => {
     expect(back.headers.get("location")).toBe("/ops");
   });
 
+  it("sets the OAuth state cookie as __Secure-, Secure, HttpOnly and scoped to /ops", async () => {
+    configureProduction();
+    const response = await login(new Request("http://127.0.0.1:3000/ops/login", { headers: evil }));
+    expect(response.headers.getSetCookie()).toHaveLength(1);
+    const cookie = setCookieHeader(response, "__Secure-digi_ops_oauth");
+    expect(await openOauthState(SECRET, setCookieValue(response, "__Secure-digi_ops_oauth"))).not.toBeNull();
+    expect(cookie).toMatch(/; Path=\/ops(;|$)/);
+    expect(cookie).toMatch(/; Secure(;|$)/i);
+    expect(cookie).toMatch(/; HttpOnly(;|$)/i);
+    expect(cookie).toMatch(/; SameSite=lax(;|$)/i);
+    expect(cookie).not.toMatch(/Domain=/i);
+  });
+
+  it("clears the __Host- session cookie on logout with the attributes the prefix requires", async () => {
+    configureProduction();
+    const response = await logout(new Request("http://127.0.0.1:3000/ops/logout", { method: "POST", headers: { ...evil, origin: "https://ops.example.test" } }));
+    const cookie = setCookieHeader(response, "__Host-digi_ops_session");
+    expect(cookie).toMatch(/^__Host-digi_ops_session=; /);
+    expect(cookie).toMatch(/; Path=\/(;|$)/);
+    expect(cookie).toMatch(/; Max-Age=0(;|$)/i);
+    expect(cookie).toMatch(/; Secure(;|$)/i);
+    expect(cookie).not.toMatch(/Domain=/i);
+  });
+
   it("checks the logout origin against OPS_BASE_URL only", async () => {
-    configure();
-    vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("OPS_BASE_URL", "https://ops.example.test");
+    configureProduction();
     const post = (origin: string) => logout(new Request("http://127.0.0.1:3000/ops/logout", { method: "POST", headers: { ...evil, origin } }));
     expect((await post("https://evil.example")).status).toBe(403);
     const ok = await post("https://ops.example.test");
@@ -131,8 +161,9 @@ describe("/ops/callback", () => {
     }
 
     /** Runs the callback as if Google had returned an ID token carrying `identity`. */
-    async function finishSignIn(identity: Record<string, unknown>): Promise<Response> {
-      configure();
+    async function finishSignIn(identity: Record<string, unknown>, deployment: "local" | "production" = "local"): Promise<Response> {
+      if (deployment === "production") configureProduction();
+      else configure();
       vi.stubEnv("OPS_ALLOWED_EMAILS", "ottodevs@gmail.com, oscar@digipaga.xyz");
       const now = Math.floor(Date.now() / 1000);
       const idToken = await signIdToken({
@@ -151,10 +182,51 @@ describe("/ops/callback", () => {
         throw new Error(`unexpected fetch ${url}`);
       }));
       const oauth = await sealOauthState(SECRET, { state: "state-1", nonce: "nonce-1", verifier: "v".repeat(64) });
+      if (deployment === "production") {
+        return callback(new Request("http://127.0.0.1:3000/ops/callback?code=c&state=state-1", {
+          headers: { host: "ops.example.test", cookie: `__Secure-digi_ops_oauth=${oauth}` },
+        }));
+      }
       return callback(new Request("http://localhost:46200/ops/callback?code=c&state=state-1", {
         headers: { host: "localhost:46200", cookie: `digi_ops_oauth=${oauth}` },
       }));
     }
+
+    it("sets the session as a __Host- cookie on https: Secure, HttpOnly, Path=/, no Domain", async () => {
+      const response = await finishSignIn({ email: "ottodevs@gmail.com" }, "production");
+      expect(response.headers.get("location")).toBe("https://ops.example.test/ops");
+      const cookie = setCookieHeader(response, "__Host-digi_ops_session");
+      expect((await openSession(SECRET, setCookieValue(response, "__Host-digi_ops_session")))?.email).toBe("ottodevs@gmail.com");
+      expect(cookie).toMatch(/; Path=\/(;|$)/);
+      expect(cookie).toMatch(/; Secure(;|$)/i);
+      expect(cookie).toMatch(/; HttpOnly(;|$)/i);
+      expect(cookie).toMatch(/; SameSite=lax(;|$)/i);
+      expect(cookie).toMatch(/; Max-Age=43200(;|$)/i);
+      expect(cookie).not.toMatch(/Domain=/i);
+      expect(setCookieHeader(response, "digi_ops_session")).toBe("");
+      expect(setCookieHeader(response, "__Secure-digi_ops_oauth")).toMatch(/^__Secure-digi_ops_oauth=; .*Max-Age=0/i);
+    });
+
+    it("ignores an unprefixed OAuth state cookie on https", async () => {
+      configureProduction();
+      const fetchSpy = vi.fn();
+      vi.stubGlobal("fetch", fetchSpy);
+      const oauth = await sealOauthState(SECRET, { state: "state-1", nonce: "nonce-1", verifier: "v".repeat(64) });
+      const response = await callback(new Request("http://127.0.0.1:3000/ops/callback?code=c&state=state-1", {
+        headers: { host: "ops.example.test", cookie: `digi_ops_oauth=${oauth}` },
+      }));
+      expect(response.headers.get("location")).toBe("https://ops.example.test/ops?error=failed");
+      expect(fetchSpy).not.toHaveBeenCalled();
+    });
+
+    it("sets a plain, non-Secure session cookie on http localhost", async () => {
+      const response = await finishSignIn({ email: "ottodevs@gmail.com" });
+      const cookie = setCookieHeader(response, "digi_ops_session");
+      expect(cookie).toMatch(/; Path=\/(;|$)/);
+      expect(cookie).toMatch(/; HttpOnly(;|$)/i);
+      expect(cookie).not.toMatch(/Secure|Domain=/i);
+      expect(response.headers.getSetCookie().join("\n")).not.toMatch(/__Host-|__Secure-/);
+    });
 
     it("issues a session for an allowlisted Gmail account", async () => {
       const response = await finishSignIn({ email: "ottodevs@gmail.com" });

@@ -4,8 +4,8 @@ import { isAllowedEmail } from "./allowlist";
 import type { OpsConfig } from "./config";
 import { randomToken, seal, unseal } from "./crypto";
 
-export const SESSION_COOKIE = "digi_ops_session";
-export const OAUTH_COOKIE = "digi_ops_oauth";
+const SESSION_COOKIE_BASE = "digi_ops_session";
+const OAUTH_COOKIE_BASE = "digi_ops_oauth";
 export const SESSION_MAX_AGE = 60 * 60 * 12;
 export const OAUTH_MAX_AGE = 60 * 10;
 
@@ -73,7 +73,25 @@ export async function sessionFromCookieValue(config: OpsConfig, raw: string | un
   return session;
 }
 
-/** Lax, not Strict: the OAuth state cookie must survive the top-level redirect back from Google. */
+/**
+ * `__Host-` makes the browser refuse the cookie unless it is Secure, has
+ * Path=/ and no Domain, so a sibling subdomain or a plain-http page cannot
+ * plant or overwrite it. The prefix is invalid without Secure, so plain-http
+ * localhost keeps the bare name.
+ */
+export function sessionCookieName(secure: boolean): string {
+  return secure ? `__Host-${SESSION_COOKIE_BASE}` : SESSION_COOKIE_BASE;
+}
+
+/** Scoped to /ops, and `__Host-` requires Path=/, so this one gets `__Secure-` instead. */
+export function oauthCookieName(secure: boolean): string {
+  return secure ? `__Secure-${OAUTH_COOKIE_BASE}` : OAUTH_COOKIE_BASE;
+}
+
+/**
+ * Lax, not Strict: the OAuth state cookie must survive the top-level redirect
+ * back from Google. Never sets Domain: both cookies are host-only.
+ */
 export function cookieOptions(secure: boolean, maxAge: number, path: string) {
   return { httpOnly: true, secure, sameSite: "lax" as const, path, maxAge };
 }

@@ -47,6 +47,19 @@ describe("GET /api/ops/balances", () => {
     expect(response.status).toBe(401);
   });
 
+  it("only accepts the __Host- session cookie on an https deployment", async () => {
+    configure();
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("OPS_BASE_URL", "https://ops.example.test");
+    const { GET } = await import("./route");
+    const token = await sealSession(SECRET, "ottodevs@gmail.com");
+    const get = (cookie: string) => GET(new Request("http://localhost/api/ops/balances", { headers: { host: "localhost", cookie } }));
+    // The unprefixed name could be planted from a sibling subdomain or over http.
+    expect((await get(`digi_ops_session=${token}`)).status).toBe(401);
+    expect((await get(`__Secure-digi_ops_session=${token}`)).status).toBe(401);
+    expect((await get(`__Host-digi_ops_session=${token}`)).status).toBe(200);
+  });
+
   it("returns 503 and no data when ops is not configured", async () => {
     const { GET } = await import("./route");
     const token = await sealSession(SECRET, "ottodevs@gmail.com");

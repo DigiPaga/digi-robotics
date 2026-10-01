@@ -1,7 +1,7 @@
 import { cookieSecure } from "@/lib/ops/config";
 import { sameSecret } from "@/lib/ops/crypto";
 import { authenticateRequest, isSameOrigin, opsJson, opsRedirect, requestHost } from "@/lib/ops/http";
-import { SESSION_COOKIE, sessionCookieOptions } from "@/lib/ops/session";
+import { sessionCookieName, sessionCookieOptions } from "@/lib/ops/session";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +16,7 @@ export async function POST(request: Request) {
     if (!(await sameSecret(csrf, auth.session.csrf))) return opsJson({ message: "Invalid CSRF token." }, 403);
   }
   const response = opsRedirect(request, auth.config, "/ops");
-  response.cookies.set(SESSION_COOKIE, "", sessionCookieOptions(cookieSecure(request.url, requestHost(request)), 0));
+  const secure = cookieSecure(auth.config, request.url, requestHost(request));
+  response.cookies.set(sessionCookieName(secure), "", sessionCookieOptions(secure, 0));
   return response;
 }
