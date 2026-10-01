@@ -51,9 +51,9 @@ contract AgentRegistryV2Test is Test {
     function test_PauseUnpause() public {
         registry.pause();
         assertTrue(registry.paused());
-        
+
         vm.prank(owner);
+        vm.expectRevert("Pausable: paused");
         registry.registerAgent(agent, "robot", "ipfs://hash");
-        // Should revert because paused
     }
 }

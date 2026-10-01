@@ -9,6 +9,7 @@ abstract contract Pausable {
     event Unpaused(address account);
 
     modifier whenNotPaused() {
+        require(!_paused, "Pausable: paused");
         _;
     }
 
