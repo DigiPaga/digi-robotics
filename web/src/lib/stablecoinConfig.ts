@@ -28,7 +28,9 @@ export const stablecoinConfig: Record<number, StablecoinConfig> = {
   421614: {
     ...MOCK_USDG,
     address: configuredAddress(
-      process.env.NEXT_PUBLIC_MOCK_USDG_ADDRESS_ARBITRUM_SEPOLIA ?? process.env.NEXT_PUBLIC_MOCK_USDG_ADDRESS,
+      // `||` on the trimmed value: an empty or blank per-chain variable (common in .env templates)
+      // must fall through to the generic one instead of shadowing it.
+      process.env.NEXT_PUBLIC_MOCK_USDG_ADDRESS_ARBITRUM_SEPOLIA?.trim() || process.env.NEXT_PUBLIC_MOCK_USDG_ADDRESS,
       LEGACY_ARBITRUM_SEPOLIA_MOCK_USDG,
     ),
   },
