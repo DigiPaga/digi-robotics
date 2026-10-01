@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { HTTPFacilitatorClient } from "@x402/core/server";
 import { privateKeyToAccount } from "viem/accounts";
-import { createLocalFacilitator } from "../x402/localFacilitator";
+import { createFacilitatorAccount, createLocalFacilitator } from "../x402/localFacilitator";
 import { defaultFacilitator } from "../x402/resourceServer";
 import { testEnv } from "./fixtures";
 
@@ -37,4 +37,10 @@ test("REAL_MUSDG_X402 uses the in-process facilitator; other modes keep the HTTP
   const hosted = defaultFacilitator(testEnv);
   assert.ok(hosted instanceof HTTPFacilitatorClient);
   assert.equal(hosted.url, "https://x402.org/facilitator");
+});
+
+test("facilitator account manages its own nonces for concurrent settlements", () => {
+  const account = createFacilitatorAccount(musdgEnv);
+  assert.equal(account.address, privateKeyToAccount(FACILITATOR_KEY).address);
+  assert.ok(account.nonceManager, "settlement signer must carry a nonce manager");
 });
