@@ -3,7 +3,6 @@
 import { CheckCircle2, ExternalLink, LoaderCircle, Plug, Wallet } from "lucide-react";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { createPublicClient, createWalletClient, custom, formatEther, getAddress, http, type Address, type Hash } from "viem";
-import { Eyebrow, primaryAction, secondaryAction } from "@/components/ui/Primitives";
 import { explorerTxUrl, getOpsChain, OPS_CHAINS } from "@/lib/ops/chains";
 import {
   describeTopUpError,
@@ -22,6 +21,7 @@ import {
   showTransactionSubmitted,
   showWalletConnected,
 } from "@/lib/toasts";
+import { Block, buttonClass, inputClass, linkClass, monoClass, primaryButtonClass } from "./console/primitives";
 
 export interface TopUpTarget {
   address: string;
@@ -71,8 +71,6 @@ function useInjectedProviders(): InjectedOption[] {
   if (announced.length > 0) return announced;
   return legacy ? [{ id: "injected", name: "Browser wallet", provider: legacy }] : [];
 }
-
-const inputClass = "min-h-11 w-full rounded-2xl border border-white/15 bg-[var(--page-bg)] px-4 text-sm text-white outline-none transition focus:border-[var(--primary)]/60";
 
 export function TopUpPanel({
   wallets,
@@ -195,94 +193,91 @@ export function TopUpPanel({
   const statusChain = status.kind === "pending" || status.kind === "confirmed" ? getOpsChain(status.chainId) : null;
   const wrongChain = account && walletChainId !== null && chain && walletChainId !== chain.id;
 
+  const fieldLabel = "block text-[12.5px] text-ops-fg-2";
+
   return (
-    <section id="top-up" className="scroll-mt-8 rounded-3xl border border-white/10 bg-[var(--surface)] p-6 sm:p-8">
-      <Eyebrow>Ops / Top up</Eyebrow>
-      <h2 className="mt-3 font-heading text-3xl font-medium tracking-[-.02em]">Send testnet ETH</h2>
-      <p className="mt-2 max-w-2xl text-base text-[var(--muted-foreground)]">
+    <Block id="top-up" title="Send testnet ETH">
+      <p className="max-w-[70ch] text-[13px] text-ops-fg-2">
         Plain ETH transfer from your browser wallet. Only Arbitrum Sepolia and Robinhood Chain Testnet are allowed. Keys stay in your wallet.
       </p>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_1fr]">
-        <div className="space-y-4">
+      <div className="mt-4 grid max-w-4xl gap-x-10 gap-y-5 border-t border-ops-line pt-4 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+        <div className="space-y-3">
+          <p className={fieldLabel}>From</p>
           {providers.length === 0 ? (
-            <p className="rounded-2xl border border-white/10 px-4 py-3 text-sm text-white/60">No browser wallet found. Install Rabby or MetaMask and reload.</p>
+            <p className="text-[13px] text-ops-fg-3">No browser wallet found. Install Rabby or MetaMask and reload.</p>
           ) : (
             <>
               {providers.length > 1 ? (
-                <label className="block text-sm text-white/60">
+                <label className={fieldLabel}>
                   Wallet
-                  <select className={`${inputClass} mt-2`} value={selected?.id ?? ""} onChange={(event) => { setProviderId(event.target.value); setAccount(null); }}>
+                  <select className={`${inputClass} mt-1.5`} value={selected?.id ?? ""} onChange={(event) => { setProviderId(event.target.value); setAccount(null); }}>
                     {providers.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
                   </select>
                 </label>
               ) : null}
               {account ? (
-                <div className="rounded-2xl border border-white/10 px-4 py-3">
-                  <p className="flex items-center gap-2 font-mono text-xs text-white/70"><Wallet size={14} aria-hidden="true" /> {account}</p>
-                  <p className="mt-2 text-sm text-white/60">
-                    {balance === null ? "Balance unavailable" : `${Number(formatEther(balance)).toLocaleString(undefined, { maximumFractionDigits: 6 })} ETH`} on {chain?.name}
+                <div className="text-[13px]">
+                  <p className={`flex items-center gap-2 break-all ${monoClass} text-ops-fg`}><Wallet size={14} aria-hidden="true" className="shrink-0 text-ops-fg-3" /> {account}</p>
+                  <p className="mt-1 text-ops-fg-2">
+                    {balance === null ? "Balance unavailable" : `${Number(formatEther(balance)).toLocaleString("en-US", { maximumFractionDigits: 6 })} ETH`} on {chain?.name}
                   </p>
-                  {wrongChain ? <p className="mt-1 text-xs text-[#f5d38a]">Wallet is on chain {walletChainId}. It will be asked to switch.</p> : null}
+                  {wrongChain ? <p className="mt-1 text-[12.5px] text-ops-warn">Wallet is on chain {walletChainId}. It will be asked to switch.</p> : null}
                 </div>
               ) : (
-                <button type="button" onClick={() => void connect()} className={`inline-flex min-h-12 items-center gap-2 rounded-full border border-white/20 px-6 text-sm font-semibold ${secondaryAction}`}>
-                  <Plug size={16} aria-hidden="true" /> Connect {selected?.name ?? "wallet"}
+                <button type="button" onClick={() => void connect()} className={buttonClass}>
+                  <Plug size={14} aria-hidden="true" /> Connect {selected?.name ?? "wallet"}
                 </button>
               )}
             </>
           )}
         </div>
 
-        <div className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block text-sm text-white/60">
+        <div className="space-y-3">
+          <div className="grid gap-3 sm:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+            <label className={fieldLabel}>
               To
-              <select className={`${inputClass} mt-2`} value={target.address} onChange={(event) => onTargetChange({ ...target, address: event.target.value })}>
-                {wallets.map((wallet) => <option key={wallet.address} value={wallet.address}>{wallet.label} · {wallet.address.slice(0, 6)}…{wallet.address.slice(-4)}</option>)}
+              <select className={`${inputClass} mt-1.5`} value={target.address} onChange={(event) => onTargetChange({ ...target, address: event.target.value })}>
+                {wallets.map((wallet) => <option key={wallet.address} value={wallet.address}>{wallet.label} ({wallet.address.slice(0, 6)}…{wallet.address.slice(-4)})</option>)}
               </select>
             </label>
-            <label className="block text-sm text-white/60">
+            <label className={fieldLabel}>
               Network
-              <select className={`${inputClass} mt-2`} value={target.chainId} onChange={(event) => onTargetChange({ ...target, chainId: Number(event.target.value) })}>
+              <select className={`${inputClass} mt-1.5`} value={target.chainId} onChange={(event) => onTargetChange({ ...target, chainId: Number(event.target.value) })}>
                 {OPS_CHAINS.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
               </select>
             </label>
           </div>
-          <label className="block text-sm text-white/60">
+          <label className={fieldLabel}>
             Amount (ETH)
-            <input className={`${inputClass} mt-2 font-mono`} inputMode="decimal" autoComplete="off" value={amount} onChange={(event) => setAmount(event.target.value)} />
+            <input className={`${inputClass} mt-1.5 font-ops-mono`} inputMode="decimal" autoComplete="off" value={amount} onChange={(event) => setAmount(event.target.value)} />
           </label>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Amount presets">
             {TOPUP_PRESETS.map((preset) => (
               <button
                 key={preset}
                 type="button"
                 onClick={() => setAmount(preset)}
                 aria-pressed={amount === preset}
-                className={`min-h-9 rounded-full border px-4 font-mono text-xs transition ${amount === preset ? "border-[var(--primary)] text-[var(--primary)]" : "border-white/15 text-white/60 hover:border-white/40"}`}
+                className={`h-7 rounded-md border px-2.5 font-ops-mono text-[12px] transition-colors duration-150 ${amount === preset ? "border-ops-accent text-ops-accent" : "border-ops-line-2 text-ops-fg-2 hover:border-ops-fg-3 hover:text-ops-fg"}`}
               >
                 {preset}
               </button>
             ))}
           </div>
-          <button
-            type="button"
-            onClick={() => void send()}
-            disabled={!account || busy}
-            className={`inline-flex min-h-12 items-center gap-2 rounded-full bg-[var(--primary)] px-6 text-sm font-semibold text-[var(--page-bg)] disabled:cursor-not-allowed disabled:opacity-50 ${primaryAction}`}
-          >
-            {busy ? <LoaderCircle className="animate-spin" size={16} aria-hidden="true" /> : null}
+          <button type="button" onClick={() => void send()} disabled={!account || busy} className={primaryButtonClass}>
+            {busy ? <LoaderCircle className="ops-spin" size={14} aria-hidden="true" /> : null}
             {status.kind === "switching" ? "Switching network…" : status.kind === "awaiting" ? "Confirm in wallet…" : status.kind === "pending" ? "Waiting for confirmation…" : "Send"}
           </button>
+          {!account && providers.length > 0 ? <p className="text-[12.5px] text-ops-fg-3">Connect a wallet to send.</p> : null}
 
           <div aria-live="polite">
-            {status.kind === "error" ? <p role="alert" className="text-sm text-[#ffb5ac]">{status.message}</p> : null}
+            {status.kind === "error" ? <p role="alert" className="text-[13px] text-ops-bad">{status.message}</p> : null}
             {(status.kind === "pending" || status.kind === "confirmed") && statusChain ? (
-              <p className="flex flex-wrap items-center gap-2 text-sm text-white/70">
-                {status.kind === "confirmed" ? <CheckCircle2 size={15} className="text-[var(--primary)]" aria-hidden="true" /> : <LoaderCircle size={15} className="animate-spin" aria-hidden="true" />}
+              <p className="flex flex-wrap items-center gap-2 text-[13px] text-ops-fg-2">
+                {status.kind === "confirmed" ? <CheckCircle2 size={14} className="text-ops-accent" aria-hidden="true" /> : <LoaderCircle size={14} className="ops-spin" aria-hidden="true" />}
                 {status.kind === "confirmed" ? "Confirmed" : "Pending"}
-                <a href={explorerTxUrl(statusChain, status.hash)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-mono text-xs text-[var(--primary)] hover:underline">
+                <a href={explorerTxUrl(statusChain, status.hash)} target="_blank" rel="noreferrer noopener" className={`inline-flex items-center gap-1 ${linkClass} ${monoClass}`}>
                   {status.hash.slice(0, 10)}…{status.hash.slice(-8)} <ExternalLink size={12} aria-hidden="true" />
                 </a>
               </p>
@@ -290,6 +285,6 @@ export function TopUpPanel({
           </div>
         </div>
       </div>
-    </section>
+    </Block>
   );
 }
