@@ -3,6 +3,8 @@
  * The ID token is verified locally against Google's JWKS. The only claim kept
  * is the email. Nothing from Google is logged.
  */
+import "server-only";
+
 import { b64urlDecode } from "./crypto";
 
 export const GOOGLE_AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/v2/auth";

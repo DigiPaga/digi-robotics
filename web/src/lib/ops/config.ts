@@ -1,3 +1,5 @@
+import "server-only";
+
 import { parseAllowlist } from "./allowlist";
 
 /** Server-only env. None of these are NEXT_PUBLIC_, so they never reach the client bundle. */

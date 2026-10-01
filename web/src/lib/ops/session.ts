@@ -1,3 +1,5 @@
+import "server-only";
+
 import { isAllowedEmail } from "./allowlist";
 import type { OpsConfig } from "./config";
 import { randomToken, seal, unseal } from "./crypto";

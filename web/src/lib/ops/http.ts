@@ -1,3 +1,5 @@
+import "server-only";
+
 import { NextResponse } from "next/server";
 import { publicOrigin, readOpsConfig, type OpsConfig } from "./config";
 import { readCookie, SESSION_COOKIE, sessionFromCookieValue, type OpsSession } from "./session";

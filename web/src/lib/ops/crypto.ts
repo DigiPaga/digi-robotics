@@ -4,6 +4,8 @@
  * components and tests.
  */
 
+import "server-only";
+
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
