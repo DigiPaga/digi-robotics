@@ -1,0 +1,5 @@
+# Cloudflare Workers: local state, local secrets, generated binding types
+.wrangler/
+.dev.vars*
+!.dev.vars.example
+worker-configuration.d.ts

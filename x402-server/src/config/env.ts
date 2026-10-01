@@ -43,7 +43,10 @@ const rawEnvSchema = z.object({
 
 export type AgentDemoEnv = ReturnType<typeof loadEnv>;
 
-export function loadEnv(source: NodeJS.ProcessEnv = process.env) {
+/** Environment variables by name: `process.env` on Node, the Worker bindings on Cloudflare. */
+export type EnvSource = Record<string, string | undefined>;
+
+export function loadEnv(source: EnvSource = process.env) {
   const parsed = rawEnvSchema.safeParse(source);
   if (!parsed.success) {
     const fields = parsed.error.issues.map(issue => `${issue.path.join(".")}: ${issue.message}`).join("; ");
@@ -114,7 +117,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env) {
  * in-process facilitator. Asset metadata, chain id and RPC default to the MockUSDG deployment on
  * the selected network; only the token address and the facilitator key must be supplied.
  */
-function applyMockUsdgDefaults(value: z.infer<typeof rawEnvSchema>, source: NodeJS.ProcessEnv): void {
+function applyMockUsdgDefaults(value: z.infer<typeof rawEnvSchema>, source: EnvSource): void {
   const fail = (message: string): never => { throw new Error(`Invalid x402 server configuration: ${message}`); };
   const chain = getX402Chain(value.X402_NETWORK);
   if (!chain?.supportsMockUsdg) fail("REAL_MUSDG_X402 requires X402_NETWORK eip155:421614 (Arbitrum Sepolia) or eip155:46630 (Robinhood Chain Testnet)");

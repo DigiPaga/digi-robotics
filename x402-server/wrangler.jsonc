@@ -1,0 +1,43 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "digirobotics-x402",
+	// DigiPaga account (owns the digirobotics.xyz zone). Not a secret.
+	"account_id": "32f5bc193982cc1d267e89cbff9f1245",
+	// Build with WRANGLER_BUILD_PLATFORM=node (the worker:dev and worker:deploy scripts set it).
+	// Express depends on packages whose "browser" builds drop Node features that Workers do
+	// have, and without it the bundle fails while it loads, before anything is uploaded.
+	"main": "src/worker.ts",
+	"compatibility_date": "2026-09-30",
+	"compatibility_flags": ["nodejs_compat"],
+	"routes": [{ "pattern": "x402.digirobotics.xyz", "custom_domain": true }],
+	"workers_dev": true,
+	"preview_urls": false,
+	// The Express app keeps its state in memory (agent runs, SSE listeners, rate limits, the demo
+	// spend budget), so every request goes to one Durable Object instance instead of whichever
+	// isolate happens to pick it up.
+	"durable_objects": {
+		"bindings": [{ "name": "X402_SERVER", "class_name": "X402Server" }]
+	},
+	"migrations": [{ "tag": "v1", "new_sqlite_classes": ["X402Server"] }],
+	// Production configuration: MockUSDG (EIP-3009) on Arbitrum Sepolia, verified and settled
+	// in-process through the X402Facilitator contract. See .env.example for every variable.
+	"vars": {
+		"NODE_ENV": "production",
+		"X402_MODE": "REAL_MUSDG_X402",
+		"X402_NETWORK": "eip155:421614",
+		"X402_ASSET_ADDRESS": "0xBbB4155d20D739faABC3af41A3344FAEfD76dDD4",
+		"X402_SETTLEMENT_CONTRACT": "0xB7D6F2aC244C8562CEd113AAf1a1A41C253FE816",
+		"X402_PRICE_DISPLAY": "0.05",
+		"X402_RESOURCE_BASE_URL": "https://x402.digirobotics.xyz",
+		"AGENT_ALLOWED_HOSTS": "x402.digirobotics.xyz"
+	},
+	// `wrangler deploy` refuses to upload until these exist on the Worker. Names only; the
+	// values are uploaded with `wrangler deploy --secrets-file` or `wrangler secret put`.
+	"secrets": {
+		"required": ["PRIVATE_KEY", "X402_FACILITATOR_PRIVATE_KEY", "X402_PAY_TO", "AGENT_ALLOWED_PAY_TO"]
+	},
+	"observability": {
+		"enabled": true,
+		"traces": { "enabled": true }
+	}
+}
