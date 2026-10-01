@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {MockUSDG} from "../src/MockUSDG.sol";
 import {X402Facilitator} from "../src/X402Facilitator.sol";
 import {IX402Facilitator} from "../src/interfaces/IX402Facilitator.sol";
@@ -34,6 +35,7 @@ contract X402FacilitatorTest is ERC3009Signer {
     address internal agent;
     address internal treasury = makeAddr("treasury");
     address internal operator = makeAddr("operator");
+    address internal owner = makeAddr("owner");
 
     bytes32 internal constant RESOURCE_ID = keccak256("http://localhost:46123/x402/datasets/engine-assembly-pov/content");
     uint256 internal constant PRICE = 50_000;
@@ -41,7 +43,9 @@ contract X402FacilitatorTest is ERC3009Signer {
     function setUp() public {
         vm.warp(1_760_000_000);
         token = new MockUSDG();
-        facilitator = new X402Facilitator(address(token));
+        facilitator = new X402Facilitator(address(token), owner);
+        vm.prank(owner);
+        facilitator.setSettler(operator, true);
         (agent, agentKey) = makeAddrAndKey("agent");
         vm.prank(agent);
         token.faucet();
@@ -71,13 +75,56 @@ contract X402FacilitatorTest is ERC3009Signer {
         facilitator.settle(RESOURCE_ID, _asFacilitatorAuth(auth), signature);
     }
 
-    function test_Constructor_SetsToken() public view {
+    function test_Constructor_SetsTokenOwnerAndFirstSettler() public view {
         assertEq(facilitator.token(), address(token));
+        assertEq(facilitator.owner(), owner);
+        assertTrue(facilitator.isSettler(owner));
+        assertTrue(facilitator.isSettler(operator));
+    }
+
+    function test_RevertWhen_CallerIsNotSettler() public {
+        Authorization memory auth = _auth(keccak256("settle-outsider"));
+        bytes memory signature = _signed(auth);
+        address outsider = makeAddr("outsider");
+
+        vm.prank(outsider);
+        vm.expectRevert(abi.encodeWithSelector(X402Facilitator.UnauthorizedSettler.selector, outsider));
+        facilitator.settle(RESOURCE_ID, _asFacilitatorAuth(auth), signature);
+        assertFalse(token.authorizationState(agent, auth.nonce));
+    }
+
+    function test_SetSettler_RevokeBlocksSettlement() public {
+        vm.expectEmit(true, false, false, true, address(facilitator));
+        emit X402Facilitator.SettlerUpdated(operator, false);
+        vm.prank(owner);
+        facilitator.setSettler(operator, false);
+
+        Authorization memory auth = _auth(keccak256("settle-revoked"));
+        bytes memory signature = _signed(auth);
+        vm.expectRevert(abi.encodeWithSelector(X402Facilitator.UnauthorizedSettler.selector, operator));
+        _settle(auth, signature);
+    }
+
+    function test_RevertWhen_NonOwnerSetsSettler() public {
+        vm.prank(operator);
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, operator));
+        facilitator.setSettler(operator, true);
+    }
+
+    function test_OwnershipTransferIsTwoStep() public {
+        address newOwner = makeAddr("new-owner");
+        vm.prank(owner);
+        facilitator.transferOwnership(newOwner);
+        assertEq(facilitator.owner(), owner);
+
+        vm.prank(newOwner);
+        facilitator.acceptOwnership();
+        assertEq(facilitator.owner(), newOwner);
     }
 
     function test_RevertWhen_ConstructedWithZeroToken() public {
         vm.expectRevert(X402Facilitator.ZeroToken.selector);
-        new X402Facilitator(address(0));
+        new X402Facilitator(address(0), owner);
     }
 
     function test_Settle_TransfersAndEmits() public {
@@ -183,9 +230,10 @@ contract X402FacilitatorTest is ERC3009Signer {
     }
 
     function test_RevertWhen_TokenDoesNotDeliver() public {
-        X402Facilitator silent = new X402Facilitator(address(new SilentERC3009()));
+        X402Facilitator silent = new X402Facilitator(address(new SilentERC3009()), owner);
         Authorization memory auth = _auth(keccak256("settle-silent"));
 
+        vm.prank(owner);
         vm.expectRevert(abi.encodeWithSelector(X402Facilitator.SettlementAmountMismatch.selector, PRICE, 0));
         silent.settle(RESOURCE_ID, _asFacilitatorAuth(auth), hex"");
     }
