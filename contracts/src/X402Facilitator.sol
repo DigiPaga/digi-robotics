@@ -50,7 +50,8 @@ contract X402Facilitator is IX402Facilitator, Ownable2Step, ReentrancyGuardTrans
     error SettlementAmountMismatch(uint256 expected, uint256 received);
 
     /// @param token_ The EIP-3009 token to settle.
-    /// @param initialOwner Account that manages settlers; also approved as the first settler.
+    /// @param initialOwner Account that manages settlers; also approved as the first settler. That
+    ///        approval is tied to ownership and is revoked when ownership moves on.
     constructor(address token_, address initialOwner) Ownable(initialOwner) {
         if (token_ == address(0)) revert ZeroToken();
         token = token_;
@@ -77,6 +78,17 @@ contract X402Facilitator is IX402Facilitator, Ownable2Step, ReentrancyGuardTrans
         if (received != auth.value) revert SettlementAmountMismatch(auth.value, received);
 
         emit PaymentSettled(resourceId, auth.from, auth.to, auth.value, auth.nonce, msg.sender);
+    }
+
+    /// @dev Revokes the outgoing owner's settlement rights on every ownership change (accepted
+    ///      transfer or renounce), so a key handed off through Ownable2Step cannot keep settling.
+    ///      The new owner is not auto-approved; it calls setSettler for any operator it wants.
+    function _transferOwnership(address newOwner) internal override {
+        address previousOwner = owner();
+        super._transferOwnership(newOwner);
+        if (previousOwner != address(0) && previousOwner != newOwner && isSettler[previousOwner]) {
+            _setSettler(previousOwner, false);
+        }
     }
 
     function _setSettler(address operator, bool allowed) private {

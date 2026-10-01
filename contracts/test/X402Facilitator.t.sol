@@ -156,6 +156,40 @@ contract X402FacilitatorTest is ERC3009Signer {
         assertEq(facilitator.owner(), newOwner);
     }
 
+    function test_OwnershipTransfer_RevokesPreviousOwnerSettler() public {
+        address newOwner = makeAddr("new-owner");
+        vm.prank(owner);
+        facilitator.transferOwnership(newOwner);
+        assertTrue(facilitator.isSettler(owner), "pending transfer keeps the current owner's rights");
+
+        vm.expectEmit(true, false, false, true, address(facilitator));
+        emit X402Facilitator.SettlerUpdated(owner, false);
+        vm.prank(newOwner);
+        facilitator.acceptOwnership();
+
+        assertFalse(facilitator.isSettler(owner));
+        assertFalse(facilitator.isSettler(newOwner));
+        assertTrue(facilitator.isSettler(operator), "other operators are untouched");
+
+        Authorization memory auth = _auth(keccak256("settle-old-owner"));
+        bytes memory signature = _signed(auth);
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(X402Facilitator.UnauthorizedSettler.selector, owner));
+        facilitator.settle(RESOURCE_ID, _asFacilitatorAuth(auth), signature);
+
+        vm.prank(newOwner);
+        facilitator.setSettler(newOwner, true);
+        assertTrue(facilitator.isSettler(newOwner));
+    }
+
+    function test_RenounceOwnership_RevokesOwnerSettler() public {
+        vm.prank(owner);
+        facilitator.renounceOwnership();
+        assertEq(facilitator.owner(), address(0));
+        assertFalse(facilitator.isSettler(owner));
+        assertTrue(facilitator.isSettler(operator));
+    }
+
     function test_RevertWhen_ConstructedWithZeroToken() public {
         vm.expectRevert(X402Facilitator.ZeroToken.selector);
         new X402Facilitator(address(0), owner);
