@@ -58,18 +58,16 @@ afterEach(() => {
   window.localStorage.clear();
 });
 
-describe("CheckoutFlow import guard (documents a real bug on main)", () => {
-  it("throws at import time when NEXT_PUBLIC_THIRDWEB_CLIENT_ID is unset, matching the live /checkout 500", async () => {
-    // lib/thirdweb.ts calls createThirdwebClient({ clientId }) unconditionally at
-    // module scope. With no clientId and no secretKey it throws synchronously, so
-    // merely importing CheckoutFlow.tsx (which imports thirdweb.ts) crashes - this
-    // is exactly why GET /checkout 500s on main whenever the env var is unset. The
-    // fix lives on a separate branch (fix/checkout-missing-env), not on main.
+describe("CheckoutFlow without a Thirdweb client id", () => {
+  it("imports cleanly and reports thirdweb as unconfigured instead of crashing /checkout", async () => {
     const original = process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID;
     delete process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID;
     vi.resetModules();
     try {
-      await expect(import("./CheckoutFlow")).rejects.toThrow(/clientId|secretKey/i);
+      const flow = await import("./CheckoutFlow");
+      expect(typeof flow.CheckoutFlow).toBe("function");
+      const thirdweb = await import("@/lib/thirdweb");
+      expect(thirdweb.isThirdwebConfigured).toBe(false);
     } finally {
       if (original === undefined) delete process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID;
       else process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID = original;
