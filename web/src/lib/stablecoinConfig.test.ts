@@ -2,10 +2,11 @@ import { describe, expect, it } from "vitest";
 import { getStablecoinConfig, stablecoinConfig } from "./stablecoinConfig";
 
 describe("getStablecoinConfig", () => {
-  it("returns the configured asset for Arbitrum Sepolia", () => {
+  it("returns MockUSDG for Arbitrum Sepolia, falling back to the legacy deployment without env", () => {
     const config = getStablecoinConfig(421614);
-    expect(config.symbol).toBe("USDC");
+    expect(config.symbol).toBe("mUSDG");
     expect(config.decimals).toBe(6);
+    expect(config.address).toBe("0x39271d08C111912B1F32465745f3123a878C83Bb");
   });
 
   it("returns the configured asset for Robinhood Chain Testnet", () => {

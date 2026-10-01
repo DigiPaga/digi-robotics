@@ -117,11 +117,9 @@ describe("CheckoutFlow", () => {
     expect(screen.getByText("Where would this order go?")).toBeInTheDocument();
   });
 
-  it("advances to step 3 on valid shipping input, which is paused by the unready checkout asset", async () => {
-    // getStablecoinConfig(421614).symbol is "USDC" (web/src/lib/stablecoinConfig.ts),
-    // which isUsdGCompatibleSymbol() rejects - so step 3 always renders the paused
-    // banner on main's current config, regardless of wallet connection state. This
-    // is real, current behavior, not a mock artifact.
+  it("advances to step 3 on valid shipping input with mUSDG ready and payment gated on a wallet", async () => {
+    // Arbitrum Sepolia is configured with MockUSDG, so step 3 is not paused; with no
+    // connected wallet the pay button stays disabled.
     seedCart([{ id: "rover-1", name: "Scout Rover", price: "19.99", quantity: 1 }]);
     const user = userEvent.setup();
     renderCheckout();
@@ -133,9 +131,9 @@ describe("CheckoutFlow", () => {
     await user.type(screen.getByPlaceholderText("+65 5555 0100"), "+65 5555 0100");
     await user.click(screen.getByText("Continue to wallet"));
 
-    expect(screen.getByText("Pay with USDG-compatible test asset")).toBeInTheDocument();
-    const banner = screen.getByRole("alert");
-    expect(within(banner).getByText(/Checkout is safely paused/)).toBeInTheDocument();
+    expect(screen.getByText("Pay with mUSDG")).toBeInTheDocument();
+    expect(screen.queryByText(/Checkout is safely paused/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Pay 19.99 mUSDG" })).toBeDisabled();
 
     const stepper = screen.getByLabelText("Checkout progress");
     const walletStep = within(stepper).getAllByRole("listitem").find((item) => item.textContent?.includes("Wallet"));
