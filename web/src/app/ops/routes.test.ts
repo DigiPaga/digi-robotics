@@ -51,6 +51,53 @@ describe("/ops/login", () => {
   });
 });
 
+describe("in production", () => {
+  const evil = { host: "evil.example", "x-forwarded-host": "evil.example" };
+
+  it("builds redirect_uri from OPS_BASE_URL whatever the Host header says", async () => {
+    configure();
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("OPS_BASE_URL", "https://ops.example.test");
+    const response = await login(new Request("http://127.0.0.1:3000/ops/login", { headers: evil }));
+    expect(response.status).toBe(302);
+    const location = new URL(response.headers.get("location")!);
+    expect(location.host).toBe("accounts.google.com");
+    expect(location.searchParams.get("redirect_uri")).toBe("https://ops.example.test/ops/callback");
+    expect(response.headers.get("location")).not.toContain("evil.example");
+  });
+
+  it("sends callback failures to OPS_BASE_URL, not to the Host header", async () => {
+    configure();
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("OPS_BASE_URL", "https://ops.example.test");
+    const response = await callback(new Request("http://127.0.0.1:3000/ops/callback?code=c&state=s", { headers: evil }));
+    expect(response.headers.get("location")).toBe("https://ops.example.test/ops?error=failed");
+  });
+
+  it("is unconfigured without OPS_BASE_URL and redirects with a relative Location", async () => {
+    configure();
+    vi.stubEnv("NODE_ENV", "production");
+    const response = await login(new Request("http://127.0.0.1:3000/ops/login", { headers: evil }));
+    expect(response.status).toBe(302);
+    expect(response.headers.get("location")).toBe("/ops");
+    expect(response.headers.getSetCookie()).toEqual([]);
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    const back = await callback(new Request("http://127.0.0.1:3000/ops/callback?code=c&state=s", { headers: evil }));
+    expect(back.headers.get("location")).toBe("/ops");
+  });
+
+  it("checks the logout origin against OPS_BASE_URL only", async () => {
+    configure();
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("OPS_BASE_URL", "https://ops.example.test");
+    const post = (origin: string) => logout(new Request("http://127.0.0.1:3000/ops/logout", { method: "POST", headers: { ...evil, origin } }));
+    expect((await post("https://evil.example")).status).toBe(403);
+    const ok = await post("https://ops.example.test");
+    expect(ok.status).toBe(303);
+    expect(ok.headers.get("location")).toBe("https://ops.example.test/ops");
+  });
+});
+
 describe("/ops/callback", () => {
   it("fails without a matching state cookie and never calls Google", async () => {
     configure();

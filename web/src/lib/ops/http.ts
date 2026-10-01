@@ -1,7 +1,7 @@
 import "server-only";
 
 import { NextResponse } from "next/server";
-import { publicOrigin, readOpsConfig, type OpsConfig } from "./config";
+import { devRequestOrigin, readOpsConfig, type OpsConfig } from "./config";
 import { readCookie, SESSION_COOKIE, sessionFromCookieValue, type OpsSession } from "./session";
 
 /** Applied to every /ops and /api/ops response. */
@@ -26,12 +26,21 @@ export function requestHost(request: Request): string | null {
   return request.headers.get("host");
 }
 
-export function opsOrigin(request: Request, config: OpsConfig | null): string {
-  return config?.baseUrl ?? publicOrigin(request.url, requestHost(request));
+/**
+ * OPS_BASE_URL when set. Otherwise the request origin, outside production
+ * only: production never trusts the Host header and gets null.
+ */
+export function opsOrigin(request: Request, config: OpsConfig | null): string | null {
+  return config?.baseUrl ?? devRequestOrigin(request.url, requestHost(request));
 }
 
+/** `path` is always one of our own absolute paths, never request input. */
 export function opsRedirect(request: Request, config: OpsConfig | null, path: string, status = 303): NextResponse {
-  return withOpsHeaders(NextResponse.redirect(new URL(path, opsOrigin(request, config)), status));
+  const origin = opsOrigin(request, config);
+  // No trusted origin (production, not configured): a relative Location keeps
+  // the browser on the origin it actually used instead of echoing the Host header.
+  if (!origin) return withOpsHeaders(new NextResponse(null, { status, headers: { Location: path } }));
+  return withOpsHeaders(NextResponse.redirect(new URL(path, origin), status));
 }
 
 /**
@@ -40,7 +49,10 @@ export function opsRedirect(request: Request, config: OpsConfig | null, path: st
  */
 export function isSameOrigin(request: Request, config: OpsConfig): boolean {
   const origin = request.headers.get("origin");
-  if (origin) return origin === opsOrigin(request, config);
+  if (origin) {
+    const expected = opsOrigin(request, config);
+    return expected !== null && origin === expected;
+  }
   return request.headers.get("sec-fetch-site") === "same-origin";
 }
 

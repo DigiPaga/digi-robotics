@@ -27,6 +27,14 @@ export type OpsConfigResult =
 type Env = Record<string, string | undefined>;
 
 /**
+ * The literal `process.env.NODE_ENV` is inlined by the Next.js build, so a
+ * production bundle stays strict even on a runtime that does not set NODE_ENV.
+ */
+export function isProduction(env: Env = process.env): boolean {
+  return env.NODE_ENV === "production" || (env === process.env && process.env.NODE_ENV === "production");
+}
+
+/**
  * Reads the /ops configuration. Fails closed: anything missing or weak makes
  * /ops show "not configured" and no session can be issued or accepted.
  */
@@ -45,7 +53,10 @@ export function readOpsConfig(env: Env = process.env): OpsConfigResult {
   }
   let baseUrl: string | null = null;
   const rawBase = env.OPS_BASE_URL?.trim();
-  if (rawBase) {
+  if (!rawBase) {
+    // Without it every redirect target would come from the Host header.
+    if (isProduction(env)) problems.push("OPS_BASE_URL is required in production");
+  } else {
     try {
       const parsed = new URL(rawBase);
       if (parsed.protocol !== "https:" && !isLoopbackHost(parsed.hostname)) {
@@ -98,9 +109,21 @@ export function publicOrigin(requestUrl: string, host?: string | null): string {
   return url.origin;
 }
 
+/**
+ * Origin derived from the request. The Host header is client-controlled, so
+ * this is a development convenience only: production gets null and must use
+ * OPS_BASE_URL.
+ */
+export function devRequestOrigin(requestUrl: string, host?: string | null, env: Env = process.env): string | null {
+  return isProduction(env) ? null : publicOrigin(requestUrl, host);
+}
+
 /** Must match an authorized redirect URI on the Google OAuth client byte for byte. */
-export function redirectUri(config: OpsConfig, requestUrl: string, host?: string | null): string {
-  return `${config.baseUrl ?? publicOrigin(requestUrl, host)}/ops/callback`;
+export function redirectUri(config: OpsConfig, requestUrl: string, host?: string | null, env: Env = process.env): string {
+  const origin = config.baseUrl ?? devRequestOrigin(requestUrl, host, env);
+  // Unreachable through readOpsConfig, which requires OPS_BASE_URL in production.
+  if (!origin) throw new Error("OPS_BASE_URL is required in production");
+  return `${origin}/ops/callback`;
 }
 
 /** Cookies are Secure everywhere except plain-http loopback during local development. */
