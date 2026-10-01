@@ -29,7 +29,9 @@
 		"X402_SETTLEMENT_CONTRACT": "0xB7D6F2aC244C8562CEd113AAf1a1A41C253FE816",
 		"X402_PRICE_DISPLAY": "0.05",
 		"X402_RESOURCE_BASE_URL": "https://x402.digirobotics.xyz",
-		"AGENT_ALLOWED_HOSTS": "x402.digirobotics.xyz"
+		"AGENT_ALLOWED_HOSTS": "x402.digirobotics.xyz",
+		// 50 demo runs at 0.05 mUSDG before the per-instance budget stops the agent.
+		"AGENT_MAX_TOTAL_SPEND_ATOMIC": "2500000"
 	},
 	// `wrangler deploy` refuses to upload until these exist on the Worker. Names only; the
 	// values are uploaded with `wrangler deploy --secrets-file` or `wrangler secret put`.
