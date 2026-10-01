@@ -25,7 +25,16 @@ const protectedRegistry: Record<string, ProtectedDatasetRecord> = {
   },
 };
 
-const signingSecret = randomBytes(32);
+let signingSecret: Buffer | undefined;
+
+/**
+ * Per-process key for download links, created on first use. Cloudflare Workers do not allow
+ * generating random values while a module loads, only while a request is being handled.
+ */
+function getSigningSecret(): Buffer {
+  signingSecret ??= randomBytes(32);
+  return signingSecret;
+}
 
 export function hasProtectedDataset(id: string): boolean {
   return Object.hasOwn(protectedRegistry, id);
@@ -35,7 +44,7 @@ export function issueDatasetAccess(baseUrl: string, id: string, ttlSeconds = 300
   if (!hasProtectedDataset(id)) throw new Error("Unknown protected dataset");
   const expiresAtSeconds = Math.floor(Date.now() / 1_000) + ttlSeconds;
   const payload = `${id}.${expiresAtSeconds}`;
-  const signature = createHmac("sha256", signingSecret).update(payload).digest("hex");
+  const signature = createHmac("sha256", getSigningSecret()).update(payload).digest("hex");
   return {
     signedUrl: `${baseUrl}/x402/datasets/${id}/download?expires=${expiresAtSeconds}&signature=${signature}`,
     expiresAt: new Date(expiresAtSeconds * 1_000).toISOString(),
@@ -46,7 +55,7 @@ export function readProtectedDataset(id: string, expires: string, signature: str
   const record = protectedRegistry[id];
   const expiry = Number(expires);
   if (!record || !Number.isSafeInteger(expiry) || expiry < Math.floor(Date.now() / 1_000)) return undefined;
-  const expected = createHmac("sha256", signingSecret).update(`${id}.${expiry}`).digest();
+  const expected = createHmac("sha256", getSigningSecret()).update(`${id}.${expiry}`).digest();
   let supplied: Buffer;
   try {
     supplied = Buffer.from(signature, "hex");

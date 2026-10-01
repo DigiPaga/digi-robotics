@@ -1,6 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import {
@@ -18,15 +16,14 @@ import {
 import { arbitrumSepolia } from "@/lib/chains";
 import { getStablecoinConfig } from "@/lib/stablecoinConfig";
 import { isUsdGCompatibleSymbol } from "@/lib/network-utils";
+import { getOrderStore } from "@/lib/order-store";
 import { orderHistoryMessage, recordOrderMessage, type StoredOrder } from "@/lib/orders";
 import { gearItems } from "@/data/gear";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const dataPath = path.join(process.cwd(), "data", "orders.json");
 const checkoutAsset = getStablecoinConfig(arbitrumSepolia.id);
-let writeQueue: Promise<unknown> = Promise.resolve();
 
 const itemSchema = z.object({
   id: z.string().min(1).max(80),
@@ -49,36 +46,6 @@ const createOrderSchema = z.object({
     notes: z.string().max(500).optional(),
   }),
 });
-
-async function readOrders(): Promise<StoredOrder[]> {
-  try {
-    const parsed = JSON.parse(await readFile(dataPath, "utf8"));
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
-    throw error;
-  }
-}
-
-async function appendOrder(order: StoredOrder): Promise<{ order: StoredOrder; created: boolean }> {
-  const task = writeQueue.then(async () => {
-    const orders = await readOrders();
-    const existing = orders.find((candidate) => candidate.txHash.toLowerCase() === order.txHash.toLowerCase());
-    if (existing) {
-      if (existing.walletAddress.toLowerCase() !== order.walletAddress.toLowerCase()) {
-        throw new Error("This transaction is already associated with another order.");
-      }
-      return { order: existing, created: false };
-    }
-    await mkdir(path.dirname(dataPath), { recursive: true });
-    const tempPath = `${dataPath}.${process.pid}.tmp`;
-    await writeFile(tempPath, `${JSON.stringify([...orders, order], null, 2)}\n`, "utf8");
-    await rename(tempPath, dataPath);
-    return { order, created: true };
-  });
-  writeQueue = task.catch(() => undefined);
-  return task;
-}
 
 async function verifyPayment(input: z.infer<typeof createOrderSchema>) {
   if (!isUsdGCompatibleSymbol(checkoutAsset.symbol)) {
@@ -113,8 +80,7 @@ export async function GET(request: Request) {
     const address = getAddress(wallet);
     const authenticated = await verifyMessage({ address, message: orderHistoryMessage(address), signature: signature as Hash });
     if (!authenticated) return NextResponse.json({ message: "Wallet signature is invalid." }, { status: 401 });
-    const orders = (await readOrders())
-      .filter((order) => order.walletAddress.toLowerCase() === address.toLowerCase())
+    const orders = (await getOrderStore().listByWallet(address))
       .map((order) => {
         const { shipping, ...summary } = order;
         void shipping;
@@ -158,7 +124,7 @@ export async function POST(request: Request) {
       status: "Payment confirmed · Fulfillment simulated",
       createdAt: new Date().toISOString(),
     };
-    const stored = await appendOrder(order);
+    const stored = await getOrderStore().append(order);
     return NextResponse.json({ order: { ...stored.order, shipping: undefined } }, { status: stored.created ? 201 : 200 });
   } catch (error) {
     const message = error instanceof z.ZodError

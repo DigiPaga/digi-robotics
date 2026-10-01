@@ -1,0 +1,23 @@
+# Runtime configuration of the digirobotics-web Worker that is not in wrangler.jsonc.
+#
+# Local preview (`npm run preview`): copy to .dev.vars (gitignored) and fill in.
+# Production: set each one with `npx wrangler secret put <NAME>`; values never go in the repo.
+
+# /ops sign-in. If any of these four is missing, /ops shows "Ops is not configured".
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+OPS_SESSION_SECRET=
+OPS_ALLOWED_EMAILS=
+
+# Optional. x402 treasury shown as an extra row on /ops (same value as the x402 server's X402_PAY_TO).
+X402_PAY_TO=
+# Optional. JSON array that replaces the default /ops wallet list, see .env.example.
+OPS_WALLETS=
+
+# Optional. Kit newsletter and data-request forms; without them those forms answer 503.
+KIT_API_KEY=
+KIT_FORM_ID=
+
+# Local preview only: overrides the OPS_BASE_URL from wrangler.jsonc so the OAuth redirect
+# points at the preview port.
+# OPS_BASE_URL=http://localhost:8787

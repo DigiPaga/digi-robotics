@@ -1,0 +1,30 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "digirobotics-web",
+	// DigiPaga account (owns the digirobotics.xyz zone). Not a secret.
+	"account_id": "32f5bc193982cc1d267e89cbff9f1245",
+	"main": ".open-next/worker.js",
+	"compatibility_date": "2026-09-30",
+	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	"routes": [{ "pattern": "digirobotics.xyz", "custom_domain": true }],
+	"workers_dev": true,
+	"preview_urls": false,
+	// Orders written by POST /api/orders. No database_id on purpose: the first
+	// `wrangler deploy` creates the database and writes its id back here.
+	"d1_databases": [{ "binding": "ORDERS_DB", "database_name": "digirobotics-orders" }],
+	// Non-secret runtime config. Secrets are set with `wrangler secret put`, see .dev.vars.example.
+	"vars": {
+		"OPS_BASE_URL": "https://digirobotics.xyz",
+		// Read at runtime by /ops for the mUSDG balances (EIP-3009 MockUSDG, same address on both testnets).
+		"NEXT_PUBLIC_MOCK_USDG_ADDRESS_ARBITRUM_SEPOLIA": "0xBbB4155d20D739faABC3af41A3344FAEfD76dDD4",
+		"NEXT_PUBLIC_MOCK_USDG_ADDRESS_ROBINHOOD": "0xBbB4155d20D739faABC3af41A3344FAEfD76dDD4"
+	},
+	"observability": {
+		"enabled": true,
+		"traces": { "enabled": true }
+	}
+}

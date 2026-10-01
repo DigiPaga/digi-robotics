@@ -25,7 +25,11 @@ function mapErrorCode(error: unknown): ErrorCode {
   return "CONTENT_FAILURE";
 }
 
-export function createAgentDemoRouter(env: AgentDemoEnv, store = new RunStore(env.runTtlMs, env.maxConcurrentRuns, env.maxTotalSpendAtomic)) {
+export function createAgentDemoRouter(
+  env: AgentDemoEnv,
+  store = new RunStore(env.runTtlMs, env.maxConcurrentRuns, env.maxTotalSpendAtomic),
+  buyerFetch?: typeof fetch,
+) {
   const router = Router();
   const discovery = new BazaarFirstDiscovery(env);
   const paymentMiddleware = createProtectedDatasetMiddleware(env);
@@ -35,7 +39,7 @@ export function createAgentDemoRouter(env: AgentDemoEnv, store = new RunStore(en
 
   router.get("/agent-demo/compatibility", (_req, res) => {
     let agentAddress: string | undefined;
-    try { agentAddress = new X402Buyer(env).account.address; } catch { agentAddress = undefined; }
+    try { agentAddress = new X402Buyer(env, buyerFetch).account.address; } catch { agentAddress = undefined; }
     res.json({
       selectedMode: env.mode,
       runtime: { node: process.version, minimumNode: ">=20.9.0", x402Version: 2 },
@@ -62,7 +66,7 @@ export function createAgentDemoRouter(env: AgentDemoEnv, store = new RunStore(en
     const idempotencyKey = String(req.header("idempotency-key") || randomUUID()).slice(0, 128);
     try {
       const { run, created } = store.create(idempotencyKey, env.mode);
-      if (created) setImmediate(() => void executeRun(run.id, env, store, discovery));
+      if (created) setImmediate(() => void executeRun(run.id, env, store, discovery, buyerFetch));
       res.status(created ? 202 : 200).json({ runId: run.id, created, statusUrl: `/agent-demo/runs/${run.id}`, eventsUrl: `/agent-demo/runs/${run.id}/events` });
     } catch (error) {
       const concurrent = error instanceof Error && error.message === "CONCURRENCY_LIMIT";
@@ -88,8 +92,18 @@ export function createAgentDemoRouter(env: AgentDemoEnv, store = new RunStore(en
       res.write(`id: ${event.sequence}\nevent: run\ndata: ${JSON.stringify(event)}\n\n`);
     }
     const unsubscribe = store.subscribe(run.id, event => res.write(`id: ${event.sequence}\nevent: run\ndata: ${JSON.stringify(event)}\n\n`));
-    const heartbeat = setInterval(() => res.write(": heartbeat\n\n"), 15_000);
-    req.on("close", () => { clearInterval(heartbeat); unsubscribe(); });
+    const release = () => { clearInterval(heartbeat); unsubscribe(); };
+    const heartbeat = setInterval(() => {
+      // Not every host reports a client disconnect to the response, so the stream
+      // also ends when its run expires instead of holding a timer and a listener forever.
+      if (!store.get(run.id)) {
+        release();
+        res.end();
+        return;
+      }
+      res.write(": heartbeat\n\n");
+    }, 15_000);
+    req.on("close", release);
   });
 
   router.get("/x402/datasets/:id/content", paidRouteRateLimit, (req, res, next) => {
@@ -123,10 +137,10 @@ export function createAgentDemoRouter(env: AgentDemoEnv, store = new RunStore(en
   return router;
 }
 
-async function executeRun(runId: string, env: AgentDemoEnv, store: RunStore, discovery: BazaarFirstDiscovery): Promise<void> {
+async function executeRun(runId: string, env: AgentDemoEnv, store: RunStore, discovery: BazaarFirstDiscovery, buyerFetch?: typeof fetch): Promise<void> {
   try {
     if (env.mode === "BLOCKED") throw new BuyerError("CONFIGURATION_ERROR", "Compatibility mode is BLOCKED; configure a supported facilitator, asset, and funded signer");
-    const buyer = new X402Buyer(env);
+    const buyer = new X402Buyer(env, buyerFetch);
     store.emit(runId, "preflight", `Reading token metadata and buyer balance from ${getX402Chain(env.network)?.name ?? env.network}.`);
     const preflight = await buyer.preflight();
     store.emit(runId, "preflight", "Buyer preflight passed with onchain EIP-3009 token support.", {
