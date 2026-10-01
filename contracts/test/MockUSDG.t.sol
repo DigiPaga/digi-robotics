@@ -28,15 +28,43 @@ contract MockUSDGTest is Test {
         assertEq(token.balanceOf(tx.origin), 0);
     }
 
-    function testFuzz_RepeatedFaucetCallsMintFixedIncrements(uint8 calls) public {
+    function testFuzz_FaucetMintsOncePerCooldownWindow(uint8 calls) public {
         calls = uint8(bound(calls, 1, 100));
 
         vm.startPrank(user);
         for (uint256 i; i < calls; ++i) {
             token.faucet();
+            vm.warp(block.timestamp + token.FAUCET_COOLDOWN());
         }
         vm.stopPrank();
 
         assertEq(token.balanceOf(user), uint256(calls) * token.FAUCET_AMOUNT());
+    }
+
+    function test_FaucetRevertsDuringCooldown() public {
+        vm.prank(user);
+        token.faucet();
+        uint256 availableAt = block.timestamp + token.FAUCET_COOLDOWN();
+        assertEq(token.nextFaucetAt(user), availableAt);
+
+        vm.warp(availableAt - 1);
+        vm.prank(user);
+        vm.expectRevert(abi.encodeWithSelector(MockUSDG.FaucetCooldownActive.selector, availableAt));
+        token.faucet();
+
+        vm.warp(availableAt);
+        vm.prank(user);
+        token.faucet();
+        assertEq(token.balanceOf(user), 2 * token.FAUCET_AMOUNT());
+    }
+
+    function test_FaucetCooldownIsPerAddress() public {
+        address other = makeAddr("other");
+        vm.prank(user);
+        token.faucet();
+        vm.prank(other);
+        token.faucet();
+
+        assertEq(token.balanceOf(other), token.FAUCET_AMOUNT());
     }
 }

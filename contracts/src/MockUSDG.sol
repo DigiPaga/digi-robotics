@@ -19,6 +19,14 @@ contract MockUSDG is ERC20Permit, ERC3009 {
 
     /// @notice Amount minted per faucet call: 1,000 mUSDG.
     uint256 public constant FAUCET_AMOUNT = 1_000 * 10 ** 6;
+    /// @notice Minimum time between two faucet calls from the same address.
+    uint256 public constant FAUCET_COOLDOWN = 1 days;
+
+    /// @notice Earliest timestamp at which each address may call the faucet again.
+    mapping(address account => uint256) public nextFaucetAt;
+
+    /// @notice The caller used the faucet less than FAUCET_COOLDOWN ago.
+    error FaucetCooldownActive(uint256 availableAt);
 
     constructor() ERC20(TOKEN_NAME, TOKEN_SYMBOL) ERC20Permit(TOKEN_NAME) {}
 
@@ -32,8 +40,13 @@ contract MockUSDG is ERC20Permit, ERC3009 {
         return EIP712_VERSION;
     }
 
-    /// @notice Mints FAUCET_AMOUNT to the caller.
+    /// @notice Mints FAUCET_AMOUNT to the caller, at most once per FAUCET_COOLDOWN.
+    /// @dev The cooldown is per address, so it slows down a single wallet rather than preventing
+    ///      sybil farming; that is acceptable for a testnet token with no value.
     function faucet() external {
+        uint256 availableAt = nextFaucetAt[msg.sender];
+        if (block.timestamp < availableAt) revert FaucetCooldownActive(availableAt);
+        nextFaucetAt[msg.sender] = block.timestamp + FAUCET_COOLDOWN;
         _mint(msg.sender, FAUCET_AMOUNT);
     }
 }
