@@ -75,4 +75,51 @@ contract RoboticsMarketplaceV2Test is Test {
         uint256[] memory assets = marketplace.getSellerAssets(seller);
         assertEq(assets.length, 2);
     }
+
+    function test_BatchListAssets_RecordsCallerAsSeller() public {
+        string[] memory uris = new string[](2);
+        uris[0] = "ipfs://batch1";
+        uris[1] = "ipfs://batch2";
+        uint256[] memory prices = new uint256[](2);
+        prices[0] = 10 ether;
+        prices[1] = 20 ether;
+
+        vm.prank(seller);
+        marketplace.batchListAssets(uris, prices);
+
+        assertEq(marketplace.getAsset(1).seller, seller);
+        assertEq(marketplace.getAsset(2).seller, seller);
+        assertEq(marketplace.getSellerAssets(seller).length, 2);
+        assertEq(marketplace.getSellerAssets(address(marketplace)).length, 0);
+    }
+
+    function test_BatchListedAssetPaysSeller() public {
+        string[] memory uris = new string[](1);
+        uris[0] = "ipfs://batch1";
+        uint256[] memory prices = new uint256[](1);
+        prices[0] = 100 ether;
+
+        vm.prank(seller);
+        marketplace.batchListAssets(uris, prices);
+
+        vm.startPrank(buyer);
+        usdc.approve(address(marketplace), 100 ether);
+        marketplace.purchaseWithAgent(1, agent);
+        vm.stopPrank();
+
+        assertEq(usdc.balanceOf(seller), 99 ether);
+        assertEq(usdc.balanceOf(address(marketplace)), 0);
+    }
+
+    function test_RevertIf_BatchListWhilePaused() public {
+        marketplace.pause();
+        string[] memory uris = new string[](1);
+        uris[0] = "ipfs://batch1";
+        uint256[] memory prices = new uint256[](1);
+        prices[0] = 1 ether;
+
+        vm.prank(seller);
+        vm.expectRevert("Pausable: paused");
+        marketplace.batchListAssets(uris, prices);
+    }
 }
