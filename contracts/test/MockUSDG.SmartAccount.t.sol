@@ -6,6 +6,19 @@ import {ERC3009} from "../src/tokens/ERC3009.sol";
 import {ERC3009Signer} from "./utils/ERC3009Signer.sol";
 import {MockERC1271Wallet} from "./utils/MockERC1271Wallet.sol";
 
+/// @notice ERC-1271 wallet that answers isValidSignature with an arbitrary, attacker-chosen value.
+contract WrongMagicERC1271Wallet {
+    bytes4 public answer;
+
+    function setAnswer(bytes4 answer_) external {
+        answer = answer_;
+    }
+
+    function isValidSignature(bytes32, bytes memory) external view returns (bytes4) {
+        return answer;
+    }
+}
+
 /// @notice Smart accounts (for example the ZeroDev Kernel used by the web checkout) sign through
 ///         ERC-1271 instead of ECDSA. The token must accept those signatures on the bytes overloads.
 contract MockUSDGSmartAccountTest is ERC3009Signer {
@@ -58,6 +71,32 @@ contract MockUSDGSmartAccountTest is ERC3009Signer {
         token.transferWithAuthorization(
             auth.from, auth.to, auth.value, auth.validAfter, auth.validBefore, auth.nonce, signature
         );
+    }
+
+    function test_RevertWhen_SmartAccountReturnsWrongMagic() public {
+        WrongMagicERC1271Wallet liar = new WrongMagicERC1271Wallet();
+        vm.prank(address(liar));
+        token.faucet();
+        Authorization memory auth = _walletAuth(keccak256("sa-wrong-magic"));
+        auth.from = address(liar);
+
+        bytes4[3] memory answers = [bytes4(0), bytes4(0xdeadbeef), bytes4(0x1626ba7f)];
+        for (uint256 i; i < answers.length; ++i) {
+            liar.setAnswer(answers[i]);
+            vm.expectRevert(ERC3009.ERC3009InvalidSignature.selector);
+            token.transferWithAuthorization(
+                auth.from, auth.to, auth.value, auth.validAfter, auth.validBefore, auth.nonce, hex"01"
+            );
+        }
+        assertFalse(token.authorizationState(address(liar), auth.nonce));
+        assertEq(token.balanceOf(payee), 0);
+
+        // Sanity: the correct magic value is what makes the same call succeed.
+        liar.setAnswer(0x1626ba7e);
+        token.transferWithAuthorization(
+            auth.from, auth.to, auth.value, auth.validAfter, auth.validBefore, auth.nonce, hex"01"
+        );
+        assertEq(token.balanceOf(payee), auth.value);
     }
 
     function test_CancelAuthorization_FromSmartAccount() public {

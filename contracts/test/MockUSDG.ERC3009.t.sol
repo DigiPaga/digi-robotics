@@ -19,6 +19,7 @@ contract MockUSDGERC3009Test is ERC3009Signer {
     address internal relayer = makeAddr("relayer");
 
     uint256 internal constant PRICE = 50_000; // 0.05 mUSDG
+    uint256 internal constant SECP256K1_N = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141;
 
     function setUp() public {
         vm.warp(1_760_000_000);
@@ -144,6 +145,23 @@ contract MockUSDGERC3009Test is ERC3009Signer {
         assertEq(token.balanceOf(payee), PRICE);
     }
 
+    function test_ValidityWindow_IsExclusiveAtBothEnds() public {
+        Authorization memory auth = _auth(keccak256("nonce-boundary"));
+        auth.validAfter = block.timestamp;
+        auth.validBefore = block.timestamp + 2;
+        (uint8 v, bytes32 r, bytes32 s) = _signTransfer(token, payerKey, auth);
+
+        // validAfter == block.timestamp is not yet valid.
+        vm.expectRevert(abi.encodeWithSelector(ERC3009.ERC3009AuthorizationNotYetValid.selector, auth.validAfter));
+        _transferAuth(token, auth, v, r, s);
+        assertFalse(token.authorizationState(payer, auth.nonce));
+
+        // validAfter + 1 == validBefore - 1 is the only valid second.
+        vm.warp(auth.validAfter + 1);
+        _transferAuth(token, auth, v, r, s);
+        assertEq(token.balanceOf(payee), PRICE);
+    }
+
     function test_RevertWhen_Expired() public {
         Authorization memory auth = _auth(keccak256("nonce-late"));
         (uint8 v, bytes32 r, bytes32 s) = _signTransfer(token, payerKey, auth);
@@ -197,6 +215,34 @@ contract MockUSDGERC3009Test is ERC3009Signer {
 
         vm.expectRevert(ERC3009.ERC3009InvalidSignature.selector);
         _transferAuth(token, auth, v, r, s);
+    }
+
+    function test_RevertWhen_HighSSignature() public {
+        Authorization memory auth = _auth(keccak256("nonce-high-s"));
+        (uint8 v, bytes32 r, bytes32 s) = _signTransfer(token, payerKey, auth);
+        // Same signature, malleated to the upper half of the curve order: recovers the same signer
+        // in raw ecrecover, but OZ ECDSA rejects it.
+        bytes32 highS = bytes32(SECP256K1_N - uint256(s));
+        uint8 flippedV = v == 27 ? 28 : 27;
+
+        vm.expectRevert(ERC3009.ERC3009InvalidSignature.selector);
+        _transferAuth(token, auth, flippedV, r, highS);
+
+        vm.expectRevert(ERC3009.ERC3009InvalidSignature.selector);
+        token.transferWithAuthorization(
+            auth.from,
+            auth.to,
+            auth.value,
+            auth.validAfter,
+            auth.validBefore,
+            auth.nonce,
+            abi.encodePacked(r, highS, flippedV)
+        );
+        assertFalse(token.authorizationState(payer, auth.nonce));
+
+        // The canonical low-s form still settles.
+        _transferAuth(token, auth, v, r, s);
+        assertEq(token.balanceOf(payee), PRICE);
     }
 
     function test_RevertWhen_MalformedPackedSignature() public {
