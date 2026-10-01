@@ -1,0 +1,136 @@
+import { describe, expect, it } from "vitest";
+import { normalizeWeb3Error } from "./web3-errors";
+
+describe("normalizeWeb3Error", () => {
+  it("maps a user-rejected wallet connection by rejectionKind", () => {
+    const result = normalizeWeb3Error(new Error("User rejected the request"), { rejectionKind: "wallet" });
+    expect(result.code).toBe("USER_REJECTED_WALLET");
+    expect(result.retryable).toBe(true);
+  });
+
+  it("maps a user-rejected signature by default rejectionKind", () => {
+    const result = normalizeWeb3Error({ code: 4001, message: "rejected" });
+    expect(result.code).toBe("USER_REJECTED_SIGNATURE");
+  });
+
+  it("maps a MetaMask-style ACTION_REJECTED code", () => {
+    const result = normalizeWeb3Error({ code: "ACTION_REJECTED" });
+    expect(result.code).toBe("USER_REJECTED_SIGNATURE");
+  });
+
+  it("maps an insufficient asset balance error and includes the asset symbol", () => {
+    const result = normalizeWeb3Error(new Error("insufficient token balance for transfer"), { assetSymbol: "mUSDG" });
+    expect(result.code).toBe("INSUFFICIENT_ASSET_BALANCE");
+    expect(result.message).toContain("mUSDG");
+  });
+
+  it("falls back to the default asset label when none is provided", () => {
+    const result = normalizeWeb3Error(new Error("insufficient balance of usdg token"));
+    expect(result.message).toContain("USDG-compatible test asset");
+  });
+
+  it("maps an insufficient gas error", () => {
+    const result = normalizeWeb3Error(new Error("insufficient funds for gas * price + value"));
+    expect(result.code).toBe("INSUFFICIENT_GAS");
+  });
+
+  it("maps a wrong-network error and appends the expected network", () => {
+    const result = normalizeWeb3Error(new Error("chain mismatch"), { expectedNetwork: "Arbitrum Sepolia" });
+    expect(result.code).toBe("WRONG_NETWORK");
+    expect(result.message).toContain("Switch to Arbitrum Sepolia");
+  });
+
+  it("maps a wrong-network error without a suffix when no network is given", () => {
+    const result = normalizeWeb3Error(new Error("wrong network"));
+    expect(result.code).toBe("WRONG_NETWORK");
+    expect(result.message).toContain("Switch to the network required for this action.");
+  });
+
+  it("maps an unsupported chain error", () => {
+    const result = normalizeWeb3Error(new Error("unsupported chain"), { expectedNetwork: "Arbitrum Sepolia" });
+    expect(result.code).toBe("UNSUPPORTED_CHAIN");
+    expect(result.retryable).toBe(false);
+  });
+
+  it("maps a wallet-not-connected error", () => {
+    const result = normalizeWeb3Error(new Error("connect a wallet first"));
+    expect(result.code).toBe("WALLET_NOT_CONNECTED");
+  });
+
+  it("maps a smart-account initialization failure", () => {
+    const result = normalizeWeb3Error(new Error("zerodev is not configured for this chain"));
+    expect(result.code).toBe("SMART_ACCOUNT_INITIALIZATION_FAILED");
+  });
+
+  it("maps a timeout error by name", () => {
+    const result = normalizeWeb3Error({ name: "TimeoutError", message: "slow" });
+    expect(result.code).toBe("REQUEST_TIMEOUT");
+  });
+
+  it("maps a network/rpc error", () => {
+    const result = normalizeWeb3Error(new Error("failed to fetch"));
+    expect(result.code).toBe("RPC_UNAVAILABLE");
+  });
+
+  it("maps a reverted transaction by error name", () => {
+    const result = normalizeWeb3Error({ name: "ContractFunctionRevertedError", message: "revert" });
+    expect(result.code).toBe("TRANSACTION_REVERTED");
+  });
+
+  it("maps a receipt failure", () => {
+    const result = normalizeWeb3Error(new Error("transaction receipt failed"));
+    expect(result.code).toBe("RECEIPT_FAILED");
+    expect(result.retryable).toBe(false);
+  });
+
+  it("maps an x402 policy rejection", () => {
+    const result = normalizeWeb3Error(new Error("payment rejected by policy"));
+    expect(result.code).toBe("X402_PAYMENT_REJECTED");
+  });
+
+  it("maps an x402 settlement failure", () => {
+    const result = normalizeWeb3Error(new Error("settlement failed"));
+    expect(result.code).toBe("X402_SETTLEMENT_FAILED");
+  });
+
+  it("maps a locked protected resource", () => {
+    const result = normalizeWeb3Error(new Error("content remains locked"));
+    expect(result.code).toBe("PROTECTED_RESOURCE_LOCKED");
+  });
+
+  it("falls back to UNKNOWN for an unrecognized cause and stays retryable", () => {
+    const result = normalizeWeb3Error(new Error("something bizarre happened"));
+    expect(result.code).toBe("UNKNOWN");
+    expect(result.retryable).toBe(true);
+  });
+
+  it("walks a cause chain to find a matching signal", () => {
+    const inner = new Error("user rejected the request");
+    const outer = new Error("request failed", { cause: inner });
+    const result = normalizeWeb3Error(outer);
+    expect(result.code).toBe("USER_REJECTED_SIGNATURE");
+  });
+
+  it("does not loop forever on a circular cause chain", () => {
+    const circular: { message: string; cause?: unknown } = { message: "loopy" };
+    circular.cause = circular;
+    expect(() => normalizeWeb3Error(circular)).not.toThrow();
+    expect(normalizeWeb3Error(circular).code).toBe("UNKNOWN");
+  });
+
+  it("handles a plain string cause", () => {
+    const result = normalizeWeb3Error("user rejected the request");
+    expect(result.code).toBe("USER_REJECTED_SIGNATURE");
+  });
+
+  it("handles a nullish cause without throwing", () => {
+    expect(() => normalizeWeb3Error(undefined)).not.toThrow();
+    expect(normalizeWeb3Error(null).code).toBe("UNKNOWN");
+  });
+
+  it("preserves the original error on the normalized result", () => {
+    const original = new Error("boom");
+    const result = normalizeWeb3Error(original);
+    expect(result.original).toBe(original);
+  });
+});
