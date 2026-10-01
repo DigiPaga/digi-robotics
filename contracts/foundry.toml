@@ -12,7 +12,7 @@ gas_limit = 30000000
 [rpc_endpoints]
 arbitrum_sepolia = "${ARBITRUM_SEPOLIA_RPC_URL}"
 arbitrum_sepolia_public = "https://sepolia-rollup.arbitrum.io/rpc"
-robinhood_testnet = "https://sepolia.rpc.robinhood.com"
+robinhood_testnet = "https://rpc.testnet.chain.robinhood.com"
 
 [etherscan]
 arbitrum_sepolia = { key = "${ARBISCAN_API_KEY}", url = "https://api-sepolia.arbiscan.io/api" }
