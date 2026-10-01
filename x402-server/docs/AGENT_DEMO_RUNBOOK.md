@@ -20,9 +20,54 @@ The live settlement-evidence section must remain unfilled until a real paid run 
 
 ## Compatibility decision
 
-The preferred MockUSDG mode is incompatible with the selected public facilitator. MockUSDG is deployed on Arbitrum Sepolia at `0x39271d08C111912B1F32465745f3123a878C83Bb`, reports symbol `mUSDG` and `6` decimals, and inherits plain OpenZeppelin `ERC20`. It implements neither EIP-3009 nor EIP-2612. x402 v2 supports generic ERC-20 payments through Permit2, but the public facilitator's `/supported` response does not advertise Arbitrum Sepolia. A normal `transfer()` is not used as an x402 substitute.
+The first MockUSDG deployment on Arbitrum Sepolia (`0x39271d08C111912B1F32465745f3123a878C83Bb`) is a plain OpenZeppelin `ERC20` without EIP-3009 or EIP-2612, and the public facilitator's `/supported` response does not advertise Arbitrum Sepolia or Robinhood Chain Testnet. With that token, `REAL_X402_TEST_ASSET` on Base Sepolia was the only real x402 path. A normal `transfer()` is not used as an x402 substitute.
 
-The public facilitator advertises x402 v2 `exact` on Base Sepolia, and the installed x402 v2 EVM package identifies Base Sepolia test USDC as its EIP-3009 default asset. This selects `REAL_X402_TEST_ASSET`.
+`contracts/src/MockUSDG.sol` now implements EIP-3009 and EIP-2612, and the server can verify and settle in-process. That enables `REAL_MUSDG_X402`, described below.
+
+## REAL_MUSDG_X402 mode
+
+| Property | Value |
+| :--- | :--- |
+| Protocol | x402 v2, `exact`, EIP-3009 authorization |
+| Networks | Arbitrum Sepolia `eip155:421614`, Robinhood Chain Testnet `eip155:46630` |
+| Asset | MockUSDG from `contracts/script/DeployX402.s.sol`, 6 decimals |
+| EIP-712 domain | `name: Mock USDG (Demo)`, `version: 1`, checked onchain before signing |
+| Facilitator | In-process (`@x402/core` facilitator with the `@x402/evm` exact scheme) |
+| Settlement | `X402Facilitator.settle` when `X402_SETTLEMENT_CONTRACT` is set, otherwise `token.transferWithAuthorization` |
+| Seller | `X402_PAY_TO`, an EOA treasury (preflight rejects a payee with contract code) |
+| Explorers | `https://sepolia.arbiscan.io`, `https://explorer.testnet.chain.robinhood.com` |
+
+Roles and funding:
+
+- Buyer (`PRIVATE_KEY`): holds mUSDG only. EIP-3009 is gasless for the payer. Fund it with `faucet()` from the buyer address (once per day) or a normal transfer.
+- Facilitator signer (`X402_FACILITATOR_PRIVATE_KEY`): pays settlement gas, so it needs native ETH. When settling through the contract it must be an approved settler (the deployer is by default; pass `X402_SETTLER` to the deploy script for another key).
+- Treasury (`X402_PAY_TO`): receives payments.
+
+Deploy and configure:
+
+```bash
+cd contracts
+forge script script/DeployX402.s.sol --rpc-url arbitrum_sepolia_public            # dry run
+forge script script/DeployX402.s.sol --rpc-url arbitrum_sepolia_public --broadcast
+cat deployments/x402-421614.json
+```
+
+```dotenv
+X402_MODE=REAL_MUSDG_X402
+X402_NETWORK=eip155:421614
+X402_ASSET_ADDRESS=<MockUSDG>
+X402_SETTLEMENT_CONTRACT=<X402Facilitator>
+X402_FACILITATOR_PRIVATE_KEY=<settler key>
+X402_PAY_TO=<treasury EOA>
+AGENT_ALLOWED_PAY_TO=<treasury EOA>
+```
+
+Verify the whole flow locally without testnet funds (needs Foundry on `PATH`):
+
+```bash
+cd x402-server
+npm run test:e2e
+```
 
 ## Component responsibilities
 
