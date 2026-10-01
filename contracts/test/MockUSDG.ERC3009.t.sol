@@ -8,6 +8,7 @@ import {ERC3009Signer} from "./utils/ERC3009Signer.sol";
 
 contract MockUSDGERC3009Test is ERC3009Signer {
     event AuthorizationUsed(address indexed authorizer, bytes32 indexed nonce);
+    event AuthorizationCanceled(address indexed authorizer, bytes32 indexed nonce);
     event Transfer(address indexed from, address indexed to, uint256 value);
 
     MockUSDG internal token;
@@ -220,5 +221,117 @@ contract MockUSDGERC3009Test is ERC3009Signer {
         );
         _transferAuth(token, auth, v, r, s);
         assertFalse(token.authorizationState(payer, auth.nonce));
+    }
+
+    // ------------------------------------------------------------ receive
+
+    function test_ReceiveWithAuthorization_ByPayee() public {
+        Authorization memory auth = _auth(keccak256("nonce-receive"));
+        (uint8 v, bytes32 r, bytes32 s) = _signReceive(token, payerKey, auth);
+
+        vm.prank(payee);
+        token.receiveWithAuthorization(
+            auth.from, auth.to, auth.value, auth.validAfter, auth.validBefore, auth.nonce, v, r, s
+        );
+
+        assertEq(token.balanceOf(payee), PRICE);
+        assertTrue(token.authorizationState(payer, auth.nonce));
+    }
+
+    function test_ReceiveWithAuthorization_PackedSignatureOverload() public {
+        Authorization memory auth = _auth(keccak256("nonce-receive-packed"));
+        bytes memory signature =
+            _signPacked(payerKey, _digest(token, token.RECEIVE_WITH_AUTHORIZATION_TYPEHASH(), auth));
+
+        vm.prank(payee);
+        token.receiveWithAuthorization(
+            auth.from, auth.to, auth.value, auth.validAfter, auth.validBefore, auth.nonce, signature
+        );
+        assertEq(token.balanceOf(payee), PRICE);
+    }
+
+    function test_RevertWhen_ReceiveCalledByNonPayee() public {
+        Authorization memory auth = _auth(keccak256("nonce-receive-frontrun"));
+        (uint8 v, bytes32 r, bytes32 s) = _signReceive(token, payerKey, auth);
+
+        vm.prank(relayer);
+        vm.expectRevert(abi.encodeWithSelector(ERC3009.ERC3009CallerMustBePayee.selector, relayer, payee));
+        token.receiveWithAuthorization(
+            auth.from, auth.to, auth.value, auth.validAfter, auth.validBefore, auth.nonce, v, r, s
+        );
+    }
+
+    function test_RevertWhen_TransferSignatureUsedForReceive() public {
+        Authorization memory auth = _auth(keccak256("nonce-typehash"));
+        (uint8 v, bytes32 r, bytes32 s) = _signTransfer(token, payerKey, auth);
+
+        vm.prank(payee);
+        vm.expectRevert(ERC3009.ERC3009InvalidSignature.selector);
+        token.receiveWithAuthorization(
+            auth.from, auth.to, auth.value, auth.validAfter, auth.validBefore, auth.nonce, v, r, s
+        );
+    }
+
+    function test_RevertWhen_ReceiveSignatureUsedForTransfer() public {
+        Authorization memory auth = _auth(keccak256("nonce-typehash-2"));
+        (uint8 v, bytes32 r, bytes32 s) = _signReceive(token, payerKey, auth);
+
+        vm.expectRevert(ERC3009.ERC3009InvalidSignature.selector);
+        _transferAuth(token, auth, v, r, s);
+    }
+
+    // ------------------------------------------------------------- cancel
+
+    function test_CancelAuthorization_BlocksLaterTransfer() public {
+        Authorization memory auth = _auth(keccak256("nonce-cancel"));
+        (uint8 v, bytes32 r, bytes32 s) = _signTransfer(token, payerKey, auth);
+        (uint8 cv, bytes32 cr, bytes32 cs) = _signCancel(token, payerKey, payer, auth.nonce);
+
+        vm.expectEmit(true, true, false, false, address(token));
+        emit AuthorizationCanceled(payer, auth.nonce);
+        vm.prank(relayer);
+        token.cancelAuthorization(payer, auth.nonce, cv, cr, cs);
+        assertTrue(token.authorizationState(payer, auth.nonce));
+
+        vm.expectRevert(abi.encodeWithSelector(ERC3009.ERC3009AuthorizationAlreadyUsed.selector, payer, auth.nonce));
+        _transferAuth(token, auth, v, r, s);
+        assertEq(token.balanceOf(payee), 0);
+    }
+
+    function test_CancelAuthorization_PackedSignatureOverload() public {
+        bytes32 nonce = keccak256("nonce-cancel-packed");
+        (uint8 v, bytes32 r, bytes32 s) = _signCancel(token, payerKey, payer, nonce);
+
+        token.cancelAuthorization(payer, nonce, abi.encodePacked(r, s, v));
+        assertTrue(token.authorizationState(payer, nonce));
+    }
+
+    function test_RevertWhen_CancelSignedByWrongKey() public {
+        bytes32 nonce = keccak256("nonce-cancel-wrong");
+        (, uint256 attackerKey) = makeAddrAndKey("attacker");
+        (uint8 v, bytes32 r, bytes32 s) = _signCancel(token, attackerKey, payer, nonce);
+
+        vm.expectRevert(ERC3009.ERC3009InvalidSignature.selector);
+        token.cancelAuthorization(payer, nonce, v, r, s);
+        assertFalse(token.authorizationState(payer, nonce));
+    }
+
+    function test_RevertWhen_CancelAfterUse() public {
+        Authorization memory auth = _auth(keccak256("nonce-cancel-late"));
+        (uint8 v, bytes32 r, bytes32 s) = _signTransfer(token, payerKey, auth);
+        _transferAuth(token, auth, v, r, s);
+
+        (uint8 cv, bytes32 cr, bytes32 cs) = _signCancel(token, payerKey, payer, auth.nonce);
+        vm.expectRevert(abi.encodeWithSelector(ERC3009.ERC3009AuthorizationAlreadyUsed.selector, payer, auth.nonce));
+        token.cancelAuthorization(payer, auth.nonce, cv, cr, cs);
+    }
+
+    function test_RevertWhen_CancelTwice() public {
+        bytes32 nonce = keccak256("nonce-cancel-twice");
+        (uint8 v, bytes32 r, bytes32 s) = _signCancel(token, payerKey, payer, nonce);
+        token.cancelAuthorization(payer, nonce, v, r, s);
+
+        vm.expectRevert(abi.encodeWithSelector(ERC3009.ERC3009AuthorizationAlreadyUsed.selector, payer, nonce));
+        token.cancelAuthorization(payer, nonce, v, r, s);
     }
 }
