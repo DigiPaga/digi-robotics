@@ -3,7 +3,7 @@ import type { DemoMode } from "@/lib/agent-demo-client";
 
 const label: Record<DemoMode, string> = {
   REAL_MUSDG_X402: "REAL MUSDG X402",
-  REAL_X402_TEST_ASSET: "REAL X402 — TEST USDC",
+  REAL_X402_TEST_ASSET: "REAL X402 · TEST ASSET",
   BLOCKED: "BLOCKED",
 };
 

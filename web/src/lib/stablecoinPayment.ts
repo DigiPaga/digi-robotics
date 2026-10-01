@@ -17,7 +17,6 @@ import {
   type LocalAccount,
 } from "viem";
 import { toAccount } from "viem/accounts";
-import { arbitrumSepolia as viemArbitrumSepolia } from "viem/chains";
 import { entryPoint07Address } from "viem/account-abstraction";
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
 import {
@@ -27,8 +26,11 @@ import {
   createZeroDevPaymasterClient,
 } from "@zerodev/sdk";
 import { arbitrumSepolia, thirdwebClient } from "@/lib/thirdweb";
-import { DEPLOYED_MOCK_USDG_ADDRESS, VERIFIED_STORE_WALLET_ADDRESS } from "@/lib/stablecoinConfig";
-const EXECUTION_RPC = "https://sepolia-rollup.arbitrum.io/rpc";
+import { arbitrumSepolia as configuredCheckoutChain } from "@/lib/chains";
+import { getStablecoinConfig } from "@/lib/stablecoinConfig";
+import { isUsdGCompatibleSymbol } from "@/lib/network-utils";
+
+const checkoutAsset = getStablecoinConfig(configuredCheckoutChain.id);
 
 type SmartAccountRuntime = Awaited<ReturnType<typeof createSmartAccountRuntime>>;
 
@@ -39,10 +41,26 @@ export type StablecoinWallet = {
   decimals: number;
 };
 
+export type PaymentProgress = "preparing" | "requesting_signature" | "submitted" | "confirming" | "confirmed";
+export type PaymentProgressHandler = (stage: PaymentProgress, hash?: Hex) => void;
+export type WalletProgress = "initializing_smart_account" | "loading_balance";
+export type WalletProgressHandler = (stage: WalletProgress) => void;
+
+function codedError(code: string, message: string, cause?: unknown): Error & { code: string } {
+  return Object.assign(new Error(message, cause === undefined ? undefined : { cause }), { code });
+}
+
+function assertUsdGCompatibleAsset(): void {
+  if (!isUsdGCompatibleSymbol(checkoutAsset.symbol)) {
+    throw codedError("UNSUPPORTED_ASSET", "A USDG-compatible asset is not configured for checkout.");
+  }
+}
+
 function contractAddress(name: "token" | "store"): Address {
   const raw = name === "token"
-    ? process.env.NEXT_PUBLIC_MOCK_USDG_ADDRESS?.trim() || DEPLOYED_MOCK_USDG_ADDRESS
-    : process.env.NEXT_PUBLIC_STORE_WALLET_ADDRESS?.trim() || VERIFIED_STORE_WALLET_ADDRESS;
+    ? checkoutAsset.address
+    : process.env.NEXT_PUBLIC_STORE_WALLET_ADDRESS?.trim();
+  if (!raw) throw codedError("CONFIGURATION_ERROR", `The checkout ${name} address is not configured.`);
   if (!isAddress(raw)) throw new Error(`The configured ${name} address is invalid.`);
   return raw;
 }
@@ -52,7 +70,7 @@ function zeroDevRpcUrl() {
   if (explicit) return explicit;
   const projectId = process.env.NEXT_PUBLIC_ZERODEV_PROJECT_ID?.trim();
   if (!projectId) throw new Error("ZeroDev is not configured. Add NEXT_PUBLIC_ZERODEV_PROJECT_ID before checkout.");
-  return `https://rpc.zerodev.app/api/v3/${projectId}/chain/421614`;
+  return `https://rpc.zerodev.app/api/v3/${projectId}/chain/${configuredCheckoutChain.id}`;
 }
 
 function toViemOwner(account: ThirdwebAccount): LocalAccount {
@@ -72,7 +90,10 @@ function toViemOwner(account: ThirdwebAccount): LocalAccount {
 
 async function createSmartAccountRuntime(account: ThirdwebAccount) {
   const bundlerUrl = zeroDevRpcUrl();
-  const publicClient = createPublicClient({ chain: viemArbitrumSepolia, transport: http(EXECUTION_RPC) });
+  const publicClient = createPublicClient({
+    chain: configuredCheckoutChain,
+    transport: http(configuredCheckoutChain.rpcUrls.default.http[0]),
+  });
   const entryPoint = { address: entryPoint07Address, version: "0.7" as const };
   const owner = toViemOwner(account);
   const validator = await signerToEcdsaValidator(publicClient, {
@@ -86,12 +107,12 @@ async function createSmartAccountRuntime(account: ThirdwebAccount) {
     kernelVersion: constants.KERNEL_V3_1,
   });
   const paymasterClient = createZeroDevPaymasterClient({
-    chain: viemArbitrumSepolia,
+    chain: configuredCheckoutChain,
     transport: http(bundlerUrl),
   });
   const client = createKernelAccountClient({
     account: kernelAccount,
-    chain: viemArbitrumSepolia,
+    chain: configuredCheckoutChain,
     client: publicClient,
     bundlerTransport: http(bundlerUrl),
     paymaster: {
@@ -105,7 +126,7 @@ async function createSmartAccountRuntime(account: ThirdwebAccount) {
       }),
     },
   });
-  return { account: kernelAccount, client };
+  return { account: kernelAccount, client, publicClient };
 }
 
 function tokenContract(client: ThirdwebClient = thirdwebClient) {
@@ -118,12 +139,17 @@ async function readTokenDecimals() {
     method: "function decimals() view returns (uint8)",
   });
   const decimals = Number(value);
-  if (decimals !== 6) throw new Error(`Mock USDG reports ${decimals} decimals; checkout requires 6.`);
+  if (decimals !== checkoutAsset.decimals) {
+    throw codedError("UNSUPPORTED_ASSET", "The configured checkout asset decimals do not match the token contract.");
+  }
   return decimals;
 }
 
-export async function getStablecoinWallet(account: ThirdwebAccount): Promise<StablecoinWallet> {
+export async function getStablecoinWallet(account: ThirdwebAccount, onProgress?: WalletProgressHandler): Promise<StablecoinWallet> {
+  assertUsdGCompatibleAsset();
+  onProgress?.("initializing_smart_account");
   const runtime = await createSmartAccountRuntime(account);
+  onProgress?.("loading_balance");
   const decimals = await readTokenDecimals();
   const balance = await readContract({
     contract: tokenContract(),
@@ -138,30 +164,55 @@ export async function getStablecoinWallet(account: ThirdwebAccount): Promise<Sta
   };
 }
 
-async function sendSponsoredCall(runtime: SmartAccountRuntime, data: Hex) {
+async function sendSponsoredCall(runtime: SmartAccountRuntime, data: Hex, onProgress?: PaymentProgressHandler) {
+  onProgress?.("requesting_signature");
   try {
-    return await runtime.client.sendTransaction({
+    const submittedHash = await runtime.client.sendTransaction({
       to: contractAddress("token"),
       data,
       value: BigInt(0),
     });
+    let confirmedHash = submittedHash;
+    let replacementReason: "cancelled" | "replaced" | "repriced" | undefined;
+    onProgress?.("submitted", submittedHash);
+    onProgress?.("confirming", submittedHash);
+    const receipt = await runtime.publicClient.waitForTransactionReceipt({
+      hash: submittedHash,
+      confirmations: 1,
+      timeout: 180_000,
+      onReplaced: ({ reason, transaction }) => {
+        replacementReason = reason;
+        confirmedHash = transaction.hash;
+      },
+    });
+    if (replacementReason === "cancelled") {
+      throw codedError("TRANSACTION_CANCELLED", "The transaction was cancelled before confirmation.");
+    }
+    if (receipt.status !== "success") {
+      throw codedError("RECEIPT_FAILED", "The transaction receipt reported a failed execution.");
+    }
+    onProgress?.("confirmed", confirmedHash);
+    return { hash: confirmedHash, receipt };
   } catch (error) {
-    const detail = error instanceof Error ? error.message : "Unknown ZeroDev error";
-    throw new Error(`Gas sponsorship failed. Confirm the ZeroDev policy allows Arbitrum Sepolia calls to ${contractAddress("token")}. ${detail}`);
+    if (error instanceof Error && "code" in error) throw error;
+    throw codedError("SMART_ACCOUNT_TRANSACTION_FAILED", "The sponsored smart-account transaction could not be completed.", error);
   }
 }
 
-export async function fundDemoWallet(account: ThirdwebAccount) {
+export async function fundDemoWallet(account: ThirdwebAccount, onProgress?: PaymentProgressHandler) {
+  assertUsdGCompatibleAsset();
   const runtime = await createSmartAccountRuntime(account);
   const call = prepareContractCall({
     contract: tokenContract(),
     method: "function faucet()",
   });
-  const hash = await sendSponsoredCall(runtime, await encode(call));
-  return { hash, smartAccountAddress: runtime.account.address };
+  const result = await sendSponsoredCall(runtime, await encode(call), onProgress);
+  return { ...result, smartAccountAddress: runtime.account.address };
 }
 
-export async function executeStablecoinPayment(account: ThirdwebAccount, total: string) {
+export async function executeStablecoinPayment(account: ThirdwebAccount, total: string, onProgress?: PaymentProgressHandler) {
+  assertUsdGCompatibleAsset();
+  onProgress?.("preparing");
   const decimals = await readTokenDecimals();
   const amount = parseUnits(total, decimals);
   if (amount <= BigInt(0)) throw new Error("The checkout total must be greater than zero.");
@@ -171,6 +222,17 @@ export async function executeStablecoinPayment(account: ThirdwebAccount, total: 
     method: "function transfer(address to, uint256 value) returns (bool)",
     params: [contractAddress("store"), amount],
   });
-  const hash = await sendSponsoredCall(runtime, await encode(call));
-  return { hash, smartAccountAddress: runtime.account.address, amount, decimals };
+  const result = await sendSponsoredCall(runtime, await encode(call), onProgress);
+  return { ...result, smartAccountAddress: runtime.account.address, amount, decimals };
+}
+
+export async function confirmStablecoinTransaction(hash: Hex): Promise<void> {
+  const publicClient = createPublicClient({
+    chain: configuredCheckoutChain,
+    transport: http(configuredCheckoutChain.rpcUrls.default.http[0]),
+  });
+  const receipt = await publicClient.waitForTransactionReceipt({ hash, confirmations: 1, timeout: 180_000 });
+  if (receipt.status !== "success") {
+    throw codedError("RECEIPT_FAILED", "The transaction receipt reported a failed execution.");
+  }
 }

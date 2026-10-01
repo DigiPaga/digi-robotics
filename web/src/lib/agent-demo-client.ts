@@ -1,5 +1,18 @@
 export type DemoMode = "REAL_MUSDG_X402" | "REAL_X402_TEST_ASSET" | "BLOCKED";
 export type RunState = "queued" | "preflight" | "searching" | "candidates_found" | "selected" | "requesting_resource" | "payment_required" | "validating_policy" | "signing_payment" | "retrying_request" | "verifying" | "settling" | "unlocked" | "failed";
+export type AgentLifecycleState = "idle" | "discovering" | "dataset_selected" | "payment_required" | "authorizing" | "settling" | "confirming" | "unlocked" | "failed";
+
+export function toAgentLifecycleState(state?: RunState): AgentLifecycleState {
+  if (!state) return "idle";
+  if (["queued", "preflight", "searching", "candidates_found"].includes(state)) return "discovering";
+  if (["selected", "requesting_resource"].includes(state)) return "dataset_selected";
+  if (state === "payment_required") return "payment_required";
+  if (["validating_policy", "signing_payment", "retrying_request"].includes(state)) return "authorizing";
+  if (state === "verifying") return "settling";
+  if (state === "settling") return "confirming";
+  if (state === "unlocked" || state === "failed") return state;
+  return "idle";
+}
 
 export interface DemoCandidate {
   id: string;
@@ -71,7 +84,12 @@ const BACKEND = (process.env.NEXT_PUBLIC_X402_BACKEND_URL ?? "http://localhost:3
 
 async function readJson<T>(response: Response): Promise<T> {
   const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(typeof body?.message === "string" ? body.message : `Backend returned ${response.status}`);
+  if (!response.ok) {
+    const error = new Error(typeof body?.message === "string" ? body.message : "The agent service could not complete the request.") as Error & { code?: string; status?: number };
+    error.code = typeof body?.code === "string" ? body.code : response.status >= 500 ? "RPC_UNAVAILABLE" : `HTTP_${response.status}`;
+    error.status = response.status;
+    throw error;
+  }
   return body as T;
 }
 
@@ -93,7 +111,13 @@ export async function getAgentRun(runId: string): Promise<DemoRun> {
 
 export function subscribeToAgentRun(runId: string, handlers: { onEvent: (event: DemoEvent) => void; onError: () => void }): () => void {
   const source = new EventSource(`${BACKEND}/agent-demo/runs/${encodeURIComponent(runId)}/events`);
-  source.addEventListener("run", raw => handlers.onEvent(JSON.parse((raw as MessageEvent).data) as DemoEvent));
+  source.addEventListener("run", raw => {
+    try {
+      handlers.onEvent(JSON.parse((raw as MessageEvent).data) as DemoEvent);
+    } catch {
+      handlers.onError();
+    }
+  });
   source.onerror = handlers.onError;
   return () => source.close();
 }

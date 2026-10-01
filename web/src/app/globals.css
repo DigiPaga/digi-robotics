@@ -45,6 +45,9 @@ a { color: inherit; text-decoration: none; }
   18%, 78% { opacity: .35; }
   100% { transform: translateY(520%); opacity: 0; }
 }
+@keyframes skeleton-shimmer {
+  100% { transform: translateX(100%); }
+}
 
 @media (min-width: 1024px) { body { font-size: 20px; } }
 @media (prefers-reduced-motion: reduce) {

@@ -8,6 +8,7 @@ type CartValue = {
   items: CartItem[];
   itemCount: number;
   total: string;
+  isHydrated: boolean;
   addItem: (item: Omit<CartItem, "quantity">) => void;
   updateQuantity: (id: string, quantity: number) => void;
   removeItem: (id: string) => void;
@@ -33,12 +34,14 @@ function loadCart(): CartItem[] {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [isHydrated, setIsHydrated] = useState(false);
   const hydrated = useRef(false);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       setItems(loadCart());
       hydrated.current = true;
+      setIsHydrated(true);
     });
     return () => window.cancelAnimationFrame(frame);
   }, []);
@@ -65,11 +68,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     items,
     itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
     total: (items.reduce((sum, item) => sum + Math.round(Number(item.price) * 1_000_000) * item.quantity, 0) / 1_000_000).toFixed(2),
+    isHydrated,
     addItem,
     updateQuantity,
     removeItem,
     clearCart,
-  }), [items, addItem, updateQuantity, removeItem, clearCart]);
+  }), [items, isHydrated, addItem, updateQuantity, removeItem, clearCart]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

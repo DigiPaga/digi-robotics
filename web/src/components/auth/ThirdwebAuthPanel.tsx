@@ -3,6 +3,7 @@
 import { ConnectButton, useActiveAccount } from "thirdweb/react";
 import { useEffect, useRef } from "react";
 import { arbitrumSepolia, embeddedWallets, thirdwebClient } from "@/lib/thirdweb";
+import { showWalletConnected } from "@/lib/toasts";
 
 function ThirdwebAuthContent({ onLoginSuccess }: { onLoginSuccess: () => void }) {
   const account = useActiveAccount();
@@ -11,6 +12,7 @@ function ThirdwebAuthContent({ onLoginSuccess }: { onLoginSuccess: () => void })
   useEffect(() => {
     if (!account?.address || notifiedAddress.current === account.address) return;
     notifiedAddress.current = account.address;
+    showWalletConnected(account.address);
     onLoginSuccess();
   }, [account?.address, onLoginSuccess]);
 

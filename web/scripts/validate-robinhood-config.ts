@@ -14,8 +14,8 @@ async function validateRobinhoodConfig() {
     const chainId = await client.getChainId();
     console.log(`✅ Chain ID: ${chainId}`);
     
-    if (chainId !== 46630) {
-      throw new Error(`Expected chain ID 46630, got ${chainId}`);
+    if (chainId !== robinhoodTestnet.id) {
+      throw new Error(`Expected chain ID ${robinhoodTestnet.id}, got ${chainId}`);
     }
 
     // Test block number
@@ -24,10 +24,11 @@ async function validateRobinhoodConfig() {
 
     console.log('✅ Robinhood Chain Testnet configuration is valid!');
     process.exit(0);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const detail = error instanceof Error ? error.message : 'Unknown RPC error';
     console.warn('⚠️  Robinhood RPC is currently unavailable (this is normal for testnets)');
     console.warn('️  Configuration files are correctly set up.');
-    console.warn('⚠️  Error details:', error.shortMessage || error.message);
+    console.warn('⚠️  Error details:', detail);
     console.log('\n📝 Your configuration is ready. The RPC may be temporarily down.');
     process.exit(0); // Exit successfully anyway
   }

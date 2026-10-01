@@ -1,7 +1,25 @@
 import { Check, Circle, LoaderCircle, X } from "lucide-react";
 import type { DemoEvent } from "@/lib/agent-demo-client";
+import { Skeleton } from "@/components/ui/Skeleton";
 
-export function EventTimeline({ events, active }: { events: DemoEvent[]; active: boolean }) {
+const EVENT_SUMMARIES: Record<DemoEvent["state"], string> = {
+  queued: "Run queued. No payment has been attempted.",
+  preflight: "Checking the configured network, asset, wallet, and policy.",
+  searching: "Discovering eligible robotics training datasets.",
+  candidates_found: "Eligible dataset candidates were found.",
+  selected: "The agent selected the highest-ranked eligible dataset.",
+  requesting_resource: "Requesting the protected dataset resource.",
+  payment_required: "The resource returned payment requirements.",
+  validating_policy: "Validating the payment request against agent policy.",
+  signing_payment: "Authorizing payment with the configured agent wallet.",
+  retrying_request: "Retrying the protected request with payment authorization.",
+  verifying: "The facilitator is verifying the payment authorization.",
+  settling: "Settlement is being confirmed on the configured test network.",
+  unlocked: "Verified settlement received. Dataset access is unlocked.",
+  failed: "The run stopped. Review the safe error summary below.",
+};
+
+export function EventTimeline({ events, active, loadingLabel }: { events: DemoEvent[]; active: boolean; loadingLabel?: string }) {
   return (
     <div className="min-h-[420px] rounded-3xl border border-white/10 bg-[#11151e]/90 p-5 shadow-2xl shadow-black/20 sm:p-7">
       <div className="mb-6 flex items-center justify-between gap-4 border-b border-white/8 pb-4">
@@ -14,7 +32,14 @@ export function EventTimeline({ events, active }: { events: DemoEvent[]; active:
           {active ? "streaming" : "idle"}
         </span>
       </div>
-      {events.length === 0 ? (
+      {events.length === 0 && active ? (
+        <div className="min-h-72 rounded-2xl border border-white/10 bg-white/[.015] p-5" role="status" aria-live="polite">
+          <p className="font-mono text-[10px] uppercase tracking-[.14em] text-[var(--primary)]">{loadingLabel ?? "Waiting for live run events"}</p>
+          <div className="mt-6 space-y-4">
+            {[0, 1, 2].map((item) => <div key={item} className="grid grid-cols-[28px_1fr] gap-3"><Skeleton className="size-7 rounded-full" /><div className="space-y-2 pt-1"><Skeleton className="h-3 w-28" /><Skeleton className="h-4 w-full" /></div></div>)}
+          </div>
+        </div>
+      ) : events.length === 0 ? (
         <div className="grid min-h-72 place-items-center rounded-2xl border border-dashed border-white/10 bg-white/[.015] text-center">
           <div className="max-w-xs px-6">
             <Circle className="mx-auto text-white/25" size={22} />
@@ -40,7 +65,7 @@ export function EventTimeline({ events, active }: { events: DemoEvent[]; active:
                     <p className="font-mono text-[10px] uppercase tracking-[.14em] text-white/75">{event.state.replaceAll("_", " ")}</p>
                     <time className="font-mono text-[9px] text-white/30">{new Date(event.timestamp).toLocaleTimeString([], { hour12: false })}</time>
                   </div>
-                  <p className="mt-1 text-sm leading-6 text-white/62">{event.message}</p>
+                  <p className="mt-1 break-words text-sm leading-6 text-white/62">{EVENT_SUMMARIES[event.state]}</p>
                   {event.errorCode ? <p className="mt-2 font-mono text-[10px] text-red-300">{event.errorCode}</p> : null}
                 </div>
               </li>

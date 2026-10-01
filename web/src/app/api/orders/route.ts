@@ -15,8 +15,9 @@ import {
   type Address,
   type Hash,
 } from "viem";
-import { arbitrumSepolia } from "viem/chains";
-import { DEPLOYED_MOCK_USDG_ADDRESS, VERIFIED_STORE_WALLET_ADDRESS } from "@/lib/stablecoinConfig";
+import { arbitrumSepolia } from "@/lib/chains";
+import { getStablecoinConfig } from "@/lib/stablecoinConfig";
+import { isUsdGCompatibleSymbol } from "@/lib/network-utils";
 import { orderHistoryMessage, recordOrderMessage, type StoredOrder } from "@/lib/orders";
 import { gearItems } from "@/data/gear";
 
@@ -24,7 +25,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const dataPath = path.join(process.cwd(), "data", "orders.json");
-let writeQueue = Promise.resolve();
+const checkoutAsset = getStablecoinConfig(arbitrumSepolia.id);
+let writeQueue: Promise<unknown> = Promise.resolve();
 
 const itemSchema = z.object({
   id: z.string().min(1).max(80),
@@ -58,29 +60,39 @@ async function readOrders(): Promise<StoredOrder[]> {
   }
 }
 
-async function appendOrder(order: StoredOrder) {
+async function appendOrder(order: StoredOrder): Promise<{ order: StoredOrder; created: boolean }> {
   const task = writeQueue.then(async () => {
     const orders = await readOrders();
-    if (orders.some((existing) => existing.txHash.toLowerCase() === order.txHash.toLowerCase())) {
-      throw new Error("An order has already been recorded for this transaction.");
+    const existing = orders.find((candidate) => candidate.txHash.toLowerCase() === order.txHash.toLowerCase());
+    if (existing) {
+      if (existing.walletAddress.toLowerCase() !== order.walletAddress.toLowerCase()) {
+        throw new Error("This transaction is already associated with another order.");
+      }
+      return { order: existing, created: false };
     }
     await mkdir(path.dirname(dataPath), { recursive: true });
     const tempPath = `${dataPath}.${process.pid}.tmp`;
     await writeFile(tempPath, `${JSON.stringify([...orders, order], null, 2)}\n`, "utf8");
     await rename(tempPath, dataPath);
+    return { order, created: true };
   });
   writeQueue = task.catch(() => undefined);
   return task;
 }
 
 async function verifyPayment(input: z.infer<typeof createOrderSchema>) {
-  const client = createPublicClient({ chain: arbitrumSepolia, transport: http("https://sepolia-rollup.arbitrum.io/rpc") });
+  if (!isUsdGCompatibleSymbol(checkoutAsset.symbol)) {
+    throw new Error("A USDG-compatible asset is not configured for checkout.");
+  }
+  const client = createPublicClient({ chain: arbitrumSepolia, transport: http(arbitrumSepolia.rpcUrls.default.http[0]) });
   const receipt = await client.getTransactionReceipt({ hash: input.txHash as Hash });
   if (receipt.status !== "success") throw new Error("The payment transaction did not succeed.");
-  const token = getAddress(process.env.NEXT_PUBLIC_MOCK_USDG_ADDRESS?.trim() || DEPLOYED_MOCK_USDG_ADDRESS);
-  const store = getAddress(process.env.NEXT_PUBLIC_STORE_WALLET_ADDRESS?.trim() || VERIFIED_STORE_WALLET_ADDRESS);
+  const token = getAddress(checkoutAsset.address);
+  const storeValue = process.env.NEXT_PUBLIC_STORE_WALLET_ADDRESS?.trim();
+  if (!storeValue) throw new Error("The checkout store address is not configured.");
+  const store = getAddress(storeValue);
   const payer = getAddress(input.paymentAddress);
-  const expectedAmount = parseUnits(input.total, 6);
+  const expectedAmount = parseUnits(input.total, checkoutAsset.decimals);
   const paid = receipt.logs.some((log) => {
     if (!isAddressEqual(log.address, token)) return false;
     try {
@@ -90,7 +102,7 @@ async function verifyPayment(input: z.infer<typeof createOrderSchema>) {
       return false;
     }
   });
-  if (!paid) throw new Error("The transaction does not contain the expected mUSDG transfer to the store.");
+  if (!paid) throw new Error("The transaction does not contain the expected configured asset transfer to the store.");
 }
 
 export async function GET(request: Request) {
@@ -124,13 +136,14 @@ export async function POST(request: Request) {
       signature: input.signature as Hash,
     });
     if (!signatureValid) return NextResponse.json({ message: "Wallet signature is invalid." }, { status: 401 });
-    const expectedTotal = input.items.reduce((sum, item) => sum + Math.round(Number(item.price) * 1_000_000) * item.quantity, 0);
+    const unitScale = 10 ** checkoutAsset.decimals;
+    const expectedTotal = input.items.reduce((sum, item) => sum + Math.round(Number(item.price) * unitScale) * item.quantity, 0);
     const catalogMatches = input.items.every((item) => {
       const product = gearItems.find((candidate) => candidate.id === item.id);
       return product?.price === item.price && product.name === item.name;
     });
     if (!catalogMatches) return NextResponse.json({ message: "One or more cart items do not match the store catalog." }, { status: 400 });
-    if ((expectedTotal / 1_000_000).toFixed(2) !== input.total) {
+    if ((expectedTotal / unitScale).toFixed(2) !== input.total) {
       return NextResponse.json({ message: "Order total does not match the cart." }, { status: 400 });
     }
     await verifyPayment(input);
@@ -145,12 +158,12 @@ export async function POST(request: Request) {
       status: "Payment confirmed · Fulfillment simulated",
       createdAt: new Date().toISOString(),
     };
-    await appendOrder(order);
-    return NextResponse.json({ order: { ...order, shipping: undefined } }, { status: 201 });
+    const stored = await appendOrder(order);
+    return NextResponse.json({ order: { ...stored.order, shipping: undefined } }, { status: stored.created ? 201 : 200 });
   } catch (error) {
     const message = error instanceof z.ZodError
       ? error.issues[0]?.message ?? "Invalid order data."
-      : error instanceof Error ? error.message : "Unable to record this order.";
+      : "The order could not be verified or recorded.";
     return NextResponse.json({ message }, { status: 400 });
   }
 }

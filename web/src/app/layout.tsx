@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 import { AuthFlowProvider } from "@/components/auth/AuthFlowProvider";
 import { ThirdwebSessionProvider } from "@/components/auth/ThirdwebSessionProvider";
 import { CartProvider } from "@/components/cart/CartProvider";
+import { AppToaster } from "@/components/providers/AppToaster";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -54,6 +55,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
             <AuthFlowProvider>{children}</AuthFlowProvider>
           </CartProvider>
         </ThirdwebSessionProvider>
+        <AppToaster />
       </body>
     </html>
   );

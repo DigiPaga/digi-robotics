@@ -1,4 +1,5 @@
 import type { Address, Hash } from "viem";
+import { arbitrumSepolia } from "@/lib/chains";
 
 export type OrderItem = { id: string; name: string; price: string; quantity: number };
 export type ShippingDetails = { name: string; address: string; phone: string; notes?: string };
@@ -18,7 +19,7 @@ export type StoredOrder = {
 export type OrderSummary = Omit<StoredOrder, "shipping">;
 
 export const orderHistoryMessage = (wallet: string) =>
-  `DigiRobotics order history\nWallet: ${wallet.toLowerCase()}\nChain ID: 421614`;
+  `DigiRobotics order history\nWallet: ${wallet.toLowerCase()}\nChain ID: ${arbitrumSepolia.id}`;
 
 export const recordOrderMessage = (wallet: string, txHash: string) =>
-  `DigiRobotics record order\nWallet: ${wallet.toLowerCase()}\nTransaction: ${txHash.toLowerCase()}\nChain ID: 421614`;
+  `DigiRobotics record order\nWallet: ${wallet.toLowerCase()}\nTransaction: ${txHash.toLowerCase()}\nChain ID: ${arbitrumSepolia.id}`;
