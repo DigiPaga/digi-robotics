@@ -129,7 +129,7 @@ describe("buildOverview", () => {
   });
 
   it("warns when the deployed commit is not the head of main", () => {
-    expect(byId({ ...healthy, build: build({ commit: "c7960afca78c50e6051f05d607a09dc096fc0389" }) }).build).toMatchObject({ status: "warn", summary: "c7960af, behind main", detail: "main is at d362ad3." });
+    expect(byId({ ...healthy, build: build({ commit: "c7960afca78c50e6051f05d607a09dc096fc0389" }) }).build).toMatchObject({ status: "warn", summary: "c7960af, not the head of main", detail: "main is at d362ad3." });
     expect(byId({ ...healthy, build: build({ commit: "d362ad3" }) }).build).toMatchObject({ status: "ok" });
     expect(byId({ ...healthy, build: build({ commit: null, commitSource: null }) }).build).toMatchObject({ status: "unknown", summary: "Not recorded" });
   });

@@ -91,7 +91,7 @@ function contractsCheck(contracts: ContractsSnapshot | null): OverviewCheck {
 function settlementChecks(payments: PaymentsSnapshot | null): OverviewCheck[] {
   if (!payments) return [{ id: "settlement", label: "Last settlement", status: "unknown", summary: "Payments could not be read", detail: null, at: null, href: "/ops/payments", external: null }];
   return payments.chains.map((chain): OverviewCheck => {
-    const base = { id: `settlement-${chain.chainId}`, label: `Last settlement, ${chain.name}`, href: "/ops/payments" };
+    const base = { id: `settlement-${chain.chainId}`, label: `Last settlement, ${chain.name.replace(" Chain Testnet", "")}`, href: "/ops/payments" };
     if (!chain.ok) return { ...base, status: "unknown", summary: chain.error ?? "Logs could not be read", detail: null, at: null, external: null };
     const last = chain.lastSettlement;
     if (!last) return { ...base, status: "warn", summary: "No settlement yet", detail: chain.range?.truncated ? "Only a recent block window could be read." : "No EIP-3009 payment since the contracts were deployed.", at: null, external: null };
@@ -127,7 +127,7 @@ function buildCheck(build: BuildInfo, ci: CiStatus | null): OverviewCheck {
   const short = build.commit.slice(0, 7);
   const head = ci?.latest?.sha ?? null;
   if (head && !head.startsWith(build.commit) && !build.commit.startsWith(head)) {
-    return { ...base, status: "warn", summary: `${short}, behind main`, detail: `main is at ${head.slice(0, 7)}.`, at: build.builtAt };
+    return { ...base, status: "warn", summary: `${short}, not the head of main`, detail: `main is at ${head.slice(0, 7)}.`, at: build.builtAt };
   }
   return { ...base, status: "ok", summary: short, detail: head ? "Same commit as main." : `${build.runtime}, ${build.nodeEnv}.`, at: build.builtAt };
 }
