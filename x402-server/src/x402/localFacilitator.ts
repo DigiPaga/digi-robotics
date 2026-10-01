@@ -7,6 +7,7 @@ import { createWalletClient, defineChain, http, publicActions } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import type { AgentDemoEnv } from "../config/env";
 import { getX402Chain } from "./chains";
+import { SettlementContractScheme } from "./settlementContractScheme";
 
 /** Leave headroom under the buyer's request timeout so a slow receipt surfaces as pending, not as a dropped socket. */
 const RECEIPT_HEADROOM_MS = 5_000;
@@ -42,12 +43,15 @@ export function createFacilitatorSigner(env: AgentDemoEnv): FacilitatorEvmSigner
 /**
  * In-process x402 facilitator for REAL_MUSDG_X402. The public x402.org facilitator does not serve
  * Arbitrum Sepolia or Robinhood Chain Testnet, so the resource server verifies and settles the
- * EIP-3009 authorization itself with the standard @x402/evm exact scheme.
+ * EIP-3009 authorization itself with the standard @x402/evm exact scheme. When
+ * X402_SETTLEMENT_CONTRACT is set, settlement goes through the X402Facilitator contract instead
+ * of straight to the token.
  */
-export function createLocalFacilitator(
-  env: AgentDemoEnv,
-  scheme: SchemeNetworkFacilitator = new ExactEvmScheme(createFacilitatorSigner(env)),
-): FacilitatorClient {
+export function createLocalFacilitator(env: AgentDemoEnv, scheme?: SchemeNetworkFacilitator): FacilitatorClient {
+  if (!scheme) {
+    const signer = createFacilitatorSigner(env);
+    scheme = env.settlementContract ? new SettlementContractScheme(signer, env.settlementContract) : new ExactEvmScheme(signer);
+  }
   const facilitator = new x402Facilitator().register(env.network, scheme);
   return {
     verify: (payload, requirements) => facilitator.verify(payload, requirements),
