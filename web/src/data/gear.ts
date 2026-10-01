@@ -15,19 +15,21 @@ export type GearItem = {
   description: string;
   category: GearCategory;
   price?: string;
+  image?: string;
+  imageAlt?: string;
 };
 
 export const gearItems: GearItem[] = [
   { id: "iphone-15", category: "Recording Devices", name: "Smartphone (iPhone 15+/Android flagship)", description: "A high-resolution everyday camera for reliable first-person video capture." },
-  { id: "gopro-hero", category: "Recording Devices", name: "GoPro Hero 12/13", description: "A rugged action camera for wide-angle tasks in active environments." },
+  { id: "gopro-hero", category: "Recording Devices", name: "GoPro Hero 12/13", description: "A rugged action camera for wide-angle tasks in active environments.", image: "/gear/gadget-action-camera.svg", imageAlt: "Technical illustration of a compact action camera with a lens and mounting connector" },
   { id: "insta360-go", category: "Recording Devices", name: "Insta360 GO 3", description: "A compact wearable camera for lightweight hands-free recording." },
   { id: "dji-action", category: "Recording Devices", name: "DJI Osmo Action 4", description: "A stabilized action camera suited to long, movement-heavy captures." },
   { id: "spatial-headset", category: "Recording Devices", name: "Meta Quest 3 / Apple Vision Pro", description: "Spatial headsets for first-person mixed-reality and scene understanding data." },
   { id: "realsense", category: "Recording Devices", name: "Intel RealSense D435i/D455", description: "Depth cameras for synchronized RGB, motion, and spatial measurements." },
   { id: "oak-d", category: "Recording Devices", name: "OAK-D Lite (Luxonis)", description: "An edge AI camera for stereo depth and on-device visual processing." },
   { id: "structure-sensor", category: "Recording Devices", name: "Structure Sensor 3", description: "A mobile depth sensor for scanning rooms, objects, and workspaces." },
-  { id: "head-strap", category: "Mounting & Stabilization", name: "Head Strap Mount", description: "A hands-free head mount for consistent eye-level point-of-view footage.", price: "3.00" },
-  { id: "chest-harness", category: "Mounting & Stabilization", name: "Chest Harness Mount", description: "A stable chest-level mount for longer physical task recordings.", price: "4.00" },
+  { id: "head-strap", category: "Mounting & Stabilization", name: "Head Strap Mount", description: "A hands-free head mount for consistent eye-level point-of-view footage.", price: "3.00", image: "/gear/gadget-head-strap.svg", imageAlt: "Technical illustration of a secure head strap with a forward-facing capture device" },
+  { id: "chest-harness", category: "Mounting & Stabilization", name: "Chest Harness Mount", description: "A stable chest-level mount for longer physical task recordings.", price: "4.00", image: "/gear/gadget-chest-mount.svg", imageAlt: "Technical illustration of a torso wearing a chest harness with a centered capture device" },
   { id: "wrist-mount", category: "Mounting & Stabilization", name: "Wrist Mount Straps", description: "Wearable straps for close-range hand and tool interaction capture." },
   { id: "osmo-mobile", category: "Mounting & Stabilization", name: "DJI Osmo Mobile 8", description: "A smartphone gimbal for smooth walking and inspection sequences." },
   { id: "insta360-flow", category: "Mounting & Stabilization", name: "Insta360 Flow 2 Pro", description: "A portable tracking gimbal for stabilized mobile capture sessions." },

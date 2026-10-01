@@ -6,6 +6,7 @@ import { Camera, Check, CircleGauge, Code2, Lightbulb, LoaderCircle, Mic2, Move3
 import type { LucideIcon } from "lucide-react";
 import { primaryAction, secondaryAction } from "@/components/ui/Primitives";
 import { useCart } from "@/components/cart/CartProvider";
+import { CatalogArtwork } from "@/components/ui/CatalogArtwork";
 import { gearCategories, gearItems, type GearCategory } from "@/data/gear";
 
 const categoryIcons: Record<GearCategory, LucideIcon> = {
@@ -76,8 +77,8 @@ export function GearCatalog() {
       {visible.map((item) => {
         const Icon = categoryIcons[item.category];
         return <article key={item.name} className="group flex min-h-full flex-col rounded-2xl border border-white/[.09] bg-[var(--surface)] p-5 transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[var(--primary)]/30 focus-within:border-[var(--primary)]/30 sm:p-6">
-          <div className="grid min-h-40 place-items-center rounded-xl border border-dashed border-white/20 bg-[var(--page-bg)] text-center">
-            <div><Icon aria-hidden="true" className="mx-auto text-[var(--primary)]" size={30} /><p className="mt-3 font-mono text-[10px] uppercase tracking-[.14em] text-white/45">Product imagery coming soon</p></div>
+          <div className="relative grid aspect-[3/2] place-items-center overflow-hidden rounded-xl border border-white/15 bg-[var(--page-bg)] text-center">
+            {item.image && item.imageAlt ? <CatalogArtwork src={item.image} alt={item.imageAlt} label={item.name} sizes="(max-width: 767px) calc(100vw - 40px), (max-width: 1279px) 50vw, 33vw" /> : <div><Icon aria-hidden="true" className="mx-auto text-[var(--primary)]" size={30} /><p className="mt-3 font-mono text-[10px] uppercase tracking-[.14em] text-white/45">Product imagery coming soon</p></div>}
           </div>
           <div className="mt-5 flex items-start justify-between gap-4"><p className="font-mono text-[10px] uppercase tracking-[.12em] text-white/45">{item.category}</p><span className="shrink-0 rounded-full border border-[var(--primary)]/25 bg-[var(--primary)]/[.06] px-2.5 py-1 font-mono text-[9px] uppercase tracking-[.12em] text-[var(--primary)]">{item.price ? "In stock" : "Coming soon"}</span></div>
           <h2 className="mt-4 font-heading text-[22px] leading-[1.08] transition-colors duration-300 ease-out group-hover:text-[var(--primary)]">{item.name}</h2>
