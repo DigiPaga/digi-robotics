@@ -2,6 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ReentrancyGuardTransient} from "@openzeppelin/contracts/utils/ReentrancyGuardTransient.sol";
 import {MockUSDG} from "../src/MockUSDG.sol";
 import {X402Facilitator} from "../src/X402Facilitator.sol";
 import {IX402Facilitator} from "../src/interfaces/IX402Facilitator.sol";
@@ -16,6 +17,33 @@ contract SilentERC3009 {
 
     function transferWithAuthorization(address, address, uint256, uint256, uint256, bytes32, bytes calldata)
         external {}
+}
+
+/// @notice Token that calls back into the facilitator from inside transferWithAuthorization.
+contract ReentrantERC3009 {
+    X402Facilitator public facilitator;
+
+    function setFacilitator(X402Facilitator facilitator_) external {
+        facilitator = facilitator_;
+    }
+
+    function balanceOf(address) external pure returns (uint256) {
+        return 0;
+    }
+
+    function transferWithAuthorization(
+        address from,
+        address to,
+        uint256 value,
+        uint256 validAfter,
+        uint256 validBefore,
+        bytes32 nonce,
+        bytes calldata signature
+    ) external {
+        facilitator.settle(
+            bytes32(0), IX402Facilitator.Authorization(from, to, value, validAfter, validBefore, nonce), signature
+        );
+    }
 }
 
 contract X402FacilitatorTest is ERC3009Signer {
@@ -236,5 +264,18 @@ contract X402FacilitatorTest is ERC3009Signer {
         vm.prank(owner);
         vm.expectRevert(abi.encodeWithSelector(X402Facilitator.SettlementAmountMismatch.selector, PRICE, 0));
         silent.settle(RESOURCE_ID, _asFacilitatorAuth(auth), hex"");
+    }
+
+    function test_RevertWhen_TokenReentersSettle() public {
+        ReentrantERC3009 evil = new ReentrantERC3009();
+        X402Facilitator target = new X402Facilitator(address(evil), owner);
+        evil.setFacilitator(target);
+        vm.prank(owner);
+        target.setSettler(address(evil), true);
+        Authorization memory auth = _auth(keccak256("settle-reentrant"));
+
+        vm.prank(owner);
+        vm.expectRevert(ReentrancyGuardTransient.ReentrancyGuardReentrantCall.selector);
+        target.settle(RESOURCE_ID, _asFacilitatorAuth(auth), hex"");
     }
 }
