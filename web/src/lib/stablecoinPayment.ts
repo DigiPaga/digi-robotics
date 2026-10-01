@@ -199,9 +199,37 @@ async function sendSponsoredCall(runtime: SmartAccountRuntime, data: Hex, onProg
   }
 }
 
+/**
+ * MockUSDG's faucet allows one claim per address per day. Check before asking the user to sign a
+ * sponsored call that would revert; tokens without a cooldown (the legacy deployment) skip this.
+ */
+async function assertFaucetAvailable(runtime: SmartAccountRuntime) {
+  let availableAt: bigint;
+  let now: bigint;
+  try {
+    [availableAt, { timestamp: now }] = await Promise.all([
+      readContract({
+        contract: tokenContract(),
+        method: "function nextFaucetAt(address account) view returns (uint256)",
+        params: [runtime.account.address],
+      }),
+      runtime.publicClient.getBlock({ blockTag: "latest" }),
+    ]);
+  } catch {
+    return;
+  }
+  if (now < availableAt) {
+    throw Object.assign(
+      codedError("FAUCET_COOLDOWN_ACTIVE", "The demo faucet cooldown is still active for this wallet."),
+      { availableAt: new Date(Number(availableAt) * 1_000) },
+    );
+  }
+}
+
 export async function fundDemoWallet(account: ThirdwebAccount, onProgress?: PaymentProgressHandler) {
   assertUsdGCompatibleAsset();
   const runtime = await createSmartAccountRuntime(account);
+  await assertFaucetAvailable(runtime);
   const call = prepareContractCall({
     contract: tokenContract(),
     method: "function faucet()",
