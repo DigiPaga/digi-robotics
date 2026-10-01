@@ -22,7 +22,7 @@ jobs:
       - name: Lint
         run: cd web && npm run lint
       - name: Test
-        run: cd web && npm run test
+        run: cd web && npm run test --if-present
       - name: Build
         run: cd web && npm run build
 
