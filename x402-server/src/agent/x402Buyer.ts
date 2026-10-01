@@ -25,8 +25,12 @@ export class X402Buyer {
   readonly account;
   readonly publicClient;
 
-  /** `fetchResource` performs the requests to paid resources; it defaults to the global fetch. */
-  constructor(private readonly env: AgentDemoEnv, private readonly fetchResource: typeof fetch = fetch) {
+  /**
+   * `fetchResource` performs the requests to paid resources. Without one, the global fetch is
+   * looked up on every request rather than captured here, so replacing `globalThis.fetch` later
+   * still takes effect.
+   */
+  constructor(private readonly env: AgentDemoEnv, private readonly fetchResource?: typeof fetch) {
     if (!env.privateKey) throw new BuyerError("CONFIGURATION_ERROR", "No server-side buyer signer is configured");
     this.account = privateKeyToAccount(env.privateKey);
     this.publicClient = createPublicClient({
@@ -132,7 +136,7 @@ export class X402Buyer {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.env.requestTimeoutMs);
     try {
-      const response = await this.fetchResource(url, { ...init, redirect: "manual", signal: controller.signal, headers: { Accept: "application/json", ...init.headers } });
+      const response = await (this.fetchResource ?? fetch)(url, { ...init, redirect: "manual", signal: controller.signal, headers: { Accept: "application/json", ...init.headers } });
       if (response.status >= 300 && response.status < 400) throw new BuyerError("POLICY_REJECTED", "Redirects are disabled for autonomous purchases");
       return response;
     } catch (error) {
