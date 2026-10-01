@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "validate:robinhood": "npx tsx ../scripts/validate-robinhood-config.ts"
+    "validate:robinhood": "npx tsx scripts/validate-robinhood-config.ts"
   },
   "dependencies": {
     "@fontsource/inter-tight": "^5.3.0",
@@ -23,11 +23,14 @@
     "@zerodev/permissions": "^5.6.3",
     "@zerodev/sdk": "^5.5.10",
     "framer-motion": "^13.4.4",
+    "gray-matter": "^4.0.3",
     "lucide-react": "^1.48.0",
     "next": "16.3.6",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-hook-form": "^7.89.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "thirdweb": "^5.121.6",
     "viem": "^2.56.9",
     "zod": "^3.25.76"

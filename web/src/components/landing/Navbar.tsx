@@ -13,6 +13,7 @@ const links = [
   { label: "Enter marketplace", href: "/#marketplace" },
   { label: "Request custom data", href: "/#custom-data" },
   { label: "Gadgets for capture", href: "/gear" },
+  { label: "Field notes", href: "/blog" },
   { label: "Your orders", href: "/orders" },
 ];
 
@@ -77,6 +78,7 @@ export function Navbar() {
             </div> : null}
           </div>
           <Link href="/gear" className="shrink-0 whitespace-nowrap py-3 text-[13px] font-medium tracking-normal text-white/80 transition-colors duration-300 ease-out hover:text-[var(--primary)]">Gadgets for capture</Link>
+          <Link href="/blog" className="shrink-0 whitespace-nowrap py-3 text-[13px] font-medium tracking-normal text-white/80 transition-colors duration-300 ease-out hover:text-[var(--primary)]">Field notes</Link>
         </div>
 
         <div className="hidden items-center gap-6 sm:flex">
