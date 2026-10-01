@@ -3,8 +3,12 @@
  * Match is case-insensitive. For gmail.com and googlemail.com only, dots in the
  * local part are ignored (Google treats them as the same mailbox). Plus-tags
  * stay part of the address, so `me+x@gmail.com` is a different entry.
+ * Addresses with non-ASCII characters are rejected outright.
  */
 export function canonicalizeEmail(email: string): string {
+  // Printable ASCII only. Unicode lookalikes and case-folding surprises (a
+  // Cyrillic o, a dotless i) must never compare equal to an allowlisted address.
+  if (!/^[\x21-\x7e]+$/.test(email.trim())) return "";
   const trimmed = email.trim().toLowerCase();
   const at = trimmed.lastIndexOf("@");
   if (at <= 0 || at === trimmed.length - 1) return "";

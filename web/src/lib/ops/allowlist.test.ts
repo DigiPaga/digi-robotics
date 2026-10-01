@@ -12,6 +12,23 @@ describe("ops allowlist", () => {
     expect(canonicalizeEmail("x@")).toBe("");
   });
 
+  it("rejects addresses with non-ASCII or control characters", () => {
+    for (const email of [
+      "\u043ettodevs@gmail.com", // Cyrillic o
+      "ottodevs@gma\u0131l.com", // dotless i
+      "OTTODEVS@GMA\u0130L.COM", // dotted capital I, lowercases to i + combining dot
+      "ottodevs@gmail.com\u200b", // zero-width space
+      "otto\uff0edevs@gmail.com", // fullwidth full stop
+      "ottodevs@gmail.com\u0000",
+      "otto devs@gmail.com",
+      "ottodevs@gmail.com\nx",
+    ]) {
+      expect(canonicalizeEmail(email)).toBe("");
+      expect(isAllowedEmail(email, parseAllowlist("ottodevs@gmail.com"))).toBe(false);
+    }
+    expect(parseAllowlist("\u043ettodevs@gmail.com, oscar@digipaga.xyz").size).toBe(1);
+  });
+
   it("parses a comma list and matches canonical forms", () => {
     const list = parseAllowlist("OttoDevs@gmail.com, oscar@digipaga.xyz ,,");
     expect(list.size).toBe(2);
