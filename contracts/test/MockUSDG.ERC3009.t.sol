@@ -261,6 +261,18 @@ contract MockUSDGERC3009Test is ERC3009Signer {
         );
     }
 
+    function test_RevertWhen_PackedReceiveCalledByNonPayee() public {
+        Authorization memory auth = _auth(keccak256("nonce-receive-frontrun-packed"));
+        bytes memory signature =
+            _signPacked(payerKey, _digest(token, token.RECEIVE_WITH_AUTHORIZATION_TYPEHASH(), auth));
+
+        vm.prank(relayer);
+        vm.expectRevert(abi.encodeWithSelector(ERC3009.ERC3009CallerMustBePayee.selector, relayer, payee));
+        token.receiveWithAuthorization(
+            auth.from, auth.to, auth.value, auth.validAfter, auth.validBefore, auth.nonce, signature
+        );
+    }
+
     function test_RevertWhen_TransferSignatureUsedForReceive() public {
         Authorization memory auth = _auth(keccak256("nonce-typehash"));
         (uint8 v, bytes32 r, bytes32 s) = _signTransfer(token, payerKey, auth);
