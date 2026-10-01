@@ -35,6 +35,9 @@ const rawEnvSchema = z.object({
   AGENT_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(60_000).default(30_000),
   AGENT_RUN_TTL_MS: z.coerce.number().int().min(60_000).max(86_400_000).default(900_000),
   AGENT_MAX_CONCURRENT_RUNS: z.coerce.number().int().min(1).max(20).default(3),
+  X402_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().min(1_000).max(3_600_000).default(60_000),
+  X402_RATE_LIMIT_PER_IP: z.coerce.number().int().min(0).max(100_000).default(60),
+  X402_RATE_LIMIT_PER_PAYER: z.coerce.number().int().min(0).max(100_000).default(10),
   NEXT_PUBLIC_UNUSED: z.string().optional(),
 });
 
@@ -98,6 +101,11 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env) {
     requestTimeoutMs: value.AGENT_REQUEST_TIMEOUT_MS,
     runTtlMs: value.AGENT_RUN_TTL_MS,
     maxConcurrentRuns: value.AGENT_MAX_CONCURRENT_RUNS,
+    paidRouteRateLimit: {
+      windowMs: value.X402_RATE_LIMIT_WINDOW_MS,
+      perIp: value.X402_RATE_LIMIT_PER_IP,
+      perPayer: value.X402_RATE_LIMIT_PER_PAYER,
+    },
   } as const;
 }
 

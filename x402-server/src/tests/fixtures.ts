@@ -30,4 +30,5 @@ export const testEnv: AgentDemoEnv = {
   requestTimeoutMs: 30_000,
   runTtlMs: 900_000,
   maxConcurrentRuns: 1,
+  paidRouteRateLimit: { windowMs: 60_000, perIp: 60, perPayer: 10 },
 };

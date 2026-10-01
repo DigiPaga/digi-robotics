@@ -11,6 +11,7 @@ import { RunStore } from "../agent/runStore";
 import type { ErrorCode } from "../types/agentDemo";
 import { safeErrorMessage } from "../utils/redact";
 import { explorerTxUrl, getX402Chain, MOCK_USDG_TOKEN, X402_CHAINS } from "../x402/chains";
+import { createPaidRouteRateLimit } from "../x402/rateLimit";
 import { createProtectedDatasetMiddleware, type X402SettlementLocals } from "../x402/resourceServer";
 
 function shortAddress(value: string): string {
@@ -28,6 +29,7 @@ export function createAgentDemoRouter(env: AgentDemoEnv, store = new RunStore(en
   const router = Router();
   const discovery = new BazaarFirstDiscovery(env);
   const paymentMiddleware = createProtectedDatasetMiddleware(env);
+  const paidRouteRateLimit = createPaidRouteRateLimit(env.paidRouteRateLimit);
 
   router.get("/agent-demo/catalog", (_req, res) => res.json({ datasets: createPublicDatasets(env) }));
 
@@ -90,7 +92,7 @@ export function createAgentDemoRouter(env: AgentDemoEnv, store = new RunStore(en
     req.on("close", () => { clearInterval(heartbeat); unsubscribe(); });
   });
 
-  router.get("/x402/datasets/:id/content", (req, res, next) => {
+  router.get("/x402/datasets/:id/content", paidRouteRateLimit, (req, res, next) => {
     if (!hasProtectedDataset(req.params.id)) return res.status(404).json({ error: "DATASET_NOT_FOUND" });
     next();
   }, paymentMiddleware, (req: Request, res: Response) => {
