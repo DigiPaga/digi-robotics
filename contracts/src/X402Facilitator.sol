@@ -20,6 +20,14 @@ import {IX402Facilitator} from "./interfaces/IX402Facilitator.sol";
 ///      could otherwise submit it first with a different resource id and falsify the record. The
 ///      restriction cannot strand funds: the payer's authorization is still valid on the token
 ///      itself until it expires.
+///
+///      PaymentSettled is not a complete payment log. Anyone holding a signed authorization can
+///      submit it straight to token.transferWithAuthorization, which moves the funds and consumes
+///      the nonce without touching this contract, so no PaymentSettled is emitted (and a later
+///      settle here reverts as already used). Indexers and accounting must treat the token's
+///      AuthorizationUsed(authorizer, nonce) and Transfer events as the source of truth for
+///      whether a payment happened, and PaymentSettled only as the resource attribution for
+///      payments that were relayed through this contract.
 contract X402Facilitator is IX402Facilitator, Ownable2Step, ReentrancyGuardTransient {
     /// @inheritdoc IX402Facilitator
     address public immutable token;

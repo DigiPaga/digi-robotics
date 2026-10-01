@@ -17,7 +17,9 @@ interface IX402Facilitator {
         bytes32 nonce;
     }
 
-    /// @notice Emitted once per settled payment.
+    /// @notice Emitted once per payment settled through this contract.
+    /// @dev Not emitted when the authorization is submitted straight to the token. Use the token's
+    ///      AuthorizationUsed and Transfer events as the source of truth for payments.
     /// @param resourceId keccak256 of the x402 resource URL the payment unlocks.
     /// @param payer The authorizer whose tokens moved.
     /// @param payee The x402 `payTo` that received the tokens.
