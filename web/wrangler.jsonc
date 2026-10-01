@@ -13,6 +13,9 @@
 	"routes": [{ "pattern": "digirobotics.xyz", "custom_domain": true }],
 	"workers_dev": true,
 	"preview_urls": false,
+	// Orders written by POST /api/orders. No database_id on purpose: the first
+	// `wrangler deploy` creates the database and writes its id back here.
+	"d1_databases": [{ "binding": "ORDERS_DB", "database_name": "digirobotics-orders" }],
 	// Non-secret runtime config. Secrets are set with `wrangler secret put`, see .dev.vars.example.
 	"vars": {
 		"OPS_BASE_URL": "https://digirobotics.xyz",
