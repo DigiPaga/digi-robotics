@@ -75,3 +75,24 @@ export async function authenticateRequest(request: Request, env: Record<string, 
     ? { status: "authenticated", config: result.config, session }
     : { status: "unauthenticated", config: result.config };
 }
+
+/**
+ * GET handler for a read-only ops data endpoint. Fails closed: the loader only
+ * runs for an authenticated session. `?fresh=1` asks the loader to skip its
+ * short per-isolate cache. A loader error becomes a generic 502; the cause
+ * goes to the server log only.
+ */
+export function opsDataRoute<T>(name: string, load: (options: { fresh: boolean }) => Promise<T>) {
+  return async function GET(request: Request): Promise<NextResponse> {
+    const auth = await authenticateRequest(request);
+    if (auth.status === "unconfigured") return opsJson({ message: "Ops is not configured." }, 503);
+    if (auth.status !== "authenticated") return opsJson({ message: "Sign in required." }, 401);
+    try {
+      const fresh = new URL(request.url).searchParams.get("fresh") === "1";
+      return opsJson(await load({ fresh }));
+    } catch (error) {
+      console.error(`[ops] ${name} failed: ${error instanceof Error ? error.name : "error"}`);
+      return opsJson({ message: "Data could not be loaded." }, 502);
+    }
+  };
+}

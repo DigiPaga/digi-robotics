@@ -1,43 +1,48 @@
-import { KeyRound, LockKeyhole, ShieldAlert } from "lucide-react";
-import Link from "next/link";
+import { KeyRound } from "lucide-react";
 import type { ReactNode } from "react";
-import { Eyebrow, primaryAction, shell } from "@/components/ui/Primitives";
+import { Brand } from "./console/ConsoleShell";
+import { labelClass, Notice, primaryButtonClass } from "./console/primitives";
 
-export function OpsFrame({ children, aside }: { children: ReactNode; aside?: ReactNode }) {
+/**
+ * The console frame without a session: same rail, header and type as the
+ * signed-in shell, with no navigation and no data. Public, so it says nothing
+ * about what is behind it beyond the product name.
+ */
+export function OpsGateFrame({ children }: { children: ReactNode }) {
   return (
-    <main className="min-h-dvh pb-24">
-      <header className="border-b border-white/[.08]">
-        <div className={`${shell} flex min-h-16 items-center justify-between gap-4`}>
-          <Link href="/" className="font-display text-lg font-bold tracking-tight">
-            DigiRobotics <span className="font-mono text-xs font-medium uppercase tracking-[.18em] text-[var(--primary)]">ops</span>
-          </Link>
-          {aside}
-        </div>
-      </header>
-      <section className="py-10 sm:py-14">
-        <div className={shell}>{children}</div>
-      </section>
-    </main>
+    <div className="ops-root flex min-h-dvh" data-ops-shell="gate">
+      <aside className="sticky top-0 hidden h-dvh w-56 shrink-0 flex-col border-r border-ops-line bg-ops-rail lg:flex">
+        <div className="flex h-12 shrink-0 items-center border-b border-ops-line px-4"><Brand /></div>
+        <p className="p-4 text-[13px] text-ops-fg-3">Operator console for the DigiRobotics testnet deployment.</p>
+      </aside>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="flex h-12 shrink-0 items-center gap-3 border-b border-ops-line bg-ops-canvas px-4 lg:px-8">
+          <div className="lg:hidden"><Brand /></div>
+          <p className="hidden text-[13px] text-ops-fg-3 lg:block">Ops</p>
+          <span className={`${labelClass} ml-auto rounded border border-ops-line-2 px-1.5 py-0.5`}>Testnet</span>
+        </header>
+        <main id="ops-main" className="flex-1 px-4 pb-20 pt-6 lg:px-8 lg:pt-8">
+          <div className="mx-auto w-full max-w-[1120px]">
+            <div className="max-w-md">{children}</div>
+          </div>
+        </main>
+      </div>
+    </div>
   );
 }
 
-function Card({ children }: { children: ReactNode }) {
-  return <div className="mx-auto max-w-xl rounded-3xl border border-white/10 bg-[var(--surface)] p-8 sm:p-10">{children}</div>;
-}
+const titleClass = "text-[20px] font-semibold leading-7 tracking-[-.01em] text-ops-fg";
+const bodyClass = "mt-2 text-[14px] leading-[22px] text-ops-fg-2";
 
 /** Deliberately generic: this page is public, so it never says what is missing. */
 export function OpsNotConfigured() {
   return (
-    <OpsFrame>
-      <Card>
-        <ShieldAlert className="text-[#ffb5ac]" size={30} aria-hidden="true" />
-        <div className="mt-5"><Eyebrow>Ops / Not configured</Eyebrow></div>
-        <h1 className="mt-3 font-heading text-3xl font-medium tracking-[-.02em]">Ops is not configured.</h1>
-        <p className="mt-4 text-base leading-7 text-[var(--muted-foreground)]">
-          Sign-in is disabled and nobody can get in while this page shows. If you operate this deployment, the server log says what to fix.
-        </p>
-      </Card>
-    </OpsFrame>
+    <OpsGateFrame>
+      <h1 className={titleClass}>Ops is not configured.</h1>
+      <p className={bodyClass}>
+        Sign-in is disabled and nobody can get in while this page shows. If you operate this deployment, the server log says what to fix.
+      </p>
+    </OpsGateFrame>
   );
 }
 
@@ -50,22 +55,28 @@ const ERROR_COPY: ReadonlyMap<string, string> = new Map([
 export function OpsSignIn({ error }: { error?: string }) {
   const message = error ? ERROR_COPY.get(error) : undefined;
   return (
-    <OpsFrame>
-      <Card>
-        <LockKeyhole className="text-[var(--primary)]" size={30} aria-hidden="true" />
-        <div className="mt-5"><Eyebrow>Ops / Private</Eyebrow></div>
-        <h1 className="mt-3 font-heading text-3xl font-medium tracking-[-.02em]">Sign in to ops.</h1>
-        <p className="mt-4 text-base leading-7 text-[var(--muted-foreground)]">
-          Wallet balances and testnet top-ups for the DigiRobotics operators. Access is limited to allowlisted Google accounts.
-        </p>
-        {message ? <p role="alert" className="mt-5 rounded-2xl border border-[#ff6b5e]/30 bg-[#ff6b5e]/10 px-4 py-3 text-sm text-[#ffb5ac]">{message}</p> : null}
-        <a
-          href="/ops/login"
-          className={`mt-7 inline-flex min-h-12 items-center gap-2 rounded-full bg-[var(--primary)] px-6 text-sm font-semibold text-[var(--page-bg)] ${primaryAction}`}
-        >
-          <KeyRound size={16} aria-hidden="true" /> Continue with Google
-        </a>
-      </Card>
-    </OpsFrame>
+    <OpsGateFrame>
+      <h1 className={titleClass}>Sign in to ops</h1>
+      <p className={bodyClass}>
+        Wallets, payments, contracts and infrastructure for the DigiRobotics operators. Access is limited to allowlisted Google accounts.
+      </p>
+      {message ? <div className="mt-5"><Notice tone="bad" role="alert">{message}</Notice></div> : null}
+      {/* /ops/login is a route handler that redirects to Google: it needs a full navigation, not a client-side one. */}
+      {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+      <a href="/ops/login" className={`mt-6 !h-9 ${primaryButtonClass}`}>
+        <KeyRound size={14} aria-hidden="true" /> Continue with Google
+      </a>
+    </OpsGateFrame>
+  );
+}
+
+/** Generic failure page in the console frame. Never shows the error. */
+export function OpsProblem({ title, children, action }: { title: string; children: ReactNode; action?: ReactNode }) {
+  return (
+    <div className="max-w-md">
+      <h1 className={titleClass}>{title}</h1>
+      <p className={bodyClass}>{children}</p>
+      {action ? <div className="mt-6">{action}</div> : null}
+    </div>
   );
 }

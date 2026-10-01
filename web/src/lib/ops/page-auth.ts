@@ -38,3 +38,8 @@ export async function getOpsPageState(): Promise<OpsPageState> {
   const session = await sessionFromCookieValue(result.config, raw);
   return session ? { kind: "signed-in", session } : { kind: "signed-out" };
 }
+
+/** For section pages: true only for a configured deployment and a valid, allowlisted session. */
+export async function hasOpsSession(): Promise<boolean> {
+  return (await getOpsPageState()).kind === "signed-in";
+}
