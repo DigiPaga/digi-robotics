@@ -27,11 +27,11 @@ function nowSeconds(): number {
 }
 
 export async function sealSession(secret: string, email: string, now = nowSeconds()): Promise<string> {
-  return seal(secret, { email, csrf: randomToken(18), exp: now + SESSION_MAX_AGE } satisfies OpsSession);
+  return seal(secret, "session", { email, csrf: randomToken(18), exp: now + SESSION_MAX_AGE } satisfies OpsSession);
 }
 
 export async function openSession(secret: string, raw: string | undefined | null, now = nowSeconds()): Promise<OpsSession | null> {
-  const data = await unseal<OpsSession>(secret, raw);
+  const data = await unseal<OpsSession>(secret, "session", raw);
   if (!data) return null;
   if (typeof data.exp !== "number" || data.exp <= now) return null;
   if (typeof data.email !== "string" || typeof data.csrf !== "string") return null;
@@ -43,11 +43,11 @@ export function newOauthState(): Omit<OauthState, "exp"> {
 }
 
 export async function sealOauthState(secret: string, state: Omit<OauthState, "exp">, now = nowSeconds()): Promise<string> {
-  return seal(secret, { ...state, exp: now + OAUTH_MAX_AGE } satisfies OauthState);
+  return seal(secret, "oauth", { ...state, exp: now + OAUTH_MAX_AGE } satisfies OauthState);
 }
 
 export async function openOauthState(secret: string, raw: string | undefined | null, now = nowSeconds()): Promise<OauthState | null> {
-  const data = await unseal<OauthState>(secret, raw);
+  const data = await unseal<OauthState>(secret, "oauth", raw);
   if (!data) return null;
   if (typeof data.exp !== "number" || data.exp <= now) return null;
   if (typeof data.state !== "string" || typeof data.nonce !== "string" || typeof data.verifier !== "string") return null;

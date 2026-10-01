@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { b64url, b64urlDecode, seal } from "./crypto";
+import { b64url, b64urlDecode, seal, unseal } from "./crypto";
 import {
   newOauthState,
   openOauthState,
@@ -53,7 +53,7 @@ describe("ops session cookie", () => {
   });
 
   it("rejects a correctly signed payload with the wrong shape", async () => {
-    const token = await seal(SECRET, { email: 42, csrf: "x", exp: NOW + 100 });
+    const token = await seal(SECRET, "session", { email: 42, csrf: "x", exp: NOW + 100 });
     expect(await openSession(SECRET, token, NOW)).toBeNull();
   });
 
@@ -84,6 +84,49 @@ describe("ops OAuth state cookie", () => {
     expect(await openOauthState(SECRET, token, NOW + OAUTH_MAX_AGE)).toBeNull();
     const forged = tamperPayload(token, (data) => { data.state = "attacker"; });
     expect(await openOauthState(SECRET, forged, NOW)).toBeNull();
+  });
+});
+
+describe("sealed cookie purpose tag", () => {
+  // A payload that satisfies both shapes, so only the tag can tell them apart.
+  const both = { email: "ottodevs@gmail.com", csrf: "c".repeat(24), state: "s", nonce: "n", verifier: "v".repeat(43), exp: NOW + 100 };
+
+  it("refuses an OAuth state cookie presented as a session", async () => {
+    const oauth = await seal(SECRET, "oauth", both);
+    expect(await openOauthState(SECRET, oauth, NOW)).not.toBeNull();
+    expect(await openSession(SECRET, oauth, NOW)).toBeNull();
+    const real = await sealOauthState(SECRET, newOauthState(), NOW);
+    expect(await openSession(SECRET, real, NOW)).toBeNull();
+  });
+
+  it("refuses a session cookie presented as OAuth state", async () => {
+    const session = await seal(SECRET, "session", both);
+    expect(await openSession(SECRET, session, NOW)).not.toBeNull();
+    expect(await openOauthState(SECRET, session, NOW)).toBeNull();
+    const real = await sealSession(SECRET, "ottodevs@gmail.com", NOW);
+    expect(await openOauthState(SECRET, real, NOW)).toBeNull();
+  });
+
+  it("lets the seal purpose win over a typ field in the data", async () => {
+    const token = await seal(SECRET, "oauth", { ...both, typ: "session" });
+    expect(await openSession(SECRET, token, NOW)).toBeNull();
+    expect((await unseal<{ typ: string }>(SECRET, "oauth", token))?.typ).toBe("oauth");
+  });
+
+  it("refuses correctly signed payloads with a missing or unknown tag", async () => {
+    const sign = async (data: unknown) => {
+      const payload = b64url(new TextEncoder().encode(JSON.stringify(data)));
+      const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(SECRET), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+      const mac = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload)));
+      return `${payload}.${b64url(mac)}`;
+    };
+    for (const typ of [undefined, "", "Session", "refresh", 1, null]) {
+      const token = await sign({ ...both, typ });
+      expect(await openSession(SECRET, token, NOW)).toBeNull();
+      expect(await openOauthState(SECRET, token, NOW)).toBeNull();
+    }
+    // Same helper, right tag: proves the rejections above are about the tag, not the signature.
+    expect(await openSession(SECRET, await sign({ ...both, typ: "session" }), NOW)).not.toBeNull();
   });
 });
 

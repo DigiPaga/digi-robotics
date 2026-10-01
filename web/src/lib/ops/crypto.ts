@@ -64,14 +64,21 @@ export async function sameSecret(provided: string, expected: string): Promise<bo
   return diff === 0;
 }
 
-/** `base64url(json).base64url(hmac)`. Integrity only: the payload is readable, never put secrets in it. */
-export async function seal(secret: string, data: unknown): Promise<string> {
-  const payload = b64url(encoder.encode(JSON.stringify(data)));
+/** What a sealed value is for. Both kinds are signed with the same secret, so the tag keeps them apart. */
+export type SealPurpose = "session" | "oauth";
+
+/**
+ * `base64url(json).base64url(hmac)`. Integrity only: the payload is readable,
+ * never put secrets in it. The purpose is signed into the payload as `typ`.
+ */
+export async function seal(secret: string, typ: SealPurpose, data: Record<string, unknown>): Promise<string> {
+  const payload = b64url(encoder.encode(JSON.stringify({ ...data, typ })));
   const mac = b64url(await hmac(secret, payload));
   return `${payload}.${mac}`;
 }
 
-export async function unseal<T>(secret: string, raw: string | undefined | null): Promise<Partial<T> | null> {
+/** Null unless the signature holds and the payload was sealed for this same purpose. */
+export async function unseal<T>(secret: string, typ: SealPurpose, raw: string | undefined | null): Promise<Partial<T> | null> {
   if (!raw) return null;
   const dot = raw.indexOf(".");
   if (dot < 1) return null;
@@ -83,7 +90,9 @@ export async function unseal<T>(secret: string, raw: string | undefined | null):
   if (!bytes) return null;
   try {
     const parsed: unknown = JSON.parse(decoder.decode(bytes));
-    return typeof parsed === "object" && parsed !== null ? (parsed as Partial<T>) : null;
+    if (typeof parsed !== "object" || parsed === null) return null;
+    if ((parsed as { typ?: unknown }).typ !== typ) return null;
+    return parsed as Partial<T>;
   } catch {
     return null;
   }
