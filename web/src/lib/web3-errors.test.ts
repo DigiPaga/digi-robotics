@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { normalizeWeb3Error } from "./web3-errors";
+import { encodeErrorResult, parseAbi } from "viem";
+import { FAUCET_COOLDOWN_SELECTOR, faucetCooldownAvailableAt, normalizeWeb3Error } from "./web3-errors";
 
 describe("normalizeWeb3Error", () => {
   it("maps a user-rejected wallet connection by rejectionKind", () => {
@@ -132,5 +133,47 @@ describe("normalizeWeb3Error", () => {
     const original = new Error("boom");
     const result = normalizeWeb3Error(original);
     expect(result.original).toBe(original);
+  });
+});
+
+describe("FaucetCooldownActive", () => {
+  const availableAtSeconds = BigInt(1_760_086_400);
+  const availableAt = new Date(Number(availableAtSeconds) * 1_000);
+  const revertData = encodeErrorResult({
+    abi: parseAbi(["error FaucetCooldownActive(uint256 availableAt)"]),
+    errorName: "FaucetCooldownActive",
+    args: [availableAtSeconds],
+  });
+  const expectedTime = availableAt.toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
+
+  it("uses the selector of MockUSDG's custom error", () => {
+    expect(FAUCET_COOLDOWN_SELECTOR).toBe(revertData.slice(0, 10));
+  });
+
+  it("decodes raw revert data nested in a sponsored smart-account failure", () => {
+    const bundlerError = new Error(`UserOperation reverted during simulation with reason: ${revertData}`);
+    const wrapped = Object.assign(new Error("The sponsored smart-account transaction could not be completed.", { cause: bundlerError }), {
+      code: "SMART_ACCOUNT_TRANSACTION_FAILED",
+    });
+    const result = normalizeWeb3Error(wrapped, { operation: "checkout" });
+    expect(result.code).toBe("FAUCET_COOLDOWN_ACTIVE");
+    expect(result.retryable).toBe(false);
+    expect(result.availableAt).toEqual(availableAt);
+    expect(result.message).toBe(`This wallet already used the demo faucet in the last 24 hours. Next request available ${expectedTime}.`);
+  });
+
+  it("decodes revert data from a viem-style data field", () => {
+    expect(faucetCooldownAvailableAt({ shortMessage: "execution reverted", data: revertData })).toEqual(availableAt);
+    expect(faucetCooldownAvailableAt({ message: "reverted", data: { data: revertData } })).toEqual(availableAt);
+  });
+
+  it("uses availableAt from the faucet pre-flight error", () => {
+    const preflight = Object.assign(new Error("The demo faucet cooldown is still active for this wallet."), { code: "FAUCET_COOLDOWN_ACTIVE", availableAt });
+    expect(normalizeWeb3Error(preflight).availableAt).toEqual(availableAt);
+  });
+
+  it("does not misread other reverts", () => {
+    expect(faucetCooldownAvailableAt(new Error("execution reverted: 0x08c379a0"))).toBeUndefined();
+    expect(normalizeWeb3Error(new Error("execution reverted")).code).toBe("TRANSACTION_REVERTED");
   });
 });

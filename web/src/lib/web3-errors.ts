@@ -1,3 +1,5 @@
+import { toFunctionSelector } from "viem";
+
 export type Web3ErrorCode =
   | "USER_REJECTED_WALLET"
   | "USER_REJECTED_SIGNATURE"
@@ -17,6 +19,7 @@ export type Web3ErrorCode =
   | "X402_PAYMENT_REJECTED"
   | "X402_SETTLEMENT_FAILED"
   | "PROTECTED_RESOURCE_LOCKED"
+  | "FAUCET_COOLDOWN_ACTIVE"
   | "UNKNOWN";
 
 export interface Web3ErrorContext {
@@ -31,6 +34,8 @@ export interface NormalizedWeb3Error {
   message: string;
   retryable: boolean;
   original: unknown;
+  /** For FAUCET_COOLDOWN_ACTIVE: when the faucet can be used again. */
+  availableAt?: Date;
 }
 
 interface ErrorShape {
@@ -40,6 +45,8 @@ interface ErrorShape {
   shortMessage?: unknown;
   details?: unknown;
   reason?: unknown;
+  data?: unknown;
+  availableAt?: unknown;
   cause?: unknown;
 }
 
@@ -79,6 +86,35 @@ function collectErrorSignals(error: unknown): { text: string; codes: string[]; n
   return { text: text.join(" ").toLowerCase(), codes, names };
 }
 
+/** Selector of MockUSDG's `FaucetCooldownActive(uint256 availableAt)` custom error. */
+export const FAUCET_COOLDOWN_SELECTOR = toFunctionSelector("FaucetCooldownActive(uint256)");
+const FAUCET_COOLDOWN_DATA = new RegExp(`${FAUCET_COOLDOWN_SELECTOR}([0-9a-f]{64})`, "i");
+
+/**
+ * Finds MockUSDG's FaucetCooldownActive revert anywhere in an error chain (raw revert data in a
+ * message or `data` field, as bundlers and viem surface it) or a pre-flight error carrying
+ * `availableAt`, and returns the time the faucet opens again.
+ */
+export function faucetCooldownAvailableAt(error: unknown): Date | undefined {
+  const seen = new Set<unknown>();
+  let current = error;
+  for (let depth = 0; depth < MAX_CAUSE_DEPTH && isErrorShape(current) && !seen.has(current); depth += 1) {
+    seen.add(current);
+    if (current.availableAt instanceof Date) return current.availableAt;
+    const data = isErrorShape(current.data) ? current.data.data : current.data;
+    for (const value of [data, current.message, current.shortMessage, current.details, current.reason]) {
+      const match = typeof value === "string" ? FAUCET_COOLDOWN_DATA.exec(value) : null;
+      if (match) return new Date(Number(BigInt(`0x${match[1]}`)) * 1_000);
+    }
+    current = current.cause;
+  }
+  return undefined;
+}
+
+function formatAvailableAt(availableAt: Date): string {
+  return availableAt.toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
+}
+
 function includesAny(value: string, patterns: readonly string[]): boolean {
   return patterns.some((pattern) => value.includes(pattern));
 }
@@ -108,6 +144,19 @@ export function normalizeWeb3Error(
     return context.rejectionKind === "wallet"
       ? result("USER_REJECTED_WALLET", "Wallet connection was cancelled. Connect when you’re ready.", true, error)
       : result("USER_REJECTED_SIGNATURE", "The signature request was declined. No transaction was completed.", true, error);
+  }
+
+  const faucetAvailableAt = faucetCooldownAvailableAt(error);
+  if (faucetAvailableAt) {
+    return {
+      ...result(
+        "FAUCET_COOLDOWN_ACTIVE",
+        `This wallet already used the demo faucet in the last 24 hours. Next request available ${formatAvailableAt(faucetAvailableAt)}.`,
+        false,
+        error,
+      ),
+      availableAt: faucetAvailableAt,
+    };
   }
 
   if (includesAny(codeText, ["insufficient_balance", "insufficient_asset"]) ||

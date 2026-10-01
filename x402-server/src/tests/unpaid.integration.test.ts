@@ -4,7 +4,8 @@ import express from "express";
 import request from "supertest";
 import type { FacilitatorClient } from "@x402/core/server";
 import { decodePaymentRequiredHeader } from "@x402/core/http";
-import { createProtectedDatasetMiddleware } from "../x402/resourceServer";
+import { createProtectedDatasetMiddleware, datasetResourceUrl } from "../x402/resourceServer";
+import { resourceIdFor } from "../x402/settlementContractScheme";
 import { TEST_ASSET, TEST_SELLER, testEnv } from "./fixtures";
 
 const facilitator: FacilitatorClient = {
@@ -14,6 +15,13 @@ const facilitator: FacilitatorClient = {
   async verify() { throw new Error("verify must not run for an unpaid request"); },
   async settle() { throw new Error("settle must not run for an unpaid request"); },
 };
+
+function protectedApp() {
+  const app = express();
+  app.use(createProtectedDatasetMiddleware(testEnv, facilitator));
+  app.get("/x402/datasets/:id/content", (_req, res) => res.json({ forbidden: "protected" }));
+  return app;
+}
 
 test("unpaid protected resource returns genuine machine-readable x402 v2 requirements", async () => {
   const app = express();
@@ -31,4 +39,24 @@ test("unpaid protected resource returns genuine machine-readable x402 v2 require
   assert.equal(decoded.accepts[0]?.asset, TEST_ASSET);
   assert.equal(decoded.accepts[0]?.amount, "50000");
   assert.equal(decoded.accepts[0]?.payTo, TEST_SELLER);
+});
+
+test("each dataset advertises its own server-derived resource id", async () => {
+  const app = protectedApp();
+  const ids = new Set<unknown>();
+  for (const id of ["engine-assembly-pov", "kitchen-cooking-pov", "warehouse-picking-pov"]) {
+    const response = await request(app).get(`/x402/datasets/${id}/content`).set("Accept", "application/json");
+    const resourceId = decodePaymentRequiredHeader(response.headers["payment-required"]).accepts[0]?.extra?.resourceId;
+    assert.equal(resourceId, resourceIdFor(`${testEnv.resourceBaseUrl}/x402/datasets/${id}/content`));
+    ids.add(resourceId);
+  }
+  assert.equal(ids.size, 3);
+});
+
+test("datasetResourceUrl canonicalizes encoding, case and trailing slash", () => {
+  const canonical = "http://localhost:3001/x402/datasets/engine-assembly-pov/content";
+  assert.equal(datasetResourceUrl("http://localhost:3001", "/x402/datasets/engine-assembly-pov/content"), canonical);
+  assert.equal(datasetResourceUrl("http://localhost:3001", "/x402/datasets/engine%2Dassembly-pov/content/"), canonical);
+  assert.equal(datasetResourceUrl("http://localhost:3001", "/X402/Datasets/engine-assembly-pov/Content"), canonical);
+  assert.throws(() => datasetResourceUrl("http://localhost:3001", "/x402/datasets/:id"), /Not a dataset content path/);
 });

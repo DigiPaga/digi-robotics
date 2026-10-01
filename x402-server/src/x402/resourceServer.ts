@@ -1,20 +1,46 @@
 import type { NextFunction, Request, RequestHandler, Response } from "express";
 import { ExpressAdapter } from "@x402/express";
 import { HTTPFacilitatorClient, x402HTTPResourceServer, x402ResourceServer, withPrivateCacheControl } from "@x402/core/server";
-import type { FacilitatorClient, RoutesConfig } from "@x402/core/server";
+import type { FacilitatorClient, HTTPRequestContext, RoutesConfig } from "@x402/core/server";
 import type { SettleResponse } from "@x402/core/types";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
 import { bazaarResourceServerExtension, declareDiscoveryExtension, validateBazaarRouteExtensions } from "@x402/extensions/bazaar";
 import type { AgentDemoEnv } from "../config/env";
 import { displayAmountToAtomic } from "../agent/policy";
+import { createLocalFacilitator } from "./localFacilitator";
+import { resourceIdFor } from "./settlementContractScheme";
 
 export interface X402SettlementLocals {
   settlement: SettleResponse;
 }
 
+/**
+ * REAL_MUSDG_X402 verifies and settles in-process (no hosted facilitator serves its chains);
+ * the other modes keep using the HTTP facilitator at X402_FACILITATOR_URL.
+ */
+export function defaultFacilitator(env: AgentDemoEnv): FacilitatorClient {
+  if (env.mode === "REAL_MUSDG_X402") return createLocalFacilitator(env);
+  return new HTTPFacilitatorClient({ url: env.facilitatorUrl, timeoutMs: env.requestTimeoutMs });
+}
+
+const DATASET_CONTENT_PATH = /^\/x402\/datasets\/([^/]+)\/content\/?$/i;
+
+/**
+ * Canonical URL of the dataset a paid request is for, derived from the request path the route
+ * matched. The settlement contract records keccak256 of this URL, so it must come from the server,
+ * never from the client-supplied payload.resource (which @x402/core does not validate).
+ */
+export function datasetResourceUrl(resourceBaseUrl: string, requestPath: string): string {
+  const match = DATASET_CONTENT_PATH.exec(requestPath);
+  if (!match) throw new Error(`Not a dataset content path: ${requestPath}`);
+  let id: string;
+  try { id = decodeURIComponent(match[1]!); } catch { id = match[1]!; }
+  return `${resourceBaseUrl}/x402/datasets/${encodeURIComponent(id)}/content`;
+}
+
 export function createProtectedDatasetMiddleware(
   env: AgentDemoEnv,
-  facilitator: FacilitatorClient = new HTTPFacilitatorClient({ url: env.facilitatorUrl, timeoutMs: env.requestTimeoutMs }),
+  facilitator: FacilitatorClient = defaultFacilitator(env),
 ): RequestHandler {
   const amount = displayAmountToAtomic(env.priceDisplay, env.assetDecimals).toString();
   const resourceServer = new x402ResourceServer(facilitator)
@@ -27,7 +53,14 @@ export function createProtectedDatasetMiddleware(
         scheme: "exact",
         network: env.network,
         payTo: env.payTo,
-        price: { asset: env.assetAddress, amount },
+        // The server derives the on-chain resource id per request and ships it in extra. The
+        // facilitator settles against these server-built requirements, and a client that edits
+        // extra.resourceId no longer matches them.
+        price: (context: HTTPRequestContext) => ({
+          asset: env.assetAddress,
+          amount,
+          extra: { resourceId: resourceIdFor(datasetResourceUrl(env.resourceBaseUrl, context.path)) },
+        }),
         maxTimeoutSeconds: Math.floor(env.requestTimeoutMs / 1_000),
         extra: {
           paymentFlow: "upfront",

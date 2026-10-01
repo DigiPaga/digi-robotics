@@ -49,7 +49,7 @@ describe("getTransactionExplorerUrl", () => {
 
   it("strips a trailing slash from the explorer base url", () => {
     // Robinhood explorer url has no trailing slash in config; assert the join still has exactly one slash.
-    expect(getTransactionExplorerUrl(46630, validHash)).toBe(`https://explorer.robinhood.com/tx/${validHash}`);
+    expect(getTransactionExplorerUrl(46630, validHash)).toBe(`https://explorer.testnet.chain.robinhood.com/tx/${validHash}`);
   });
 
   it("returns undefined for a malformed hash", () => {

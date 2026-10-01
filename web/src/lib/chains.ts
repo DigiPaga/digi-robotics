@@ -10,16 +10,16 @@ export const robinhoodTestnet: Chain = {
   },
   rpcUrls: {
     default: { 
-      http: ['https://sepolia.rpc.robinhood.com'] 
+      http: ['https://rpc.testnet.chain.robinhood.com'] 
     },
     public: { 
-      http: ['https://sepolia.rpc.robinhood.com'] 
+      http: ['https://rpc.testnet.chain.robinhood.com'] 
     },
   },
   blockExplorers: {
     default: { 
-      name: 'Robinhood Explorer', 
-      url: 'https://explorer.robinhood.com' 
+      name: 'Robinhood Chain Testnet Explorer', 
+      url: 'https://explorer.testnet.chain.robinhood.com' 
     },
   },
   testnet: true,

@@ -2,11 +2,14 @@
 src = "src"
 out = "out"
 libs = ["lib"]
-solc = "0.8.20"
+solc = "0.8.24"
+evm_version = "cancun"
 optimizer = true
 optimizer_runs = 200
 # Arbitrum L2 specific: higher block gas limit
 gas_limit = 30000000
+# DeployX402.s.sol records broadcast addresses here
+fs_permissions = [{ access = "read-write", path = "./deployments" }]
 
 # Fork testing configuration for Arbitrum Sepolia
 [rpc_endpoints]

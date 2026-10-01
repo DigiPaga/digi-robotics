@@ -10,6 +10,8 @@ import { BuyerError, X402Buyer } from "../agent/x402Buyer";
 import { RunStore } from "../agent/runStore";
 import type { ErrorCode } from "../types/agentDemo";
 import { safeErrorMessage } from "../utils/redact";
+import { explorerTxUrl, getX402Chain, MOCK_USDG_TOKEN, X402_CHAINS } from "../x402/chains";
+import { createPaidRouteRateLimit } from "../x402/rateLimit";
 import { createProtectedDatasetMiddleware, type X402SettlementLocals } from "../x402/resourceServer";
 
 function shortAddress(value: string): string {
@@ -27,6 +29,7 @@ export function createAgentDemoRouter(env: AgentDemoEnv, store = new RunStore(en
   const router = Router();
   const discovery = new BazaarFirstDiscovery(env);
   const paymentMiddleware = createProtectedDatasetMiddleware(env);
+  const paidRouteRateLimit = createPaidRouteRateLimit(env.paidRouteRateLimit);
 
   router.get("/agent-demo/catalog", (_req, res) => res.json({ datasets: createPublicDatasets(env) }));
 
@@ -37,16 +40,17 @@ export function createAgentDemoRouter(env: AgentDemoEnv, store = new RunStore(en
       selectedMode: env.mode,
       runtime: { node: process.version, minimumNode: ">=20.9.0", x402Version: 2 },
       mockUSDG: {
-        address: "0x39271d08C111912B1F32465745f3123a878C83Bb",
-        network: "eip155:421614",
-        symbol: "mUSDG",
-        decimals: 6,
-        eip3009: false,
-        permit2: "token-compatible after approval, but the selected public facilitator does not advertise Arbitrum Sepolia",
-        compatible: false,
+        symbol: MOCK_USDG_TOKEN.symbol,
+        decimals: MOCK_USDG_TOKEN.decimals,
+        eip712: { name: MOCK_USDG_TOKEN.name, version: MOCK_USDG_TOKEN.version },
+        eip3009: true,
+        networks: Object.values(X402_CHAINS).filter(chain => chain.supportsMockUsdg).map(chain => chain.network),
+        selected: env.mode === "REAL_MUSDG_X402",
       },
       selectedAsset: { network: env.network, chainId: env.chainId, address: env.assetAddress, symbol: env.assetSymbol, decimals: env.assetDecimals, transferMethod: "eip3009" },
-      facilitator: { url: env.facilitatorUrl, requiredCapability: { x402Version: 2, scheme: "exact", network: env.network } },
+      facilitator: env.mode === "REAL_MUSDG_X402"
+        ? { url: "in-process", settlement: env.settlementContract ? { via: "X402Facilitator", contract: env.settlementContract } : { via: "token.transferWithAuthorization" }, requiredCapability: { x402Version: 2, scheme: "exact", network: env.network } }
+        : { url: env.facilitatorUrl, requiredCapability: { x402Version: 2, scheme: "exact", network: env.network } },
       buyer: { address: agentAddress, model: "server-side EOA signer", zeroDevUsed: false },
       seller: { address: env.payTo, distinctFromBuyer: agentAddress?.toLowerCase() !== env.payTo.toLowerCase() },
       thirdweb: { role: "human authentication/checkout only", usedByAgentDemo: false },
@@ -88,7 +92,7 @@ export function createAgentDemoRouter(env: AgentDemoEnv, store = new RunStore(en
     req.on("close", () => { clearInterval(heartbeat); unsubscribe(); });
   });
 
-  router.get("/x402/datasets/:id/content", (req, res, next) => {
+  router.get("/x402/datasets/:id/content", paidRouteRateLimit, (req, res, next) => {
     if (!hasProtectedDataset(req.params.id)) return res.status(404).json({ error: "DATASET_NOT_FOUND" });
     next();
   }, paymentMiddleware, (req: Request, res: Response) => {
@@ -123,7 +127,7 @@ async function executeRun(runId: string, env: AgentDemoEnv, store: RunStore, dis
   try {
     if (env.mode === "BLOCKED") throw new BuyerError("CONFIGURATION_ERROR", "Compatibility mode is BLOCKED; configure a supported facilitator, asset, and funded signer");
     const buyer = new X402Buyer(env);
-    store.emit(runId, "preflight", "Reading token metadata and buyer balance from Base Sepolia.");
+    store.emit(runId, "preflight", `Reading token metadata and buyer balance from ${getX402Chain(env.network)?.name ?? env.network}.`);
     const preflight = await buyer.preflight();
     store.emit(runId, "preflight", "Buyer preflight passed with onchain EIP-3009 token support.", {
       agentAddress: shortAddress(preflight.address),
@@ -178,7 +182,7 @@ async function executeRun(runId: string, env: AgentDemoEnv, store: RunStore, dis
       asset: env.assetSymbol,
       amount: `${env.priceDisplay} ${env.assetSymbol}`,
       transactionHash: result.receipt.transaction,
-      explorerUrl: `https://sepolia.basescan.org/tx/${result.receipt.transaction}`,
+      explorerUrl: explorerTxUrl(env.network, result.receipt.transaction),
     });
   } catch (error) {
     store.fail(runId, mapErrorCode(error), safeErrorMessage(error));

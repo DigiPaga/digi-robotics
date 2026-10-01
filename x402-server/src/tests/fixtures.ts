@@ -21,6 +21,8 @@ export const testEnv: AgentDemoEnv = {
   priceDisplay: "0.05",
   rpcUrl: "https://sepolia.base.org",
   privateKey: undefined,
+  facilitatorPrivateKey: undefined,
+  settlementContract: undefined,
   maxSpendAtomic: 50_000n,
   maxTotalSpendAtomic: 50_000n,
   allowedHosts: ["localhost:3001"],
@@ -28,4 +30,5 @@ export const testEnv: AgentDemoEnv = {
   requestTimeoutMs: 30_000,
   runTtlMs: 900_000,
   maxConcurrentRuns: 1,
+  paidRouteRateLimit: { windowMs: 60_000, perIp: 60, perPayer: 10 },
 };
