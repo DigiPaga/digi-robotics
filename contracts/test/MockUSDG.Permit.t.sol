@@ -55,5 +55,4 @@ contract MockUSDGPermitTest is Test {
         vm.expectRevert(abi.encodeWithSelector(ERC20Permit.ERC2612ExpiredSignature.selector, deadline));
         token.permit(owner, spender, 100, deadline, v, r, s);
     }
-
 }

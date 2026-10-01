@@ -15,8 +15,7 @@ contract SilentERC3009 {
         return 0;
     }
 
-    function transferWithAuthorization(address, address, uint256, uint256, uint256, bytes32, bytes calldata)
-        external {}
+    function transferWithAuthorization(address, address, uint256, uint256, uint256, bytes32, bytes calldata) external {}
 }
 
 /// @notice Token that calls back into the facilitator from inside transferWithAuthorization.
@@ -65,7 +64,8 @@ contract X402FacilitatorTest is ERC3009Signer {
     address internal operator = makeAddr("operator");
     address internal owner = makeAddr("owner");
 
-    bytes32 internal constant RESOURCE_ID = keccak256("http://localhost:46123/x402/datasets/engine-assembly-pov/content");
+    bytes32 internal constant RESOURCE_ID =
+        keccak256("http://localhost:46123/x402/datasets/engine-assembly-pov/content");
     uint256 internal constant PRICE = 50_000;
 
     function setUp() public {
@@ -94,8 +94,14 @@ contract X402FacilitatorTest is ERC3009Signer {
         return _signPacked(agentKey, _digest(token, token.TRANSFER_WITH_AUTHORIZATION_TYPEHASH(), auth));
     }
 
-    function _asFacilitatorAuth(Authorization memory auth) internal pure returns (IX402Facilitator.Authorization memory) {
-        return IX402Facilitator.Authorization(auth.from, auth.to, auth.value, auth.validAfter, auth.validBefore, auth.nonce);
+    function _asFacilitatorAuth(Authorization memory auth)
+        internal
+        pure
+        returns (IX402Facilitator.Authorization memory)
+    {
+        return IX402Facilitator.Authorization(
+            auth.from, auth.to, auth.value, auth.validAfter, auth.validBefore, auth.nonce
+        );
     }
 
     function _settle(Authorization memory auth, bytes memory signature) internal {

@@ -55,18 +55,16 @@ contract X402Facilitator is IX402Facilitator, Ownable2Step, ReentrancyGuardTrans
     }
 
     /// @inheritdoc IX402Facilitator
-    function settle(bytes32 resourceId, Authorization calldata auth, bytes calldata signature)
-        external
-        nonReentrant
-    {
+    function settle(bytes32 resourceId, Authorization calldata auth, bytes calldata signature) external nonReentrant {
         if (!isSettler[msg.sender]) revert UnauthorizedSettler(msg.sender);
         if (auth.value == 0) revert ZeroAmount();
         if (auth.to == address(0) || auth.to == auth.from) revert InvalidPayee(auth.to);
 
         uint256 balanceBefore = IERC20(token).balanceOf(auth.to);
-        IERC3009(token).transferWithAuthorization(
-            auth.from, auth.to, auth.value, auth.validAfter, auth.validBefore, auth.nonce, signature
-        );
+        IERC3009(token)
+            .transferWithAuthorization(
+                auth.from, auth.to, auth.value, auth.validAfter, auth.validBefore, auth.nonce, signature
+            );
         uint256 received = IERC20(token).balanceOf(auth.to) - balanceBefore;
         if (received != auth.value) revert SettlementAmountMismatch(auth.value, received);
 
