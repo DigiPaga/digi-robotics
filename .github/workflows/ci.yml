@@ -35,3 +35,18 @@ jobs:
         run: cd contracts && forge build
       - name: Test
         run: cd contracts && forge test -vvv
+
+  x402-server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: x402-server/package-lock.json
+      - name: Install dependencies
+        run: cd x402-server && npm ci
+      - name: Test
+        run: cd x402-server && npm test
