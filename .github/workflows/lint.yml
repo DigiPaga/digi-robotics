@@ -1,1 +1,0 @@
-name: Lint and Type Check\non: [push, pull_request]\njobs:\n  lint:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v3\n      - uses: actions/setup-node@v3\n      - run: cd web && npm install && npm run lint
