@@ -1,0 +1,40 @@
+# DigiRobotics - LLM Context File
+
+## Project Overview
+DigiRobotics is an agentic commerce marketplace for Physical AI training data, built on Arbitrum and Robinhood Chain.
+
+## Tech Stack
+- Frontend: Next.js 16, React 19, Tailwind CSS 4
+- Backend: Node.js, Express, x402 protocol
+- Blockchain: Arbitrum Sepolia (421614), Robinhood Chain Testnet (46630)
+- Smart Contracts: Solidity 0.8.20, Foundry
+- Wallets: Thirdweb Embedded Wallets, ZeroDev (ERC-4337)
+- Storage: IPFS/Pinata
+- Payments: USDC, USDG, PYUSD (stablecoins)
+
+## Key Features
+1. Zero-friction onboarding (email/Google → embedded wallet)
+2. x402 agentic payments (HTTP 402 + EIP-3009)
+3. RWA tokenization (ERC-721/1155 for datasets)
+4. Multi-chain support (Arbitrum, Robinhood)
+5. Global stablecoin payouts
+
+## Repository Structure
+- /web: Next.js frontend
+- /x402-server: Backend agent and payment processing
+- /contracts: Solidity smart contracts (Foundry)
+- /docs: Technical documentation
+
+## Getting Started
+```bash
+cd web && npm install && npm run dev
+cd x402-server && npm install && npm run dev
+cd contracts && forge build
+Documentation
+README.md: Project overview
+docs/ROBINHOOD_CHAIN_SETUP.md: Robinhood Chain integration
+x402-server/docs/AGENT_DEMO_RUNBOOK.md: x402 agent demo guide
+Website
+https://digirobotics.xyz
+GitHub
+https://github.com/DigiPaga/digi-robotics
