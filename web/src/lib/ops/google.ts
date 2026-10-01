@@ -1,7 +1,8 @@
 /**
  * Google OpenID Connect for /ops: authorization code + PKCE + state + nonce.
  * The ID token is verified locally against Google's JWKS. The only claim kept
- * is the email. Nothing from Google is logged.
+ * is the email, and only when Google is authoritative for that address (see
+ * isGoogleAuthoritative). Nothing from Google is logged.
  */
 import "server-only";
 
@@ -108,9 +109,29 @@ export interface IdTokenClaims {
   nonce?: unknown;
   email?: unknown;
   email_verified?: unknown;
+  hd?: unknown;
 }
 
-/** Checks iss, aud, exp, iat, nonce and email_verified. Returns the lowercase email or null. */
+const GOOGLE_CONSUMER_DOMAINS = new Set(["gmail.com", "googlemail.com"]);
+
+/**
+ * A Google account can be created on any address, so `email` plus
+ * `email_verified` alone do not prove who owns the mailbox today. Google only
+ * vouches for the address when it runs the mailbox itself: consumer Gmail, or a
+ * Workspace domain, which the signed `hd` claim names. Anything else is refused,
+ * even when the address is on the allowlist.
+ */
+export function isGoogleAuthoritative(email: string, hostedDomain: unknown): boolean {
+  const domain = email.slice(email.lastIndexOf("@") + 1);
+  if (!domain) return false;
+  if (GOOGLE_CONSUMER_DOMAINS.has(domain)) return true;
+  return typeof hostedDomain === "string" && hostedDomain.trim().toLowerCase() === domain;
+}
+
+/**
+ * Checks iss, aud, exp, iat, nonce, email_verified and that Google is
+ * authoritative for the address. Returns the lowercase email or null.
+ */
 export function validateIdTokenClaims(claims: IdTokenClaims, clientId: string, nonce: string, now = Math.floor(Date.now() / 1000)): string | null {
   if (typeof claims.iss !== "string" || !ISSUERS.has(claims.iss)) return null;
   if (claims.aud !== clientId) return null;
@@ -120,7 +141,8 @@ export function validateIdTokenClaims(claims: IdTokenClaims, clientId: string, n
   if (claims.email_verified !== true) return null;
   if (typeof claims.email !== "string") return null;
   const email = claims.email.trim().toLowerCase();
-  return email.includes("@") ? email : null;
+  if (email.lastIndexOf("@") <= 0) return null;
+  return isGoogleAuthoritative(email, claims.hd) ? email : null;
 }
 
 /** Verifies the RS256 signature against Google's JWKS, then the claims. */

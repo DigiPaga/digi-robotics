@@ -1,7 +1,7 @@
 // @vitest-environment node
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { openOauthState, sealSession } from "@/lib/ops/session";
-import { pkceChallenge } from "@/lib/ops/crypto";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { openOauthState, openSession, sealOauthState, sealSession } from "@/lib/ops/session";
+import { b64url, pkceChallenge } from "@/lib/ops/crypto";
 import { GET as login } from "./login/route";
 import { POST as logout } from "./logout/route";
 import { GET as callback } from "./callback/route";
@@ -61,6 +61,82 @@ describe("/ops/callback", () => {
     expect(response.headers.get("location")).toBe("http://localhost:46200/ops?error=failed");
     expect(fetchSpy).not.toHaveBeenCalled();
   });
+
+  describe("with a Google-signed ID token", () => {
+    const KID = "test-key";
+    let keys: CryptoKeyPair;
+    let jwk: JsonWebKey;
+
+    beforeAll(async () => {
+      keys = await crypto.subtle.generateKey(
+        { name: "RSASSA-PKCS1-v1_5", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" },
+        true,
+        ["sign", "verify"],
+      );
+      jwk = await crypto.subtle.exportKey("jwk", keys.publicKey);
+    });
+
+    async function signIdToken(claims: Record<string, unknown>): Promise<string> {
+      const encode = (value: unknown) => b64url(new TextEncoder().encode(JSON.stringify(value)));
+      const signed = `${encode({ alg: "RS256", kid: KID, typ: "JWT" })}.${encode(claims)}`;
+      const signature = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", keys.privateKey, new TextEncoder().encode(signed));
+      return `${signed}.${b64url(new Uint8Array(signature))}`;
+    }
+
+    /** Runs the callback as if Google had returned an ID token carrying `identity`. */
+    async function finishSignIn(identity: Record<string, unknown>): Promise<Response> {
+      configure();
+      vi.stubEnv("OPS_ALLOWED_EMAILS", "ottodevs@gmail.com, oscar@digipaga.xyz");
+      const now = Math.floor(Date.now() / 1000);
+      const idToken = await signIdToken({
+        iss: "https://accounts.google.com",
+        aud: "fake-client",
+        exp: now + 600,
+        iat: now,
+        nonce: "nonce-1",
+        email_verified: true,
+        ...identity,
+      });
+      vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.startsWith("https://oauth2.googleapis.com/token")) return Response.json({ id_token: idToken });
+        if (url.startsWith("https://www.googleapis.com/oauth2/v3/certs")) return Response.json({ keys: [{ ...jwk, kid: KID }] });
+        throw new Error(`unexpected fetch ${url}`);
+      }));
+      const oauth = await sealOauthState(SECRET, { state: "state-1", nonce: "nonce-1", verifier: "v".repeat(64) });
+      return callback(new Request("http://localhost:46200/ops/callback?code=c&state=state-1", {
+        headers: { host: "localhost:46200", cookie: `digi_ops_oauth=${oauth}` },
+      }));
+    }
+
+    it("issues a session for an allowlisted Gmail account", async () => {
+      const response = await finishSignIn({ email: "ottodevs@gmail.com" });
+      expect(response.headers.get("location")).toBe("http://localhost:46200/ops");
+      const session = await openSession(SECRET, setCookieValue(response, "digi_ops_session"));
+      expect(session?.email).toBe("ottodevs@gmail.com");
+    });
+
+    it("issues a session for an allowlisted Workspace account whose hd matches", async () => {
+      const response = await finishSignIn({ email: "oscar@digipaga.xyz", hd: "digipaga.xyz" });
+      expect(response.headers.get("location")).toBe("http://localhost:46200/ops");
+      expect((await openSession(SECRET, setCookieValue(response, "digi_ops_session")))?.email).toBe("oscar@digipaga.xyz");
+    });
+
+    it.each([
+      ["without hd", {}],
+      ["with a foreign hd", { hd: "evil.example" }],
+    ])("refuses an allowlisted non-Gmail address %s", async (_name, patch) => {
+      const response = await finishSignIn({ email: "oscar@digipaga.xyz", ...patch });
+      expect(response.headers.get("location")).toBe("http://localhost:46200/ops?error=failed");
+      expect(setCookieValue(response, "digi_ops_session")).toBe("");
+    });
+
+    it("still denies a Gmail account that is not allowlisted", async () => {
+      const response = await finishSignIn({ email: "intruder@gmail.com" });
+      expect(response.headers.get("location")).toBe("http://localhost:46200/ops?error=denied");
+      expect(setCookieValue(response, "digi_ops_session")).toBe("");
+    });
+  });
 });
 
 describe("/ops/logout", () => {
@@ -77,7 +153,6 @@ describe("/ops/logout", () => {
   it("requires the session csrf token, then clears the session", async () => {
     configure();
     const token = await sealSession(SECRET, "ottodevs@gmail.com");
-    const { openSession } = await import("@/lib/ops/session");
     const session = await openSession(SECRET, token);
     const post = (csrf: string) => logout(new Request("http://localhost:46200/ops/logout", {
       method: "POST",
