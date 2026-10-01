@@ -41,4 +41,14 @@ describe("/ops Content-Security-Policy", () => {
     expect(csp.get("connect-src")).toEqual(["'self'", ...rpcOrigins]);
     expect(policy).not.toMatch(/\*|unsafe-eval|http:/);
   });
+
+  it("does not let the browser reach the upstreams the server calls for the console", async () => {
+    const policy = (await rules())[0].headers.find((header) => header.key === "Content-Security-Policy")!.value;
+    const connect = directives(policy).get("connect-src")!;
+    // GitHub and the x402 server are fetched server-side only. The browser talks to /api/ops/*.
+    expect(connect).toHaveLength(1 + OPS_CHAINS.length);
+    expect(policy).not.toMatch(/github|x402|localhost/i);
+    // The console sets no inline style attributes, so style-src stays strict.
+    expect(directives(policy).get("style-src")).toEqual(["'self'"]);
+  });
 });
