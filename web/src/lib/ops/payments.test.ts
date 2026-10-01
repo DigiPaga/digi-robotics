@@ -164,8 +164,8 @@ describe("readChainPayments", () => {
     expect(read).toMatchObject({ ok: false, error: "Log query failed" });
   });
 
-  it("looks up block timestamps in one extra request when logs carry none", async () => {
-    const bare = settlementLogs.map((log) => ({ ...log, blockTimestamp: undefined }));
+  it.each([["omits them", undefined], ["sends 0x0, as Arbitrum's eth_getLogs does", "0x0"]])("looks up block timestamps in one extra request when the node %s", async (_label, blockTimestamp) => {
+    const bare = settlementLogs.map((log) => ({ ...log, blockTimestamp }));
     const fetchImpl = rpc((calls) => calls.map((call) => {
       if (call.method === "eth_blockNumber") return { id: call.id, result: `0x${HEAD.toString(16)}` };
       if (call.method === "eth_getLogs") return { id: call.id, result: bare };

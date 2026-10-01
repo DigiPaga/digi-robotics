@@ -190,7 +190,9 @@ export function decodePaymentLogs(
       if (authorization) authorization.used = true;
       const settlement = authorization ? settlements.get(authorization.nonce.toLowerCase()) : undefined;
       const kind: PaymentKind = settlement ? "settled" : authorization ? "authorization" : args.from === zeroAddress ? "mint" : "transfer";
-      const seconds = hexToNumber(entry.log.blockTimestamp) ?? timestamps.get(entry.block) ?? null;
+      // Some nodes put blockTimestamp on logs, some omit it, and Arbitrum's eth_getLogs sends 0x0.
+      const reported = hexToNumber(entry.log.blockTimestamp);
+      const seconds = reported !== null && reported > 0 ? reported : timestamps.get(entry.block) ?? null;
       rows.push({
         chainId,
         kind,
