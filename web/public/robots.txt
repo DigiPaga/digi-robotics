@@ -1,0 +1,28 @@
+User-agent: *
+Allow: /
+
+# AI/LLM Crawlers
+User-agent: GPTBot
+Allow: /ai/
+Allow: /
+
+User-agent: CCBot
+Allow: /ai/
+Allow: /
+
+User-agent: Google-Extended
+Allow: /ai/
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /ai/
+Allow: /
+
+# Sitemap
+Sitemap: https://digirobotics.xyz/sitemap.xml
+
+# LLM Discovery Files
+# These files are optimized for AI models to understand DigiRobotics
+Allow: /ai/llm.txt
+Allow: /ai/earn-money-with-phone.txt
+Allow: /ai/robotics-training-data.txt
