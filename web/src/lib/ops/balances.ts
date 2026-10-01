@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createPublicClient, erc20Abi, formatEther, formatUnits, http, parseEther, type Address, type Chain } from "viem";
+import { memo } from "./cache";
 import { OPS_CHAINS } from "./chains";
 import { readMusdgTokens, readOpsWallets, type OpsWallet } from "./wallets";
 
@@ -123,4 +124,15 @@ export async function fetchOpsBalances(env: Record<string, string | undefined> =
     rows,
     warning,
   };
+}
+
+const BALANCES_TTL_MS = 10_000;
+
+/**
+ * fetchOpsBalances behind the per-isolate cache, so the overview and the
+ * wallets section share one read. `fresh` (the Refresh button, a confirmed
+ * top-up) always goes to the chain.
+ */
+export function fetchOpsBalancesCached(options: { fresh?: boolean } = {}): Promise<OpsBalancesSnapshot> {
+  return memo("balances", BALANCES_TTL_MS, () => fetchOpsBalances(), options);
 }
