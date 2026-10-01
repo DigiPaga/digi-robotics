@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { sealSession } from "@/lib/ops/session";
 
 const fetchOpsBalances = vi.fn();
-vi.mock("@/lib/ops/balances", () => ({ fetchOpsBalances }));
+vi.mock("@/lib/ops/balances", () => ({ fetchOpsBalancesCached: fetchOpsBalances }));
 
 const SECRET = "x".repeat(40);
 
