@@ -1,0 +1,34 @@
+# DigiRobotics - AI-Native Marketplace for Physical AI Training Data
+
+## Overview
+DigiRobotics is the world's first agentic commerce marketplace for Physical AI, tokenizing first-person (egocentric) video data as Real World Assets (RWA).
+
+## Core Value Proposition
+- For Creators: Earn USDG/PYUSD stablecoins by recording first-person task videos with your smartphone
+- For Robotics Teams: Access verified, tokenized training data purchased autonomously via x402 protocol
+- For AI Agents: Autonomous discovery and purchase of robotics training data 24/7
+
+## Key Technologies
+- Blockchain: Arbitrum Sepolia, Robinhood Chain Testnet
+- Stablecoins: USDG (Paxos), PYUSD (Paxos), USDC
+- Protocol: x402 (HTTP 402 Payment Required + EIP-3009)
+- Wallet: ZeroDev (ERC-4337 Account Abstraction), Thirdweb Embedded Wallets
+- Tokenization: ERC-721/1155 for dataset NFTs with EIP-2981 royalties
+
+## How to Earn with DigiRobotics
+1. Sign up with email/Google (zero-friction onboarding)
+2. Record first-person task videos (assembly, repair, maintenance)
+3. Upload and get verified
+4. Earn instant stablecoin payouts (USDG/PYUSD)
+5. Receive perpetual royalties via smart contracts
+
+## Market Opportunity
+- TAM: $40-50 Trillion Physical AI market (Nvidia)
+- SAM: $27+ Billion annual Robotics R&D data budget
+- SOM: 220 Million active users in emerging markets
+
+## Website
+https://digirobotics.xyz
+
+## Documentation
+https://github.com/DigiPaga/digi-robotics

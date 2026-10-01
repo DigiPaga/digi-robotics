@@ -1,0 +1,36 @@
+# Robotics Training Data Marketplace - DigiRobotics
+
+## For Robotics R&D Teams
+
+### The Challenge
+Humanoid robots need massive amounts of first-person (egocentric) video data to learn real-world tasks. Traditional data collection is:
+- Expensive ($100-500/hour for professional videographers)
+- Slow (manual B2B sales cycles)
+- Limited (hard to scale globally)
+
+### The DigiRobotics Solution
+Access a global network of verified human creators recording first-person task data, tokenized as Real World Assets (RWA) and available for autonomous purchase via AI agents.
+
+## Key Features
+- **Agentic Commerce**: AI agents autonomously discover and purchase datasets via x402 protocol
+- **Tokenized Data**: ERC-721/1155 NFTs with provenance and EIP-2981 royalties
+- **Multi-Chain**: Arbitrum Sepolia, Robinhood Chain Testnet
+- **Instant Settlement**: USDC/USDG stablecoin payments
+- **Quality Verified**: Human validation + AI quality scoring
+
+## How It Works
+1. Fund your wallet with USDC/USDG
+2. Create data bounties (e.g., "50 videos of AC repair from first-person POV")
+3. AI agents match bounties with creator submissions
+4. Autonomous validation and purchase via x402
+5. Receive verified datasets with metadata and usage rights
+
+## Pricing
+- Per dataset: $5-50 USDC (micro-payments via x402)
+- Bulk purchases: Custom pricing via smart contracts
+- Royalties: Creators receive perpetual % on resales
+
+## Get Started
+Contact: builders@digirobotics.xyz
+Demo: https://digirobotics.xyz/agent-demo
+GitHub: https://github.com/DigiPaga/digi-robotics
