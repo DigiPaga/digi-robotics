@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import { getAddress, isAddress } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { z } from "zod";
+import { getX402Chain, MOCK_USDG_TOKEN } from "../x402/chains";
 
 dotenv.config();
 
@@ -25,6 +26,8 @@ const rawEnvSchema = z.object({
   X402_PRICE_DISPLAY: z.string().regex(/^\d+(\.\d+)?$/).default("0.05"),
   X402_RPC_URL: z.string().url().default("https://sepolia.base.org"),
   PRIVATE_KEY: privateKeySchema.optional(),
+  X402_FACILITATOR_PRIVATE_KEY: privateKeySchema.optional(),
+  X402_SETTLEMENT_CONTRACT: addressSchema.optional(),
   AGENT_MAX_SPEND_ATOMIC: z.string().regex(/^\d+$/).default("50000"),
   AGENT_MAX_TOTAL_SPEND_ATOMIC: z.string().regex(/^\d+$/).default("50000"),
   AGENT_ALLOWED_HOSTS: z.string().min(1).default("localhost:3001"),
@@ -45,6 +48,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env) {
   }
 
   const value = parsed.data;
+  if (value.X402_MODE === "REAL_MUSDG_X402") applyMockUsdgDefaults(value, source);
   if (value.X402_MODE !== "BLOCKED" && !value.PRIVATE_KEY) {
     throw new Error("Invalid x402 server configuration: PRIVATE_KEY is required for a real buyer mode");
   }
@@ -85,6 +89,8 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env) {
     priceDisplay: value.X402_PRICE_DISPLAY,
     rpcUrl: value.X402_RPC_URL,
     privateKey: value.PRIVATE_KEY as `0x${string}` | undefined,
+    facilitatorPrivateKey: value.X402_FACILITATOR_PRIVATE_KEY as `0x${string}` | undefined,
+    settlementContract: value.X402_SETTLEMENT_CONTRACT,
     maxSpendAtomic: BigInt(value.AGENT_MAX_SPEND_ATOMIC),
     maxTotalSpendAtomic: BigInt(value.AGENT_MAX_TOTAL_SPEND_ATOMIC),
     allowedHosts,
@@ -93,6 +99,26 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env) {
     runTtlMs: value.AGENT_RUN_TTL_MS,
     maxConcurrentRuns: value.AGENT_MAX_CONCURRENT_RUNS,
   } as const;
+}
+
+/**
+ * REAL_MUSDG_X402 settles MockUSDG on Arbitrum Sepolia or Robinhood Chain Testnet through the
+ * in-process facilitator. Asset metadata, chain id and RPC default to the MockUSDG deployment on
+ * the selected network; only the token address and the facilitator key must be supplied.
+ */
+function applyMockUsdgDefaults(value: z.infer<typeof rawEnvSchema>, source: NodeJS.ProcessEnv): void {
+  const fail = (message: string): never => { throw new Error(`Invalid x402 server configuration: ${message}`); };
+  const chain = getX402Chain(value.X402_NETWORK);
+  if (!chain?.supportsMockUsdg) fail("REAL_MUSDG_X402 requires X402_NETWORK eip155:421614 (Arbitrum Sepolia) or eip155:46630 (Robinhood Chain Testnet)");
+  if (!source.X402_ASSET_ADDRESS) fail("REAL_MUSDG_X402 requires X402_ASSET_ADDRESS (the MockUSDG deployment on the selected network)");
+  if (!value.X402_FACILITATOR_PRIVATE_KEY) fail("REAL_MUSDG_X402 requires X402_FACILITATOR_PRIVATE_KEY (the gas-paying settlement signer)");
+  if (source.X402_CHAIN_ID && value.X402_CHAIN_ID !== chain!.chainId) fail(`X402_CHAIN_ID ${value.X402_CHAIN_ID} does not match ${value.X402_NETWORK}`);
+  value.X402_CHAIN_ID = chain!.chainId;
+  if (!source.X402_RPC_URL) value.X402_RPC_URL = chain!.defaultRpcUrl;
+  if (!source.X402_ASSET_NAME) value.X402_ASSET_NAME = MOCK_USDG_TOKEN.name;
+  if (!source.X402_ASSET_VERSION) value.X402_ASSET_VERSION = MOCK_USDG_TOKEN.version;
+  if (!source.X402_ASSET_SYMBOL) value.X402_ASSET_SYMBOL = MOCK_USDG_TOKEN.symbol;
+  if (!source.X402_ASSET_DECIMALS) value.X402_ASSET_DECIMALS = MOCK_USDG_TOKEN.decimals;
 }
 
 let cachedEnv: AgentDemoEnv | undefined;
