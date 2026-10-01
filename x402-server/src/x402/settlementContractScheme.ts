@@ -16,9 +16,19 @@ export const x402FacilitatorAbi = parseAbi([
   "error SettlementAmountMismatch(uint256 expected, uint256 received)",
 ]);
 
-/** The on-chain resource id: keccak256 of the resource URL advertised in the 402 response. */
+/** The on-chain resource id: keccak256 of the canonical resource URL the server derived. */
 export function resourceIdFor(resourceUrl: string): Hex {
   return keccak256(toBytes(resourceUrl));
+}
+
+/**
+ * Reads the resource id the resource server put into the payment requirements' extra. The
+ * requirements passed to settle are the server's own (matched against the client's echo), so
+ * this value cannot be chosen by the payer. payload.resource is client-supplied and is never used.
+ */
+export function requiredResourceId(requirements: PaymentRequirements): Hex | undefined {
+  const value = requirements.extra?.resourceId;
+  return typeof value === "string" && /^0x[0-9a-fA-F]{64}$/.test(value) ? value as Hex : undefined;
 }
 
 /**
@@ -28,7 +38,9 @@ export function resourceIdFor(resourceUrl: string): Hex {
  * Verification is delegated unchanged to @x402/evm (signature, amount, recipient, validity
  * window, balance and an eth_call simulation against the token). Settlement re-verifies, then
  * submits X402Facilitator.settle, so the payment leaves a PaymentSettled event keyed by the
- * resource id in addition to the token's Transfer. Permit2 payloads are not accepted.
+ * resource id in addition to the token's Transfer. The resource id comes from
+ * requirements.extra.resourceId, set by the resource server; settlement fails without it.
+ * Permit2 payloads are not accepted.
  */
 export class SettlementContractScheme implements SchemeNetworkFacilitator {
   readonly scheme = "exact";
@@ -63,6 +75,10 @@ export class SettlementContractScheme implements SchemeNetworkFacilitator {
       return { success: false, errorReason: "unsupported_payload", errorMessage: "The settlement contract only accepts EIP-3009 authorizations", transaction: "", network };
     }
     const payer = getAddress(raw.authorization.from);
+    const resourceId = requiredResourceId(requirements);
+    if (!resourceId) {
+      return { success: false, errorReason: "settlement_contract_misconfigured", errorMessage: "Payment requirements carry no server-derived extra.resourceId", transaction: "", network, payer };
+    }
 
     const notReady = await this.checkContract(requirements.asset);
     if (notReady) return { success: false, errorReason: "settlement_contract_misconfigured", errorMessage: notReady, transaction: "", network, payer };
@@ -81,7 +97,7 @@ export class SettlementContractScheme implements SchemeNetworkFacilitator {
         abi: x402FacilitatorAbi,
         functionName: "settle",
         args: [
-          resourceIdFor(payload.resource?.url ?? ""),
+          resourceId,
           {
             from: getAddress(auth.from),
             to: getAddress(auth.to),

@@ -19,6 +19,9 @@ import { privateKeyToAccount } from "viem/accounts";
 import { createApp } from "../app";
 import { loadEnv } from "../config/env";
 import { X402Buyer } from "../agent/x402Buyer";
+import { x402Client, x402HTTPClient } from "@x402/core/client";
+import type { PaymentRequired } from "@x402/core/types";
+import { ExactEvmScheme } from "@x402/evm/exact/client";
 import { resourceIdFor, x402FacilitatorAbi } from "../x402/settlementContractScheme";
 
 // Well-known Anvil development keys; they hold no value on any public network.
@@ -91,7 +94,7 @@ async function startServer(overrides: Record<string, string>) {
 async function runAgent(baseUrl: string) {
   const created = await fetch(`${baseUrl}/agent-demo/runs`, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" }).then(res => res.json()) as { runId: string };
   for (let attempt = 0; attempt < 100; attempt++) {
-    const run = await fetch(`${baseUrl}/agent-demo/runs/${created.runId}`).then(res => res.json()) as { state: string; error?: unknown; events: Array<{ state: string; transactionHash?: Hex; explorerUrl?: string }> };
+    const run = await fetch(`${baseUrl}/agent-demo/runs/${created.runId}`).then(res => res.json()) as { state: string; error?: unknown; selected?: { id: string }; events: Array<{ state: string; transactionHash?: Hex; explorerUrl?: string }> };
     if (run.state === "unlocked" || run.state === "failed") return run;
     await new Promise(resolve => setTimeout(resolve, 100));
   }
@@ -145,9 +148,74 @@ test("agent pays mUSDG over x402 with settlement through X402Facilitator", async
     assert.ok(settled);
     assert.equal(settled.args.payee, TREASURY);
     assert.equal(settled.args.amount, 50_000n);
-    assert.equal(settled.args.resourceId, resourceIdFor(`${env.resourceBaseUrl}/x402/datasets/:id/content`));
+    assert.ok(run.selected);
+    assert.equal(settled.args.resourceId, resourceIdFor(`${env.resourceBaseUrl}/x402/datasets/${run.selected.id}/content`));
     const after = await publicClient.readContract({ address: token, abi: erc20Abi, functionName: "balanceOf", args: [TREASURY] });
     assert.equal(after - before, 50_000n);
+  } finally {
+    server.close();
+  }
+});
+
+/** Signs a payment for `paymentRequired`, lets `tamper` edit the payload, and sends it. */
+async function payWith(url: string, paymentRequired: PaymentRequired, tamper: (payload: Awaited<ReturnType<x402HTTPClient["createPaymentPayload"]>>) => void = () => undefined) {
+  const inner = new x402Client().register(`eip155:${CHAIN_ID}`, new ExactEvmScheme(privateKeyToAccount(BUYER_KEY)));
+  inner.setSpendControls({ maxAmountPerPayment: false, allowedAssets: [{ network: `eip155:${CHAIN_ID}`, asset: token, maxAmountPerPayment: "50000" }] });
+  const client = new x402HTTPClient(inner);
+  const payload = await client.createPaymentPayload(paymentRequired);
+  tamper(payload);
+  return fetch(url, { headers: { ...client.encodePaymentSignatureHeader(payload), Accept: "application/json" } });
+}
+
+async function recordedResourceId(response: Response): Promise<Hex> {
+  assert.equal(response.status, 200, await response.clone().text());
+  const body = await response.json() as { payment: { transactionHash: Hex } };
+  const receipt = await publicClient.getTransactionReceipt({ hash: body.payment.transactionHash });
+  const [settled] = parseEventLogs({ abi: x402FacilitatorAbi, eventName: "PaymentSettled", logs: receipt.logs });
+  assert.ok(settled);
+  return settled.args.resourceId;
+}
+
+test("X402Facilitator records a distinct server-derived resource id per dataset, whatever payload.resource says", async () => {
+  const { server, env } = await startServer({ X402_SETTLEMENT_CONTRACT: settlementContract });
+  try {
+    const buyer = new X402Buyer(env);
+    const urlFor = (id: string) => `${env.resourceBaseUrl}/x402/datasets/${id}/content`;
+    const engine = urlFor("engine-assembly-pov");
+    const kitchen = urlFor("kitchen-cooking-pov");
+
+    const engineId = await recordedResourceId(await payWith(engine, (await buyer.requestUnpaid(engine)).paymentRequired));
+    assert.equal(engineId, resourceIdFor(engine));
+
+    // The client claims it paid for the engine dataset (and then for an arbitrary URL); the record follows the request path.
+    const kitchenId = await recordedResourceId(await payWith(kitchen, (await buyer.requestUnpaid(kitchen)).paymentRequired, payload => {
+      payload.resource = { url: engine, description: "", mimeType: "" };
+    }));
+    assert.equal(kitchenId, resourceIdFor(kitchen));
+    assert.notEqual(kitchenId, engineId);
+
+    const warehouse = urlFor("warehouse-picking-pov");
+    const warehouseId = await recordedResourceId(await payWith(warehouse, (await buyer.requestUnpaid(warehouse)).paymentRequired, payload => {
+      payload.resource = { url: "https://attacker.example/x", description: "", mimeType: "" };
+    }));
+    assert.equal(warehouseId, resourceIdFor(warehouse));
+  } finally {
+    server.close();
+  }
+});
+
+test("a payment that edits extra.resourceId does not match and moves no funds", async () => {
+  const { server, env } = await startServer({ X402_SETTLEMENT_CONTRACT: settlementContract });
+  try {
+    const url = `${env.resourceBaseUrl}/x402/datasets/kitchen-cooking-pov/content`;
+    const { paymentRequired } = await new X402Buyer(env).requestUnpaid(url);
+    const before = await publicClient.readContract({ address: token, abi: erc20Abi, functionName: "balanceOf", args: [TREASURY] });
+    const response = await payWith(url, paymentRequired, payload => {
+      payload.accepted = { ...payload.accepted, extra: { ...payload.accepted.extra, resourceId: resourceIdFor(`${env.resourceBaseUrl}/x402/datasets/engine-assembly-pov/content`) } };
+    });
+    assert.equal(response.status, 402);
+    const after = await publicClient.readContract({ address: token, abi: erc20Abi, functionName: "balanceOf", args: [TREASURY] });
+    assert.equal(after, before);
   } finally {
     server.close();
   }

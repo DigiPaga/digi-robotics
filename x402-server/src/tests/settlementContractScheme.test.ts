@@ -12,7 +12,8 @@ const PAYER = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
 const PAYEE = "0x90F79bf6EB2c4f870365E785982E1f101E93b906";
 const NONCE = `0x${"ab".repeat(32)}` as Hex;
 const TX = `0x${"11".repeat(32)}` as Hex;
-const RESOURCE = "http://localhost:46123/x402/datasets/:id/content";
+const RESOURCE = "http://localhost:46123/x402/datasets/engine-assembly-pov/content";
+const RESOURCE_ID = resourceIdFor(RESOURCE);
 
 const requirements: PaymentRequirements = {
   scheme: "exact",
@@ -21,12 +22,13 @@ const requirements: PaymentRequirements = {
   amount: "50000",
   payTo: PAYEE,
   maxTimeoutSeconds: 30,
-  extra: { name: "Mock USDG (Demo)", version: "1" },
+  extra: { name: "Mock USDG (Demo)", version: "1", resourceId: RESOURCE_ID },
 };
 
 const payload: PaymentPayload = {
   x402Version: 2,
-  resource: { url: RESOURCE, description: "", mimeType: "application/json" },
+  // Client-supplied and unvalidated by @x402/core: it must never reach the on-chain record.
+  resource: { url: "http://localhost:46123/x402/datasets/:id/content", description: "", mimeType: "application/json" },
   accepted: requirements,
   payload: {
     signature: `0x${"22".repeat(65)}`,
@@ -38,7 +40,7 @@ function settledLog(overrides: { amount?: bigint; nonce?: Hex } = {}): Log {
   const topics = encodeEventTopics({
     abi: x402FacilitatorAbi,
     eventName: "PaymentSettled",
-    args: { resourceId: resourceIdFor(RESOURCE), payer: PAYER, payee: PAYEE },
+    args: { resourceId: RESOURCE_ID, payer: PAYER, payee: PAYEE },
   });
   const data = encodeAbiParameters(
     [{ type: "uint256" }, { type: "bytes32" }, { type: "address" }],
@@ -77,14 +79,15 @@ function setup(options: FakeOptions = {}) {
   return { scheme: new SettlementContractScheme(signer, CONTRACT, inner), writes };
 }
 
-test("settles through X402Facilitator.settle with the resource id and the signed authorization", async () => {
+test("settles through X402Facilitator.settle with the server-derived resource id and the signed authorization", async () => {
   const { scheme, writes } = setup();
   const result = await scheme.settle(payload, requirements);
   assert.deepEqual(result, { success: true, transaction: TX, network: "eip155:421614", payer: PAYER, amount: "50000" });
   assert.equal(writes.length, 1);
   assert.equal(writes[0]?.functionName, "settle");
   const [resourceId, auth, signature] = writes[0]!.args as [Hex, Record<string, unknown>, Hex];
-  assert.equal(resourceId, resourceIdFor(RESOURCE));
+  assert.equal(resourceId, RESOURCE_ID);
+  assert.notEqual(resourceId, resourceIdFor(payload.resource!.url));
   assert.deepEqual(auth, { from: PAYER, to: PAYEE, value: 50_000n, validAfter: 1n, validBefore: 9_999_999_999n, nonce: NONCE });
   assert.equal(signature, `0x${"22".repeat(65)}`);
 });
@@ -133,5 +136,24 @@ test("fails when the receipt has no matching PaymentSettled event", async () => 
     const { scheme } = setup({ logs });
     const result = await scheme.settle(payload, requirements);
     assert.equal(result.errorReason, "settlement_event_missing");
+  }
+});
+
+test("ignores a forged payload.resource and records the id from the requirements", async () => {
+  const { scheme, writes } = setup();
+  const forged = { ...payload, resource: { url: "https://attacker.example/anything", description: "", mimeType: "" } };
+  const result = await scheme.settle(forged, requirements);
+  assert.equal(result.success, true);
+  assert.equal(writes[0]?.args[0], RESOURCE_ID);
+});
+
+test("refuses to settle when the requirements carry no server-derived resource id", async () => {
+  for (const resourceId of [undefined, "", "0x1234", 42]) {
+    const { scheme, writes } = setup();
+    const result = await scheme.settle(payload, { ...requirements, extra: { ...requirements.extra, resourceId } });
+    assert.equal(result.success, false);
+    assert.equal(result.errorReason, "settlement_contract_misconfigured");
+    assert.match(result.errorMessage ?? "", /resourceId/);
+    assert.equal(writes.length, 0);
   }
 });
