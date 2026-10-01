@@ -37,6 +37,19 @@ The first MockUSDG deployment on Arbitrum Sepolia (`0x39271d08C111912B1F32465745
 | Seller | `X402_PAY_TO`, an EOA treasury (preflight rejects a payee with contract code) |
 | Explorers | `https://sepolia.arbiscan.io`, `https://explorer.testnet.chain.robinhood.com` |
 
+Deployed (2026-10-01, `contracts/deployments/x402-<chainId>.json`), same addresses on both chains:
+
+| Contract | Address | Arbitrum Sepolia | Robinhood Chain Testnet |
+| :--- | :--- | :--- | :--- |
+| MockUSDG | `0xBbB4155d20D739faABC3af41A3344FAEfD76dDD4` | [Arbiscan](https://sepolia.arbiscan.io/address/0xBbB4155d20D739faABC3af41A3344FAEfD76dDD4) | [Blockscout](https://explorer.testnet.chain.robinhood.com/address/0xBbB4155d20D739faABC3af41A3344FAEfD76dDD4) |
+| X402Facilitator | `0xB7D6F2aC244C8562CEd113AAf1a1A41C253FE816` | [Arbiscan](https://sepolia.arbiscan.io/address/0xB7D6F2aC244C8562CEd113AAf1a1A41C253FE816) | [Blockscout](https://explorer.testnet.chain.robinhood.com/address/0xB7D6F2aC244C8562CEd113AAf1a1A41C253FE816) |
+
+Owner (cold deployer) `0x962B67f92E9BAfc3A584fe2EA3ad871AcA3509d6`; approved settler (hot key) `0xd98aC3064B36dFb19b62558d48cB16f00105F473`. Sources are verified on Blockscout for both chains.
+
+First live settlements through X402Facilitator (0.05 mUSDG for `engine-assembly-pov`):
+[Arbitrum Sepolia](https://sepolia.arbiscan.io/tx/0xd2d5a3851db8723f65c1c441d3fa83f468443f6860b1a1ab82efe002dd521d89),
+[Robinhood Chain Testnet](https://explorer.testnet.chain.robinhood.com/tx/0x73f27e20114467706967ae30ff3c034a34214cb5be432af4759985c861f3fc6b).
+
 Roles and funding:
 
 - Buyer (`PRIVATE_KEY`): holds mUSDG only. EIP-3009 is gasless for the payer. Fund it with `faucet()` from the buyer address (once per day) or a normal transfer.
@@ -56,8 +69,8 @@ cat deployments/x402-421614.json
 ```dotenv
 X402_MODE=REAL_MUSDG_X402
 X402_NETWORK=eip155:421614
-X402_ASSET_ADDRESS=<MockUSDG>
-X402_SETTLEMENT_CONTRACT=<X402Facilitator>
+X402_ASSET_ADDRESS=0xBbB4155d20D739faABC3af41A3344FAEfD76dDD4
+X402_SETTLEMENT_CONTRACT=0xB7D6F2aC244C8562CEd113AAf1a1A41C253FE816
 X402_FACILITATOR_PRIVATE_KEY=<settler hot key, not the deployer>
 X402_PAY_TO=<treasury EOA>
 AGENT_ALLOWED_PAY_TO=<treasury EOA>
