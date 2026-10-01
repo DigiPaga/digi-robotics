@@ -57,6 +57,12 @@ export interface GithubOptions {
 export const GITHUB_TTL_MS = 120_000;
 const TIMEOUT_MS = 5_000;
 const MAX_RUNS = 6;
+/**
+ * Asked for more than is shown. Observed on 2026-10-01: the same query with
+ * per_page=6 answered from an older index (runs four days stale) while
+ * per_page=10 was current, so the page size is not tuned down to MAX_RUNS.
+ */
+const PAGE_SIZE = 10;
 const BRANCH = "main";
 
 const runSchema = z.object({
@@ -81,6 +87,22 @@ export function readGithubRepo(env: Env = process.env): string {
   return raw && /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})\/[A-Za-z0-9._-]{1,100}$/.test(raw) ? raw : DEFAULT_GITHUB_REPO;
 }
 
+function severity(run: CiRun): number {
+  if (run.status !== "completed") return 1;
+  return run.conclusion === "success" || run.conclusion === "skipped" || run.conclusion === "neutral" ? 0 : 2;
+}
+
+/**
+ * The run that stands for "CI on main": among the runs of the newest commit
+ * (several workflows can run on one push), a failed one wins over a running
+ * one, which wins over a passed one. `runs` is newest first.
+ */
+export function pickLatest(runs: readonly CiRun[]): CiRun | null {
+  const head = runs[0];
+  if (!head) return null;
+  return runs.filter((run) => run.sha === head.sha).reduce((worst, run) => (severity(run) > severity(worst) ? run : worst), head);
+}
+
 /** Pure: GitHub's `actions/runs` body to our rows. Anything that does not parse is dropped. */
 export function parseWorkflowRuns(body: unknown, repo: string): CiRun[] | null {
   const parsed = responseSchema.safeParse(body);
@@ -103,9 +125,10 @@ export function parseWorkflowRuns(body: unknown, repo: string): CiRun[] | null {
       updatedAt: run.data.updated_at,
       url,
     });
-    if (runs.length >= MAX_RUNS) break;
   }
-  return runs;
+  // GitHub documents newest first; sort anyway so `latest` never depends on it.
+  runs.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  return runs.slice(0, MAX_RUNS);
 }
 
 function isRateLimited(response: Response): boolean {
@@ -124,12 +147,12 @@ async function load(repo: string, options: GithubOptions): Promise<CiStatus> {
   const fallback = (state: "rate_limited" | "unavailable", rateLimitResetAt: string | null): CiStatus => {
     const good = lastGood.get(repo);
     return good
-      ? { ...base, state: "stale", runs: good.runs, latest: good.runs[0] ?? null, fetchedAt: good.fetchedAt, rateLimitResetAt }
+      ? { ...base, state: "stale", runs: good.runs, latest: pickLatest(good.runs), fetchedAt: good.fetchedAt, rateLimitResetAt }
       : { ...base, state, runs: [], latest: null, fetchedAt: null, rateLimitResetAt };
   };
   let response: Response;
   try {
-    response = await (options.fetchImpl ?? fetch)(`https://api.github.com/repos/${repo}/actions/runs?branch=${BRANCH}&per_page=${MAX_RUNS}`, {
+    response = await (options.fetchImpl ?? fetch)(`https://api.github.com/repos/${repo}/actions/runs?branch=${BRANCH}&per_page=${PAGE_SIZE}`, {
       // No Authorization header: the repository is public and no token is configured.
       headers: { accept: "application/vnd.github+json", "user-agent": "digirobotics-ops", "x-github-api-version": "2022-11-28" },
       signal: AbortSignal.timeout(TIMEOUT_MS),
@@ -150,7 +173,7 @@ async function load(repo: string, options: GithubOptions): Promise<CiStatus> {
   if (!runs) return fallback("unavailable", null);
   const fetchedAt = new Date(now()).toISOString();
   lastGood.set(repo, { runs, fetchedAt });
-  return { ...base, state: "ok", runs, latest: runs[0] ?? null, fetchedAt, rateLimitResetAt: null };
+  return { ...base, state: "ok", runs, latest: pickLatest(runs), fetchedAt, rateLimitResetAt: null };
 }
 
 /** Latest GitHub Actions runs on main. One request per GITHUB_TTL_MS at most. Never throws. */

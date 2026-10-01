@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { clearOpsCache } from "./cache";
-import { clearGithubFallback, DEFAULT_GITHUB_REPO, fetchCiStatus, GITHUB_TTL_MS, parseWorkflowRuns, readGithubRepo } from "./github";
+import { clearGithubFallback, DEFAULT_GITHUB_REPO, fetchCiStatus, GITHUB_TTL_MS, parseWorkflowRuns, pickLatest, readGithubRepo } from "./github";
 
 const run = {
   id: 36891366658,
@@ -58,9 +58,15 @@ describe("parseWorkflowRuns", () => {
 
   it("drops malformed runs, caps the list and rejects a foreign link", () => {
     const many = Array.from({ length: 20 }, (_, index) => ({ ...run, id: index }));
-    const parsed = parseWorkflowRuns({ workflow_runs: [{ id: "x" }, null, { ...run, html_url: "https://evil.example/phish" }, ...many] }, DEFAULT_GITHUB_REPO)!;
+    const parsed = parseWorkflowRuns({ workflow_runs: [{ id: "x" }, null, { ...run, id: 99, created_at: "2026-10-02T00:00:00Z", html_url: "https://evil.example/phish" }, ...many] }, DEFAULT_GITHUB_REPO)!;
     expect(parsed).toHaveLength(6);
-    expect(parsed[0].url).toBe("https://github.com/DigiPaga/digi-robotics/actions");
+    expect(parsed[0]).toMatchObject({ id: 99, url: "https://github.com/DigiPaga/digi-robotics/actions" });
+  });
+
+  it("orders runs newest first whatever order GitHub sends", () => {
+    const older = { ...run, id: 1, created_at: "2026-09-27T15:47:09Z", conclusion: "failure" };
+    const newer = { ...run, id: 2, created_at: "2026-10-01T16:21:25Z" };
+    expect(parseWorkflowRuns({ workflow_runs: [older, newer] }, DEFAULT_GITHUB_REPO)!.map((item) => item.id)).toEqual([2, 1]);
   });
 
   it("returns null for a body that is not a runs listing", () => {
@@ -69,12 +75,27 @@ describe("parseWorkflowRuns", () => {
   });
 });
 
+describe("pickLatest", () => {
+  const parsed = (overrides: object[]) => parseWorkflowRuns({ workflow_runs: overrides.map((item, index) => ({ ...run, id: index, ...item })) }, DEFAULT_GITHUB_REPO)!;
+
+  it("lets a failed workflow of the newest commit win over a passed one", () => {
+    const runs = parsed([{ name: "CI" }, { name: "Fork tests", conclusion: "failure" }, { name: "Old", head_sha: "c7960afca78c50e6051f05d607a09dc096fc0389", created_at: "2026-09-30T00:00:00Z", conclusion: "failure" }]);
+    expect(pickLatest(runs)).toMatchObject({ workflow: "Fork tests", conclusion: "failure" });
+  });
+
+  it("ignores failures of older commits and prefers running over passed", () => {
+    const runs = parsed([{ name: "CI" }, { name: "Deploy", status: "in_progress", conclusion: null }, { name: "Old", head_sha: "c7960afca78c50e6051f05d607a09dc096fc0389", created_at: "2026-09-30T00:00:00Z", conclusion: "failure" }]);
+    expect(pickLatest(runs)).toMatchObject({ workflow: "Deploy", status: "in_progress" });
+    expect(pickLatest([])).toBeNull();
+  });
+});
+
 describe("fetchCiStatus", () => {
   it("asks GitHub for main without credentials", async () => {
     const fetchImpl = ok({ workflow_runs: [run] });
     const status = await fetchCiStatus({ fetchImpl, env: {} });
     const [url, init] = fetchImpl.mock.calls[0];
-    expect(url).toBe("https://api.github.com/repos/DigiPaga/digi-robotics/actions/runs?branch=main&per_page=6");
+    expect(url).toBe("https://api.github.com/repos/DigiPaga/digi-robotics/actions/runs?branch=main&per_page=10");
     expect(Object.keys(init.headers).map((name) => name.toLowerCase())).not.toContain("authorization");
     expect(status).toMatchObject({ state: "ok", repo: DEFAULT_GITHUB_REPO, branch: "main", rateLimitResetAt: null });
     expect(status.latest).toMatchObject({ conclusion: "success", sha: run.head_sha });
