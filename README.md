@@ -29,7 +29,7 @@ The `/agent-demo` route demonstrates a complete **x402 v2 payment cycle** across
 
 > **Dual-rail architecture:** The autonomous-agent demo uses x402 with MockUSDG (`mUSDG`, EIP-3009) on Robinhood Chain Testnet (`46630`) and Arbitrum Sepolia (`421614`). The human checkout flow uses direct mUSDG transfers through ZeroDev embedded wallets on Arbitrum Sepolia.
 
-> **Live deployment:** The web app runs at [digirobotics.xyz](https://digirobotics.xyz) and the x402 server at [x402.digirobotics.xyz](https://x402.digirobotics.xyz), both on Cloudflare Workers. An x402 server instance settles on one network at a time; the live one is configured for Arbitrum Sepolia (see [`x402-server/wrangler.jsonc`](x402-server/wrangler.jsonc)).
+> **Live deployment:** The web app runs at [digirobotics.xyz](https://digirobotics.xyz) and the x402 server at [x402.digirobotics.xyz](https://x402.digirobotics.xyz), both on Cloudflare Workers. An x402 server instance settles on one network, so there are two: [x402.digirobotics.xyz](https://x402.digirobotics.xyz) for Arbitrum Sepolia and [x402-rh.digirobotics.xyz](https://x402-rh.digirobotics.xyz) for Robinhood Chain Testnet (see [`x402-server/wrangler.jsonc`](x402-server/wrangler.jsonc)). The chain switch on `/agent-demo` picks between them.
 
 📖 **Full runbook:** [`x402-server/docs/AGENT_DEMO_RUNBOOK.md`](x402-server/docs/AGENT_DEMO_RUNBOOK.md)
 

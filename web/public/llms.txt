@@ -25,7 +25,7 @@ DigiRobotics is an agentic commerce marketplace for Physical AI training data, b
 - Networks: Arbitrum Sepolia (421614), Robinhood Chain Testnet (46630)
 - MockUSDG: 0xBbB4155d20D739faABC3af41A3344FAEfD76dDD4 (same address on both networks)
 - X402Facilitator: 0xB7D6F2aC244C8562CEd113AAf1a1A41C253FE816 (same address on both networks)
-- Live x402 server: https://x402.digirobotics.xyz (configured for Arbitrum Sepolia)
+- Live x402 servers: https://x402.digirobotics.xyz (Arbitrum Sepolia) and https://x402-rh.digirobotics.xyz (Robinhood Chain Testnet)
 
 ## Repository Structure
 - /web: Next.js frontend

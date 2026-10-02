@@ -5,7 +5,7 @@
 | Service | Directory | Runtime |
 | :--- | :--- | :--- |
 | Web UI | `web` | Cloudflare Worker `digirobotics-web` (Next.js 16 through OpenNext), live at `https://digirobotics.xyz` |
-| x402 backend | `x402-server` | Cloudflare Worker `digirobotics-x402` running the Express app in one Durable Object, live at `https://x402.digirobotics.xyz`. Local runs use Node.js `>=20.9` |
+| x402 backend | `x402-server` | Cloudflare Worker `digirobotics-x402` running the Express app in one Durable Object, live at `https://x402.digirobotics.xyz` (Arbitrum Sepolia). A second Worker, `digirobotics-x402-robinhood`, serves Robinhood Chain Testnet at `https://x402-rh.digirobotics.xyz`. Local runs use Node.js `>=20.9` |
 
 The x402 backend keeps runs and access-link signing state in memory, so Phase 1 must run as one persistent process. On Cloudflare every request is forwarded to a single Durable Object instance for that reason (`x402-server/wrangler.jsonc`). Do not deploy it to a horizontally scaled or frequently recycled environment without replacing the run and entitlement stores.
 
