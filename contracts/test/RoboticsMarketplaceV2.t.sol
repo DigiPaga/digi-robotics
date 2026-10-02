@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
+import {ReentrancyGuardTransient} from "@openzeppelin/contracts/utils/ReentrancyGuardTransient.sol";
 import "../src/RoboticsMarketplaceV2.sol";
 import "../src/AgentRegistryV2.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -9,6 +10,50 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract MockUSDC is ERC20 {
     constructor() ERC20("Mock USDC", "USDC") {}
     function mint(address to, uint256 amount) public { _mint(to, amount); }
+}
+
+/// @notice Payment token that reenters `purchaseWithAgent` from inside `transferFrom`, mimicking
+///         an ERC777/hook-style token. Used to exercise DR-C-05's `nonReentrant` guard.
+contract ReentrantPaymentToken {
+    RoboticsMarketplaceV2 public marketplace;
+    uint256 public targetAssetId;
+    address public targetAgent;
+    bool public attack;
+
+    function setTarget(RoboticsMarketplaceV2 marketplace_, uint256 assetId, address agent) external {
+        marketplace = marketplace_;
+        targetAssetId = assetId;
+        targetAgent = agent;
+        attack = true;
+    }
+
+    function disableAttack() external {
+        attack = false;
+    }
+
+    function balanceOf(address) external pure returns (uint256) {
+        return type(uint256).max;
+    }
+
+    function approve(address, uint256) external pure returns (bool) {
+        return true;
+    }
+
+    function allowance(address, address) external pure returns (uint256) {
+        return type(uint256).max;
+    }
+
+    function transferFrom(address, address, uint256) external returns (bool) {
+        if (attack) {
+            attack = false;
+            marketplace.purchaseWithAgent(targetAssetId, targetAgent);
+        }
+        return true;
+    }
+
+    function transfer(address, uint256) external pure returns (bool) {
+        return true;
+    }
 }
 
 contract RoboticsMarketplaceV2Test is Test {
@@ -121,5 +166,65 @@ contract RoboticsMarketplaceV2Test is Test {
         vm.prank(seller);
         vm.expectRevert("Pausable: paused");
         marketplace.batchListAssets(uris, prices);
+    }
+
+    function test_BatchListAssets_AtCapSucceeds() public {
+        uint256 cap = marketplace.MAX_BATCH_LIST_SIZE();
+        string[] memory uris = new string[](cap);
+        uint256[] memory prices = new uint256[](cap);
+        for (uint256 i = 0; i < cap; i++) {
+            uris[i] = "ipfs://batch";
+            prices[i] = 1 ether;
+        }
+
+        vm.prank(seller);
+        marketplace.batchListAssets(uris, prices);
+
+        assertEq(marketplace.totalAssets(), cap);
+    }
+
+    function test_RevertWhen_BatchListAssetsExceedsCap() public {
+        uint256 overCap = marketplace.MAX_BATCH_LIST_SIZE() + 1;
+        string[] memory uris = new string[](overCap);
+        uint256[] memory prices = new uint256[](overCap);
+        for (uint256 i = 0; i < overCap; i++) {
+            uris[i] = "ipfs://batch";
+            prices[i] = 1 ether;
+        }
+
+        vm.prank(seller);
+        vm.expectRevert("Batch too large");
+        marketplace.batchListAssets(uris, prices);
+    }
+
+    /// @dev DR-C-05: a payment token that reenters `purchaseWithAgent` during `transferFrom` must
+    ///      be blocked by `nonReentrant`, and the targeted asset must remain unsold afterwards.
+    function test_RevertWhen_PaymentTokenReentersPurchase() public {
+        ReentrantPaymentToken evilToken = new ReentrantPaymentToken();
+        RoboticsMarketplaceV2 evilMarketplace =
+            new RoboticsMarketplaceV2(address(evilToken), address(registry), feeRecipient, 100);
+
+        vm.prank(seller);
+        evilMarketplace.listAsset("ipfs://evil", 100 ether);
+
+        evilToken.setTarget(evilMarketplace, 1, agent);
+
+        vm.prank(buyer);
+        vm.expectRevert();
+        evilMarketplace.purchaseWithAgent(1, agent);
+
+        // The reentrant attempt reverted the whole transaction: the asset is still unsold.
+        assertFalse(evilMarketplace.getAsset(1).isSold);
+
+        // A legitimate, non-reentrant purchase still succeeds exactly once afterwards...
+        evilToken.disableAttack();
+        vm.prank(buyer);
+        evilMarketplace.purchaseWithAgent(1, agent);
+        assertTrue(evilMarketplace.getAsset(1).isSold);
+
+        // ...and the asset cannot be bought a second time.
+        vm.prank(buyer);
+        vm.expectRevert("Asset already sold");
+        evilMarketplace.purchaseWithAgent(1, agent);
     }
 }
