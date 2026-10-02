@@ -31,9 +31,12 @@ body {
 }
 @layer base {
   button, input, select, textarea { font: inherit; }
+  /* Layered so Tailwind's `utilities` layer (loaded after `base`) can still override link
+     color, e.g. `text-[var(--page-bg)]` on PrimaryLink/SecondaryLink. Previously unlayered,
+     this rule beat every Tailwind color utility regardless of specificity (DR-L-03). */
+  a { color: inherit; text-decoration: none; }
 }
 button, a { -webkit-tap-highlight-color: transparent; }
-a { color: inherit; text-decoration: none; }
 ::selection { background: var(--primary); color: #10140e; }
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; }
 
