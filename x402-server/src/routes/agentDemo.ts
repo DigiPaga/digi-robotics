@@ -8,7 +8,7 @@ import { BazaarFirstDiscovery, selectCandidate } from "../agent/discovery";
 import { PolicyError, safeRequirements, validatePaymentPolicy } from "../agent/policy";
 import { BuyerError, X402Buyer } from "../agent/x402Buyer";
 import { RunStore } from "../agent/runStore";
-import type { ErrorCode } from "../types/agentDemo";
+import type { AgentRunEvent, ErrorCode, RunState } from "../types/agentDemo";
 import { safeErrorMessage } from "../utils/redact";
 import { explorerTxUrl, getX402Chain, MOCK_USDG_TOKEN, X402_CHAINS } from "../x402/chains";
 import { createPaidRouteRateLimit } from "../x402/rateLimit";
@@ -16,6 +16,10 @@ import { createProtectedDatasetMiddleware, type X402SettlementLocals } from "../
 
 function shortAddress(value: string): string {
   return `${value.slice(0, 6)}…${value.slice(-4)}`;
+}
+
+function isFinished(state: RunState): boolean {
+  return state === "unlocked" || state === "failed";
 }
 
 function mapErrorCode(error: unknown): ErrorCode {
@@ -83,15 +87,26 @@ export function createAgentDemoRouter(
   router.get("/agent-demo/runs/:runId/events", (req, res) => {
     const run = store.get(req.params.runId);
     if (!run) return res.status(404).json({ error: "RUN_NOT_FOUND" });
+    const lastId = Number(req.header("last-event-id") ?? 0);
+    const missed = run.events.filter(item => item.sequence > lastId);
+    // A finished run sends nothing more. 204 tells an EventSource that reconnects after the
+    // stream below ends to stop, instead of reconnecting every few seconds until the run expires.
+    if (isFinished(run.state) && missed.length === 0) return res.status(204).end();
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache, no-transform");
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
-    const lastId = Number(req.header("last-event-id") ?? 0);
-    for (const event of run.events.filter(item => item.sequence > lastId)) {
-      res.write(`id: ${event.sequence}\nevent: run\ndata: ${JSON.stringify(event)}\n\n`);
-    }
-    const unsubscribe = store.subscribe(run.id, event => res.write(`id: ${event.sequence}\nevent: run\ndata: ${JSON.stringify(event)}\n\n`));
+    const send = (event: AgentRunEvent) => res.write(`id: ${event.sequence}\nevent: run\ndata: ${JSON.stringify(event)}\n\n`);
+    missed.forEach(send);
+    // End the stream with the run. Left open, every client (and, on Workers, the Durable Object
+    // serving it) would wait out the run TTL with nothing left to receive.
+    if (isFinished(run.state)) return res.end();
+    const unsubscribe = store.subscribe(run.id, event => {
+      send(event);
+      if (!isFinished(event.state)) return;
+      release();
+      res.end();
+    });
     const release = () => { clearInterval(heartbeat); unsubscribe(); };
     const heartbeat = setInterval(() => {
       // Not every host reports a client disconnect to the response, so the stream
