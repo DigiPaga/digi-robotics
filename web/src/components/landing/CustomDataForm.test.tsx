@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { CustomDataForm } from "./CustomDataForm";
 
 describe("CustomDataForm", () => {
-  it("renders every field full-width inside its grid cell (DR-L-09)", () => {
+  it("renders every field full-width inside its grid cell", () => {
     render(<CustomDataForm />);
     const fields = [
       screen.getByLabelText("Work email"),
@@ -18,7 +18,7 @@ describe("CustomDataForm", () => {
     }
   });
 
-  it("renders labels as block elements so they don't center inline with the field (DR-L-09)", () => {
+  it("renders labels as block elements so they don't center inline with the field", () => {
     render(<CustomDataForm />);
     expect(screen.getByText("Work email").className).toMatch(/\bblock\b/);
   });

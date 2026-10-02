@@ -20,17 +20,17 @@ function renderNavbar() {
 }
 
 describe("Navbar", () => {
-  it("links to the agent demo from the desktop nav (DR-L-02)", () => {
+  it("links to the agent demo from the desktop nav", () => {
     renderNavbar();
     expect(screen.getByRole("link", { name: "Agent demo" })).toHaveAttribute("href", "/agent-demo");
   });
 
-  it("exposes orders on the desktop nav, not just the mobile drawer (DR-L-22)", () => {
+  it("exposes orders on the desktop nav, not just the mobile drawer", () => {
     renderNavbar();
     expect(screen.getByRole("link", { name: "Your orders" })).toHaveAttribute("href", "/orders");
   });
 
-  it("opens the mobile drawer as an accessible dialog with a scrollable container (DR-L-20, DR-L-29)", async () => {
+  it("opens the mobile drawer as an accessible dialog with a scrollable container", async () => {
     const user = userEvent.setup();
     renderNavbar();
     await user.click(screen.getByRole("button", { name: "Open navigation" }));
