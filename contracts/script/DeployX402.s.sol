@@ -19,7 +19,9 @@ import {X402Facilitator} from "../src/X402Facilitator.sol";
 ///      Broadcast:
 ///        forge script script/DeployX402.s.sol --rpc-url robinhood_testnet --broadcast
 ///
-///      On broadcast it writes deployments/x402-<chainId>.json with the addresses.
+///      On broadcast it writes deployments/x402-<chainId>.json with the addresses, owner and
+///      settler roles that test/fork/X402Deployment.fork.t.sol checks on chain. The script cannot
+///      know the mined block numbers, so add deployBlocks from the broadcast receipts by hand.
 ///
 ///      Source verification:
 ///        Arbitrum Sepolia: add --verify (uses ARBISCAN_API_KEY from [etherscan]).
@@ -69,14 +71,17 @@ contract DeployX402Script is Script {
         console.log("EIP-712 name / version:", token.name(), token.version());
 
         if (vm.isContext(VmSafe.ForgeContext.ScriptBroadcast)) {
-            _record(token, facilitator, deployer);
+            _record(token, facilitator, deployer, extraSettler);
         }
     }
 
-    function _record(MockUSDG token, X402Facilitator facilitator, address deployer) internal {
+    function _record(MockUSDG token, X402Facilitator facilitator, address deployer, address settler) internal {
         string memory key = "x402";
         vm.serializeUint(key, "chainId", block.chainid);
         vm.serializeAddress(key, "deployer", deployer);
+        vm.serializeAddress(key, "owner", facilitator.owner());
+        vm.serializeAddress(key, "settler", settler);
+        vm.serializeBool(key, "deployerIsSettler", facilitator.isSettler(deployer));
         vm.serializeAddress(key, "MockUSDG", address(token));
         vm.serializeString(key, "eip712Name", token.name());
         vm.serializeString(key, "eip712Version", token.version());
