@@ -19,7 +19,7 @@
     "worker:deploy:robinhood": "WRANGLER_BUILD_PLATFORM=node wrangler deploy --env robinhood"
   },
   "engines": {
-    "node": ">=20.9.0"
+    "node": ">=22.0.0"
   },
   "dependencies": {
     "@x402/core": "^2.27.0",

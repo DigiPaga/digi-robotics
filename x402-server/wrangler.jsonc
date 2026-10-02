@@ -8,9 +8,14 @@
 	// have, and without it the bundle fails while it loads, before anything is uploaded.
 	"main": "src/worker.ts",
 	"compatibility_date": "2026-09-30",
+	// nodejs_compat: Express needs Node's http/stream APIs (see the `main` comment above).
+	// global_fetch_strictly_public is not set: every outbound fetch is an RPC call to an external
+	// host, and the buyer agent's own paid route is answered in-process by src/worker.ts.
 	"compatibility_flags": ["nodejs_compat"],
 	"routes": [{ "pattern": "x402.digirobotics.xyz", "custom_domain": true }],
-	"workers_dev": true,
+	// Nothing references *.workers.dev for this Worker; the
+	// custom domain above is the only route. preview_urls was already false.
+	"workers_dev": false,
 	"preview_urls": false,
 	// The Express app keeps its state in memory (agent runs, SSE listeners, rate limits, the demo
 	// spend budget), so every request goes to one Durable Object instance instead of whichever
@@ -52,7 +57,9 @@
 		"robinhood": {
 			"name": "digirobotics-x402-robinhood",
 			"routes": [{ "pattern": "x402-rh.digirobotics.xyz", "custom_domain": true }],
-			"workers_dev": true,
+			// Same reasoning as the top-level workers_dev: nothing depends on
+			// *.workers.dev for this environment either.
+			"workers_dev": false,
 			"preview_urls": false,
 			"durable_objects": {
 				"bindings": [{ "name": "X402_SERVER", "class_name": "X402Server" }]

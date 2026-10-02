@@ -6,15 +6,20 @@ on:
   pull_request:
     branches: [ main ]
 
+# Least-privilege default for every job below. No job pushes, comments, or uploads
+# release assets, so read-only is enough.
+permissions:
+  contents: read
+
 jobs:
   web:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
           cache: 'npm'
           cache-dependency-path: web/package-lock.json
       - name: Install dependencies
@@ -23,17 +28,33 @@ jobs:
         run: cd web && npm run lint
       - name: Test
         run: cd web && npm run test --if-present
-      - name: Build
-        run: cd web && npm run build
+      - name: Build deploy artifact
+        # This is `npm run deploy` (web/package.json) minus the final `opennextjs-cloudflare
+        # deploy`, so CI actually builds what gets shipped instead of the plain `next build` that a
+        # broken OpenNext adapter config could pass right through. It does not call any Cloudflare
+        # API and needs no account credentials.
+        #
+        # This intentionally replaces the old separate `next build` step instead of running both:
+        # `opennextjs-cloudflare build` invokes `next build --webpack` itself as its first phase (same
+        # command, same flags), so running a plain `npm run build` first would just pay for that
+        # compile twice for no extra coverage.
+        env:
+          # Non-secret placeholder so the deploy-env guard and the build have a valid https URL to
+          # inline. Scoped to this step so tests keep their own defaults. Nothing calls this URL.
+          NEXT_PUBLIC_X402_BACKEND_URL: https://x402.ci-build.invalid
+        run: |
+          cd web
+          node scripts/check-deploy-env.mjs
+          npx opennextjs-cloudflare build
 
   contracts:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           submodules: recursive
       - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
+        uses: foundry-rs/foundry-toolchain@908c540300062bd5a7e473851cdb4282204cee09 # v1.9.1
       - name: Build
         run: cd contracts && forge build
       - name: Test
@@ -42,15 +63,21 @@ jobs:
   x402-server:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
           cache: 'npm'
           cache-dependency-path: x402-server/package-lock.json
       - name: Install dependencies
         run: cd x402-server && npm ci
+      - name: Lint
+        run: cd x402-server && npm run lint
+      - name: Typecheck worker entrypoint
+        # Validates src/worker.ts (the Worker entrypoint, not src/server.ts) against the
+        # generated Cloudflare Workers types, which the plain `npm test` job never touched.
+        run: cd x402-server && npm run typecheck:worker
       - name: Test
         run: cd x402-server && npm test
 
@@ -59,15 +86,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           submodules: recursive
       - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
+        uses: foundry-rs/foundry-toolchain@908c540300062bd5a7e473851cdb4282204cee09 # v1.9.1
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
           cache: 'npm'
           cache-dependency-path: x402-server/package-lock.json
       - name: Install dependencies
