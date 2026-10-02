@@ -1,11 +1,12 @@
 import Image from "next/image";
-import { ScanLine } from "lucide-react";
+import Link from "next/link";
+import { ArrowUpRight, ScanLine } from "lucide-react";
 import { AuthButton } from "@/components/auth/AuthButton";
 import { Eyebrow, SecondaryLink, primaryAction, shell } from "@/components/ui/Primitives";
 import { Reveal } from "@/components/ui/Reveal";
 
 const partners = [
-  ["/digirobotics/partners/arbitrum.png", "Built with Arbitrum", "w-full scale-[1.61] origin-left", "1.25fr"],
+  ["/digirobotics/partners/arbitrum.png", "Built with Arbitrum", "w-full", "1.25fr"],
   ["/digirobotics/partners/robinhood-chain.png", "Built with Robinhood Chain", "w-full", "1.25fr"],
   ["/digirobotics/partners/zerodev.png", "Built with ZeroDev", "w-4/5", "1fr"],
   ["/digirobotics/partners/paxos.png", "Built with Paxos", "w-4/5", "1fr"],
@@ -13,18 +14,21 @@ const partners = [
 
 export function HeroSection() {
   return <section className="relative border-b border-white/[.07] pt-14 sm:pt-20 lg:pt-24">
-    <div className={`${shell} grid items-center gap-12 lg:grid-cols-[.86fr_1.14fr] lg:gap-12`}>
-      <Reveal>
+    <div className={`${shell} grid items-center gap-12 lg:grid-cols-[1fr_1fr] lg:gap-12`}>
+      <div className="min-w-0">
         <Eyebrow>01 / Egocentric data for robotics</Eyebrow>
-        <h1 className="mt-7 max-w-[700px] font-display text-[clamp(3.35rem,5vw,4rem)] font-bold uppercase leading-[.9] tracking-[-.055em]">
+        <h1 className="mt-7 max-w-[700px] font-display text-[clamp(2.6rem,10vw,4rem)] font-bold uppercase leading-[.9] tracking-[-.055em]">
           <span className="block">Teach robots.</span><span className="block text-[var(--primary)]">Earn stablecoins.</span><span className="block">Through human eyes.</span>
         </h1>
         <p className="mt-7 max-w-2xl text-[19px] leading-[1.5] text-[var(--muted-foreground)] lg:text-[20px]">The first stablecoin-native marketplace for agentic commerce in real-world data collection. Everyday content creation becomes robotics training data — contributors are paid in USDG or PYUSD, with autonomous AI agents purchasing around the clock.</p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <AuthButton className={`inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--primary)] px-6 py-3 text-[15px] font-semibold uppercase tracking-[.04em] text-[var(--page-bg)] ${primaryAction}`}>Become a contributor ↗</AuthButton>
-          <SecondaryLink href="#custom-data">Request custom data</SecondaryLink>
+          <AuthButton className={`inline-flex min-h-12 items-center justify-center whitespace-nowrap rounded-full bg-[var(--primary)] px-6 py-3 text-[15px] font-semibold uppercase tracking-[.04em] text-[var(--page-bg)] ${primaryAction}`}>Become a contributor ↗</AuthButton>
+          <SecondaryLink href="#custom-data" className="whitespace-nowrap">Request custom data</SecondaryLink>
         </div>
-      </Reveal>
+        <Link href="/agent-demo" className="mt-6 inline-flex min-h-11 items-center gap-2 font-mono text-[11px] uppercase tracking-[.14em] text-white/55 transition-colors duration-300 ease-out hover:text-[var(--primary)]">
+          Phase 1 preview · Arbitrum Sepolia + Robinhood Chain Testnet · mock USDG · watch the agent demo <ArrowUpRight aria-hidden="true" size={14} />
+        </Link>
+      </div>
 
       <Reveal delay={0.12} className="relative lg:translate-y-4">
         <div aria-hidden="true" className="absolute -inset-8 rounded-[50%] border border-[var(--primary)]/10" />
