@@ -8,9 +8,26 @@
 	// have, and without it the bundle fails while it loads, before anything is uploaded.
 	"main": "src/worker.ts",
 	"compatibility_date": "2026-09-30",
+	// nodejs_compat: Express needs Node's http/stream APIs (see the `main` comment above).
+	// DR-C-08 (global_fetch_strictly_public) investigated, not added here: every outbound fetch
+	// this Worker makes is either an RPC call to a genuinely external host
+	// (arbitrum-sepolia-rpc.publicnode.com / default, sepolia-rollup.arbitrum.io,
+	// rpc.testnet.chain.robinhood.com — none on this account's zones) or the buyer agent's own
+	// paid route, which src/worker.ts's `buyerFetch` already answers in-process via
+	// `handleAsNodeRequest` instead of a real fetch whenever the target is this server's own
+	// resourceBaseUrl origin (the only host AGENT_ALLOWED_HOSTS permits in production) — so adding
+	// the flag would be behaviorally safe for the app itself. It is left out because it changes
+	// this array's value, and src/tests/robinhood.test.ts:40 hardcodes
+	// `assert.deepEqual(robinhoodWorker.compatibility_flags, ["nodejs_compat"])`; that test file is
+	// outside this change's file ownership (ci/deploy-artifact-and-hardening touches only
+	// wrangler.jsonc, app.ts comments, workflows, engines and .nvmrc), so adding the flag here
+	// would break a currently-passing `npm test` with no permitted way to fix it in the same change.
 	"compatibility_flags": ["nodejs_compat"],
 	"routes": [{ "pattern": "x402.digirobotics.xyz", "custom_domain": true }],
-	"workers_dev": true,
+	// DR-C-07: nothing in this repo or the workspace deploy docs references *.workers.dev for this
+	// Worker (grepped repo + DEPLOY-CLOUDFLARE.md + OPS-DASHBOARD.md + .env.example files); the
+	// custom domain above is the only route. preview_urls was already false.
+	"workers_dev": false,
 	"preview_urls": false,
 	// The Express app keeps its state in memory (agent runs, SSE listeners, rate limits, the demo
 	// spend budget), so every request goes to one Durable Object instance instead of whichever
@@ -52,7 +69,9 @@
 		"robinhood": {
 			"name": "digirobotics-x402-robinhood",
 			"routes": [{ "pattern": "x402-rh.digirobotics.xyz", "custom_domain": true }],
-			"workers_dev": true,
+			// Same reasoning as the top-level workers_dev (DR-C-07): nothing depends on
+			// *.workers.dev for this environment either.
+			"workers_dev": false,
 			"preview_urls": false,
 			"durable_objects": {
 				"bindings": [{ "name": "X402_SERVER", "class_name": "X402Server" }]
