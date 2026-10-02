@@ -66,7 +66,9 @@ export function GearCatalog() {
   const [filter, setFilter] = useState<GearCategory | "All">("All");
   const [added, setAdded] = useState<string | null>(null);
   const { addItem, itemCount } = useCart();
-  const visible = filter === "All" ? gearItems : gearItems.filter((item) => item.category === filter);
+  const visible = [...(filter === "All" ? gearItems : gearItems.filter((item) => item.category === filter))].sort(
+    (a, b) => Number(Boolean(b.price)) - Number(Boolean(a.price)),
+  );
 
   return <>
     <div className="mt-10 flex flex-wrap gap-2" aria-label="Filter gear by category">
