@@ -62,6 +62,13 @@ test("REAL_MUSDG_X402 rejects a chain id that disagrees with the network", () =>
   assert.throws(() => loadEnv(musdgEnv({ X402_CHAIN_ID: "84532" })), /does not match/);
 });
 
+test("every mode takes the chain id and RPC from a known X402_NETWORK", () => {
+  const env = loadEnv({ X402_MODE: "BLOCKED", X402_NETWORK: "eip155:46630", X402_PAY_TO: TREASURY, AGENT_ALLOWED_PAY_TO: TREASURY });
+  assert.equal(env.chainId, 46_630);
+  assert.equal(env.rpcUrl, "https://rpc.testnet.chain.robinhood.com");
+  assert.throws(() => loadEnv({ X402_MODE: "BLOCKED", X402_NETWORK: "eip155:46630", X402_CHAIN_ID: "84532", X402_PAY_TO: TREASURY, AGENT_ALLOWED_PAY_TO: TREASURY }), /does not match/);
+});
+
 test("REAL_X402_TEST_ASSET keeps the Base Sepolia USDC defaults", () => {
   const env = loadEnv({ X402_PAY_TO: TREASURY, AGENT_ALLOWED_PAY_TO: TREASURY, PRIVATE_KEY: BUYER_KEY });
   assert.equal(env.mode, "REAL_X402_TEST_ASSET");

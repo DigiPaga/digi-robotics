@@ -12,6 +12,7 @@ import {
   type DemoEvent,
   type DemoRun,
 } from "@/lib/agent-demo-client";
+import { agentDemoRunStorageKey, type AgentDemoChain } from "@/lib/agent-demo-chains";
 import { getSupportedChain, isUsdGCompatibleSymbol } from "@/lib/network-utils";
 import { normalizeWeb3Error, type NormalizedWeb3Error } from "@/lib/web3-errors";
 import { showError, showSuccess, showTransactionConfirmed, showTransactionSubmitted } from "@/lib/toasts";
@@ -22,16 +23,15 @@ import { ModeBadge } from "./ModeBadge";
 import { PaymentPanel } from "./PaymentPanel";
 
 const TERMINAL = new Set(["unlocked", "failed"]);
-const SESSION_KEY = "digirobotics:agent-demo-run:v1";
 
 interface PersistedRun {
   idempotencyKey: string;
   runId?: string;
 }
 
-function readPersistedRun(): PersistedRun | undefined {
+function readPersistedRun(key: string): PersistedRun | undefined {
   try {
-    const value = JSON.parse(window.sessionStorage.getItem(SESSION_KEY) ?? "null") as unknown;
+    const value = JSON.parse(window.sessionStorage.getItem(key) ?? "null") as unknown;
     if (!value || typeof value !== "object") return undefined;
     const candidate = value as Partial<PersistedRun>;
     if (typeof candidate.idempotencyKey !== "string" || candidate.idempotencyKey.length < 8) return undefined;
@@ -41,8 +41,8 @@ function readPersistedRun(): PersistedRun | undefined {
   }
 }
 
-function persistRun(value: PersistedRun): void {
-  window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(value));
+function persistRun(key: string, value: PersistedRun): void {
+  window.sessionStorage.setItem(key, JSON.stringify(value));
 }
 
 function activeLoadingLabel(state: ReturnType<typeof toAgentLifecycleState>): string {
@@ -55,7 +55,13 @@ function activeLoadingLabel(state: ReturnType<typeof toAgentLifecycleState>): st
   return "Waiting for live run events";
 }
 
-export function AgentDemoConsole() {
+/**
+ * One chain's agent demo. Runs live on that chain's backend, so the parent remounts this
+ * component (keyed by chain) when the chain changes instead of mixing two backends' state.
+ */
+export function AgentDemoConsole({ chain, onActiveChange }: { chain: AgentDemoChain & { backendUrl: string }; onActiveChange?: (active: boolean) => void }) {
+  const backend = chain.backendUrl;
+  const storageKey = agentDemoRunStorageKey(chain.id);
   const [compatibility, setCompatibility] = useState<CompatibilityReport>();
   const [compatibilityLoading, setCompatibilityLoading] = useState(true);
   const [run, setRun] = useState<DemoRun>();
@@ -72,17 +78,17 @@ export function AgentDemoConsole() {
     setCompatibilityLoading(true);
     setConnectionError(undefined);
     try {
-      setCompatibility(await getCompatibility());
+      setCompatibility(await getCompatibility(backend));
     } catch (error) {
       setConnectionError(normalizeWeb3Error(error, { operation: "x402" }));
     } finally {
       setCompatibilityLoading(false);
     }
-  }, []);
+  }, [backend]);
 
   const syncRun = useCallback(async (runId: string): Promise<DemoRun | undefined> => {
     try {
-      const current = await getAgentRun(runId);
+      const current = await getAgentRun(runId, backend);
       setRun(current);
       setEvents(current.events);
       setConnectionError(undefined);
@@ -92,7 +98,7 @@ export function AgentDemoConsole() {
       setConnectionError(normalizeWeb3Error(error, { operation: "x402" }));
       return undefined;
     }
-  }, []);
+  }, [backend]);
 
   const connectToRun = useCallback((runId: string) => {
     closeStream.current();
@@ -110,12 +116,12 @@ export function AgentDemoConsole() {
         }
       },
       onError: () => void syncRun(runId),
-    });
-  }, [syncRun]);
+    }, backend);
+  }, [backend, syncRun]);
 
   useEffect(() => {
     let cancelled = false;
-    void getCompatibility()
+    void getCompatibility(backend)
       .then((report) => {
         if (!cancelled) setCompatibility(report);
       })
@@ -126,10 +132,10 @@ export function AgentDemoConsole() {
         if (!cancelled) setCompatibilityLoading(false);
       });
     return () => { cancelled = true; };
-  }, []);
+  }, [backend]);
 
   useEffect(() => {
-    const persisted = readPersistedRun();
+    const persisted = readPersistedRun(storageKey);
     if (!persisted) return () => closeStream.current();
     let cancelled = false;
     if (!persisted.runId) {
@@ -144,7 +150,7 @@ export function AgentDemoConsole() {
 
     const restore = Promise.resolve().then(() => {
       if (!cancelled) setRestoring(true);
-      return getAgentRun(persisted.runId as string);
+      return getAgentRun(persisted.runId as string, backend);
     });
     void restore
       .then((current) => {
@@ -163,7 +169,7 @@ export function AgentDemoConsole() {
       cancelled = true;
       closeStream.current();
     };
-  }, [connectToRun]);
+  }, [backend, connectToRun, storageKey]);
 
   useEffect(() => {
     const hash = run?.result?.payment.transactionHash;
@@ -175,6 +181,8 @@ export function AgentDemoConsole() {
 
   const lifecycle = toAgentLifecycleState(run?.state);
   const active = launching || restoring || Boolean(run && !TERMINAL.has(run.state));
+  useEffect(() => { onActiveChange?.(active); }, [active, onActiveChange]);
+  useEffect(() => () => onActiveChange?.(false), [onActiveChange]);
   const candidates = useMemo(() => events.findLast((event) => event.candidates)?.candidates ?? [], [events]);
   const selectedId = run?.selected?.id ?? events.findLast((event) => event.datasetId)?.datasetId;
   const supportedConfiguration = Boolean(
@@ -198,14 +206,14 @@ export function AgentDemoConsole() {
     submittedHash.current = undefined;
     closeStream.current();
 
-    const stored = readPersistedRun();
+    const stored = readPersistedRun(storageKey);
     const idempotencyKey = stored && !stored.runId ? stored.idempotencyKey : crypto.randomUUID();
-    persistRun({ idempotencyKey });
+    persistRun(storageKey, { idempotencyKey });
 
     try {
-      const created = await createAgentRun(idempotencyKey);
-      persistRun({ idempotencyKey, runId: created.runId });
-      const initial = await getAgentRun(created.runId);
+      const created = await createAgentRun(idempotencyKey, backend);
+      persistRun(storageKey, { idempotencyKey, runId: created.runId });
+      const initial = await getAgentRun(created.runId, backend);
       setRun(initial);
       setEvents(initial.events);
       if (!TERMINAL.has(initial.state)) connectToRun(created.runId);
@@ -220,7 +228,7 @@ export function AgentDemoConsole() {
   }
 
   async function retryConnection() {
-    const persisted = readPersistedRun();
+    const persisted = readPersistedRun(storageKey);
     if (!persisted?.runId) {
       await launch();
       return;
@@ -256,7 +264,7 @@ export function AgentDemoConsole() {
                 {!active ? <ArrowRight className="transition-transform group-hover:translate-x-1" size={17} /> : null}
               </button>
             </div>
-            {compatibility && !supportedConfiguration ? <div role="alert" className="relative mt-6 flex items-start gap-3 rounded-2xl border border-amber-300/25 bg-amber-300/[.07] p-4 text-sm text-amber-100"><TriangleAlert className="mt-0.5 shrink-0" size={17} /><p>The agent backend is not configured for a supported DigiRobotics network and USDG-compatible test asset. Launch remains disabled.</p></div> : null}
+            {compatibility && !supportedConfiguration ? <div role="alert" className="relative mt-6 flex items-start gap-3 rounded-2xl border border-amber-300/25 bg-amber-300/[.07] p-4 text-sm text-amber-100"><TriangleAlert className="mt-0.5 shrink-0" size={17} /><p>The {chain.name} agent backend is not configured for a supported DigiRobotics network and USDG-compatible test asset. Launch remains disabled.</p></div> : null}
             {pendingLaunchResume && !connectionError ? <div role="status" className="relative mt-6 rounded-2xl border border-white/10 bg-white/[.03] p-4 text-sm leading-6 text-white/65">A previous launch stopped before a run ID returned. Retrying reuses the same idempotency key and will not silently create a second run.</div> : null}
             {connectionError ? <div role="alert" className="relative mt-6 flex flex-col gap-4 rounded-2xl border border-red-400/25 bg-red-400/[.07] p-4 text-sm text-red-100 sm:flex-row sm:items-center sm:justify-between"><div className="flex min-w-0 items-start gap-3"><TriangleAlert className="mt-0.5 shrink-0" size={17} /><p className="break-words">{connectionError.message}</p></div><button onClick={() => void (compatibility ? retryConnection() : loadCompatibility())} disabled={active} className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-red-200/25 px-4 font-mono text-[10px] uppercase tracking-[.1em] hover:border-red-200/60 disabled:opacity-50"><RefreshCw size={14} /> Retry connection</button></div> : null}
             {unsafeFailedRetry ? <div role="alert" className="relative mt-6 rounded-2xl border border-amber-300/25 bg-amber-300/[.06] p-4 text-sm leading-6 text-amber-100">This run reached payment processing. Automatic payment retry is disabled; reconnect to the same run and verify its settlement state before starting another.</div> : null}
@@ -264,7 +272,7 @@ export function AgentDemoConsole() {
           <EventTimeline events={events} active={active && !connectionError} loadingLabel={launching ? "Starting an agent run" : activeLoadingLabel(lifecycle)} />
         </div>
         <div className="min-w-0 space-y-5">
-          <PaymentPanel compatibility={compatibility} run={run} loading={compatibilityLoading && !connectionError} />
+          <PaymentPanel chain={chain} compatibility={compatibility} run={run} loading={compatibilityLoading && !connectionError} />
           <CandidatePanel candidates={candidates} selectedId={selectedId} loading={active && lifecycle === "discovering" && candidates.length === 0 && !connectionError} />
         </div>
       </div>

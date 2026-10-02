@@ -14,7 +14,9 @@
     "lint": "eslint src/app.ts src/server.ts src/worker.ts src/agent src/config/env.ts src/data src/routes/agentDemo.ts src/types/agentDemo.ts src/utils/redact.ts src/x402 src/tests --max-warnings=0",
     "test:e2e": "node --import tsx --test src/tests/musdg-anvil.e2e.ts",
     "worker:dev": "WRANGLER_BUILD_PLATFORM=node wrangler dev --var X402_MODE:BLOCKED --var X402_NETWORK:eip155:84532 --var X402_ASSET_ADDRESS:0x036CbD53842c5426634e7929541eC2318f3dCF7e --var X402_RESOURCE_BASE_URL:http://localhost:8787 --var AGENT_ALLOWED_HOSTS:localhost:8787",
-    "worker:deploy": "WRANGLER_BUILD_PLATFORM=node wrangler deploy"
+    "worker:deploy": "WRANGLER_BUILD_PLATFORM=node wrangler deploy",
+    "worker:dev:robinhood": "WRANGLER_BUILD_PLATFORM=node wrangler dev --env robinhood --var X402_MODE:BLOCKED --var X402_RESOURCE_BASE_URL:http://localhost:8787 --var AGENT_ALLOWED_HOSTS:localhost:8787",
+    "worker:deploy:robinhood": "WRANGLER_BUILD_PLATFORM=node wrangler deploy --env robinhood"
   },
   "engines": {
     "node": ">=20.9.0"

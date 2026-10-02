@@ -1,10 +1,13 @@
-# Secrets of the digirobotics-x402 Worker. wrangler.jsonc lists them under secrets.required
-# and holds every non-secret setting.
+# Secrets of the digirobotics-x402 Worker and of its Robinhood Chain Testnet twin,
+# digirobotics-x402-robinhood (wrangler.jsonc env.robinhood). wrangler.jsonc lists them under
+# secrets.required and holds every non-secret setting. See docs/CLOUDFLARE_WORKERS.md.
 #
-# Local (`npm run worker:dev`, BLOCKED mode): copy to .dev.vars (gitignored). Only the two
-# addresses are needed; without the keys the server stays read-only.
+# Local (`npm run worker:dev` or `npm run worker:dev:robinhood`, BLOCKED mode): copy to
+# .dev.vars (gitignored; .dev.vars.robinhood takes precedence for the robinhood env). Only the
+# two addresses are needed; without the keys the server stays read-only.
 # Production: put the real values in a file outside the repo and upload them with
-# `npm run worker:deploy -- --secrets-file <file>`.
+# `npm run worker:deploy -- --secrets-file <file>` or
+# `npm run worker:deploy:robinhood -- --secrets-file <file>`.
 
 # Treasury EOA that receives every payment, and the payees the buyer agent may pay.
 X402_PAY_TO=

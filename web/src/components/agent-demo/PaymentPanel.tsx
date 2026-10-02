@@ -1,8 +1,9 @@
 import { ArrowUpRight, LockKeyhole, WalletCards } from "lucide-react";
 import type { CompatibilityReport, DemoRun } from "@/lib/agent-demo-client";
+import { getAgentDemoTransactionUrl, type AgentDemoChain } from "@/lib/agent-demo-chains";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { getAssetDisplayName, getNetworkDisplayName, getTransactionExplorerUrl } from "@/lib/network-utils";
+import { getAssetDisplayName, getNetworkDisplayName } from "@/lib/network-utils";
 
 const short = (value?: string) => value ? `${value.slice(0, 6)}…${value.slice(-4)}` : "—";
 
@@ -10,13 +11,14 @@ function amountFromPrice(value?: string): string | undefined {
   return value?.match(/^\s*(\d+(?:\.\d+)?)/)?.[1];
 }
 
-export function PaymentPanel({ compatibility, run, loading = false }: { compatibility?: CompatibilityReport; run?: DemoRun; loading?: boolean }) {
+export function PaymentPanel({ chain, compatibility, run, loading = false }: { chain: AgentDemoChain; compatibility?: CompatibilityReport; run?: DemoRun; loading?: boolean }) {
   const preflight = run?.events.findLast(event => event.agentAddress);
   const paid = run?.result?.payment;
   const recipientAddress = compatibility?.seller.address ?? run?.requirements?.payTo;
   const agentAddress = compatibility?.buyer.address ?? preflight?.agentAddress;
   const configuredAmount = amountFromPrice(compatibility?.price);
   const configuredAsset = getAssetDisplayName(compatibility?.selectedAsset.symbol);
+  const transactionUrl = paid ? getAgentDemoTransactionUrl(chain, paid.transactionHash, paid.network) : undefined;
   return (
     <section className="rounded-3xl border border-white/10 bg-white/[.025] p-5 sm:p-7">
       <div className="flex items-center gap-3"><WalletCards className="text-[var(--primary)]" size={19} /><h2 className="font-heading text-xl">Payment envelope</h2></div>
@@ -32,7 +34,7 @@ export function PaymentPanel({ compatibility, run, loading = false }: { compatib
       </dl>}
       <div className="mt-6 rounded-2xl border border-white/8 bg-black/15 p-4">
         <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[.12em] text-white/45"><LockKeyhole size={13} /> settlement receipt</p>
-        {paid ? <div className="mt-3 flex min-w-0 items-center gap-2"><span className="truncate font-mono text-xs text-[var(--primary)]" title={paid.transactionHash}>{short(paid.transactionHash)}</span><CopyButton value={paid.transactionHash} label="Transaction hash" />{getTransactionExplorerUrl(paid.network, paid.transactionHash) ? <a className="grid min-h-11 min-w-11 place-items-center rounded-full border border-white/15 text-[var(--primary)] hover:border-[var(--primary)]" aria-label="Open transaction in explorer" href={getTransactionExplorerUrl(paid.network, paid.transactionHash)} target="_blank" rel="noreferrer"><ArrowUpRight size={14} /></a> : null}</div> : <p className="mt-3 text-xs text-white/35">Not available until facilitator settlement succeeds.</p>}
+        {paid ? <div className="mt-3 flex min-w-0 items-center gap-2"><span className="truncate font-mono text-xs text-[var(--primary)]" title={paid.transactionHash}>{short(paid.transactionHash)}</span><CopyButton value={paid.transactionHash} label="Transaction hash" />{transactionUrl ? <a className="grid min-h-11 min-w-11 place-items-center rounded-full border border-white/15 text-[var(--primary)] hover:border-[var(--primary)]" aria-label="Open transaction in explorer" href={transactionUrl} target="_blank" rel="noreferrer"><ArrowUpRight size={14} /></a> : null}</div> : <p className="mt-3 text-xs text-white/35">Not available until facilitator settlement succeeds.</p>}
       </div>
     </section>
   );

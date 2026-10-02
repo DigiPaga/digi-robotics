@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getCompatibility, toAgentLifecycleState } from "./agent-demo-client";
+import { createAgentRun, getAgentRun, getCompatibility, toAgentLifecycleState } from "./agent-demo-client";
 
 describe("toAgentLifecycleState", () => {
   it("defaults to idle when no state is given", () => {
@@ -90,5 +90,31 @@ describe("getCompatibility", () => {
       json: () => Promise.reject(new Error("not json")),
     }));
     await expect(getCompatibility()).rejects.toMatchObject({ code: "RPC_UNAVAILABLE" });
+  });
+});
+
+describe("backend selection", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("calls the backend of the selected chain", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ runId: "run-1", created: true }) });
+    vi.stubGlobal("fetch", fetchMock);
+    await getCompatibility("https://x402-rh.digirobotics.xyz");
+    await createAgentRun("idempotency-key", "https://x402-rh.digirobotics.xyz");
+    await getAgentRun("run-1", "https://x402-rh.digirobotics.xyz");
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      "https://x402-rh.digirobotics.xyz/agent-demo/compatibility",
+      "https://x402-rh.digirobotics.xyz/agent-demo/runs",
+      "https://x402-rh.digirobotics.xyz/agent-demo/runs/run-1",
+    ]);
+  });
+
+  it("defaults to the Arbitrum backend", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({}) });
+    vi.stubGlobal("fetch", fetchMock);
+    await getCompatibility();
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://localhost:3001/agent-demo/compatibility");
   });
 });
