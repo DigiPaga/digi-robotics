@@ -23,6 +23,7 @@ Sitemap: https://digirobotics.xyz/sitemap.xml
 
 # LLM Discovery Files
 # These files are optimized for AI models to understand DigiRobotics
+Allow: /llms.txt
 Allow: /ai/llm.txt
 Allow: /ai/earn-money-with-phone.txt
 Allow: /ai/robotics-training-data.txt
