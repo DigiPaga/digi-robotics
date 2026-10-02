@@ -76,6 +76,8 @@ X402_PAY_TO=<treasury EOA>
 AGENT_ALLOWED_PAY_TO=<treasury EOA>
 ```
 
+In production each chain has its own Cloudflare Worker: `x402.digirobotics.xyz` on Arbitrum Sepolia and `x402-rh.digirobotics.xyz` on Robinhood Chain Testnet, and `/agent-demo` has a chain switch between them. See [CLOUDFLARE_WORKERS.md](CLOUDFLARE_WORKERS.md) for commands, secrets and domains.
+
 Verify the whole flow locally without testnet funds (needs Foundry on `PATH`):
 
 ```bash
