@@ -1,21 +1,20 @@
-import { AirVent, CarFront, Drill, Fuel, Gauge, Package, PanelsTopLeft, Settings2, Utensils } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import Image from "next/image";
 import { Eyebrow, PrimaryLink, SectionTitle, shell } from "@/components/ui/Primitives";
 import { Reveal } from "@/components/ui/Reveal";
 
 const CTA_LABEL = "REQUEST ACCESS";
 
-type Dataset = { title: string; category: string; copy: string; icon: LucideIcon };
+type Dataset = { title: string; category: string; copy: string; image: string; alt: string };
 const datasets: Dataset[] = [
-  { title: "AIR CONDITIONER SETUP", category: "HOME SYSTEMS", copy: "Control identification, settings, and environmental context.", icon: AirVent },
-  { title: "UNLOCK AND ENTER A VEHICLE", category: "MOBILITY", copy: "Approach, access, door handling, and cabin entry sequence.", icon: CarFront },
-  { title: "VEHICLE REFUELING", category: "MOBILITY", copy: "Fuel-door access, nozzle handling, and safe task completion.", icon: Fuel },
-  { title: "FUEL TYPE SELECTION", category: "DECISION TASK", copy: "Label recognition and deliberate control selection in context.", icon: Gauge },
-  { title: "DISHWASHER LOADING", category: "HOUSEHOLD", copy: "Object placement, rack constraints, and manipulation patterns.", icon: Utensils },
-  { title: "WORKSTATION SETUP", category: "DIGITAL + PHYSICAL", copy: "Peripheral connection, cable routing, and device configuration.", icon: PanelsTopLeft },
-  { title: "HOUSEHOLD ASSEMBLY", category: "MANIPULATION", copy: "Part alignment, sequencing, fastening, and tool coordination.", icon: Settings2 },
-  { title: "PARCEL PACKING", category: "LOGISTICS", copy: "Packing order, protection, sealing, and label-ready preparation.", icon: Package },
-  { title: "HAND TOOL OPERATION", category: "TOOL USE", copy: "Grip, alignment, force application, and safe tool return.", icon: Drill },
+  { title: "NUCLEAR FACILITY SAFETY INSPECTION", category: "ENERGY", copy: "Radiation monitoring, containment verification, and emergency protocol drill execution.", image: "/marketplace/nuclear-facility-safety.png", alt: "Head-mounted point-of-view capture of a nuclear facility safety inspection" },
+  { title: "HIGH-VOLTAGE TRANSFORMER INSPECTION", category: "INFRASTRUCTURE", copy: "Electrical substation maintenance, thermal imaging, and safety protocol verification.", image: "/marketplace/high-voltage-inspection.png", alt: "Technician inspecting a high-voltage transformer with thermal imaging equipment" },
+  { title: "RAILWAY SIGNAL SYSTEM INSPECTION", category: "TRANSPORTATION", copy: "Track signal verification, switching mechanism testing, and control system checks.", image: "/marketplace/railway-signal-inspection.jpg", alt: "Railway signal system inspection along an active track section" },
+  { title: "DATA CENTER RACK INSTALLATION", category: "TECHNOLOGY", copy: "Server deployment, cable management, cooling system verification, and power distribution.", image: "/marketplace/data-center-rack-installation.png", alt: "Data center rack installation with server deployment and cable management" },
+  { title: "WATER TREATMENT FACILITY MONITORING", category: "INFRASTRUCTURE", copy: "Chemical level verification, filtration system inspection, and water quality testing.", image: "/marketplace/water-facility-monitoring.png", alt: "Water treatment facility monitoring with filtration and water quality testing controls" },
+  { title: "INDUSTRIAL ROBOT ARM CALIBRATION", category: "MANUFACTURING", copy: "Manufacturing line robot setup, precision alignment, sensor calibration, and torque verification.", image: "/marketplace/industrial-robot-calibration.jpg", alt: "Industrial robot arm calibration on a manufacturing line" },
+  { title: "VEHICLE REFUELING PROTOCOL", category: "LOGISTICS", copy: "Safe fuel handling, tank filling procedures, and hazardous material containment checks.", image: "/marketplace/vehicle-refueling-protocol.png", alt: "Vehicle refueling protocol with safe fuel handling at a service station" },
+  { title: "SMART VEHICLE ACCESS", category: "AUTOMOTIVE", copy: "Biometric scanner setup, keyless entry calibration, and security protocol configuration.", image: "/marketplace/smart-vehicle-access.png", alt: "Smart vehicle access setup with a keyless entry and biometric scanner" },
+  { title: "HVAC MAINTENANCE", category: "FACILITIES", copy: "Air conditioning filter cleaning, system setup, and airflow optimization procedures.", image: "/marketplace/hvac-maintenance.jpeg", alt: "HVAC maintenance technician servicing an air conditioning unit" },
 ];
 
 export function MarketplaceSection() {
@@ -23,9 +22,10 @@ export function MarketplaceSection() {
     <div className={shell}>
       <Reveal><Eyebrow>02 / Training data marketplace</Eyebrow><SectionTitle className="mt-5">5.4 Billion Smartphones. One New Way to Earn.</SectionTitle><p className="mt-6 max-w-3xl text-[19px] leading-[1.5] text-[var(--muted-foreground)] lg:text-[21px]">The next era of content creation is robotics training data. Get paid in stablecoins for capturing it. Preview first-person task data designed for perception, planning, manipulation, and embodied AI research.</p></Reveal>
       <div className="mt-14 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {datasets.map(({ title, category, copy, icon: Icon }, index) => <article key={title} className="group overflow-hidden rounded-2xl border border-white/[.09] bg-[var(--surface)] transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[var(--primary)]/30 focus-within:border-[var(--primary)]/30">
-          <div className="relative aspect-[3/2] overflow-hidden border-b border-white/[.08] bg-[#10151e]">
-            <div className="absolute inset-0 opacity-70 [background-image:linear-gradient(rgba(255,255,255,.045)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.045)_1px,transparent_1px)] [background-size:34px_34px]" /><div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,oklch(0.82_0.21_130/.17),transparent_38%)]" /><span className="absolute left-5 top-5 font-mono text-[11px] uppercase tracking-[.16em] text-[var(--primary)]">POV / {String(index + 1).padStart(2, "0")}</span><Icon aria-hidden="true" size={76} className="absolute bottom-6 right-6 text-white/65 transition-colors duration-300 ease-out group-hover:text-[var(--primary)]" /><span className="absolute bottom-5 left-5 h-3 w-3 border-b border-l border-[var(--primary)]" /><span className="absolute right-5 top-5 h-3 w-3 border-r border-t border-[var(--primary)]" />
+        {datasets.map(({ title, category, copy, image, alt }, index) => <article key={title} className="group overflow-hidden rounded-2xl border border-white/[.09] bg-[var(--surface)] transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[var(--primary)]/30 focus-within:border-[var(--primary)]/30">
+          <div className="relative h-48 w-full overflow-hidden rounded-t-lg bg-[#161c29]">
+            <Image src={image} alt={alt} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw" className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]" />
+            <span className="absolute left-4 top-3 rounded-full bg-[#0e1118]/80 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[.14em] text-[var(--primary)]">POV / {String(index + 1).padStart(2, "0")}</span>
           </div>
           <div className="p-6">
             <p className="font-mono text-[11px] uppercase tracking-[.15em] text-[var(--primary)]">{category}</p>
