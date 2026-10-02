@@ -14,11 +14,6 @@ permissions:
 jobs:
   web:
     runs-on: ubuntu-latest
-    env:
-      # Non-secret placeholder so scripts/check-deploy-env.mjs and the OpenNext build have a
-      # valid, non-localhost https URL to inline. The .invalid TLD (RFC 2606) makes it
-      # obvious this is a CI-only stand-in, never a real backend; nothing in CI calls this URL.
-      NEXT_PUBLIC_X402_BACKEND_URL: https://x402.ci-build.invalid
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Setup Node.js
@@ -43,6 +38,10 @@ jobs:
         # `opennextjs-cloudflare build` invokes `next build --webpack` itself as its first phase (same
         # command, same flags), so running a plain `npm run build` first would just pay for that
         # compile twice for no extra coverage.
+        env:
+          # Non-secret placeholder so the deploy-env guard and the build have a valid https URL to
+          # inline. Scoped to this step so tests keep their own defaults. Nothing calls this URL.
+          NEXT_PUBLIC_X402_BACKEND_URL: https://x402.ci-build.invalid
         run: |
           cd web
           node scripts/check-deploy-env.mjs
