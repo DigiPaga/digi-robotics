@@ -2,7 +2,7 @@ import { Footer } from "@/components/landing/Footer";
 import { Navbar } from "@/components/landing/Navbar";
 import { PrimaryLink, SectionTitle } from "@/components/ui/Primitives";
 
-// DR-C-09, DR-L-19: the public 404 was Next's unstyled default (white page, no nav, no way
+// The public 404 was Next's unstyled default (white page, no nav, no way
 // back). This reuses the site's own Navbar/Footer and heading primitives instead of a new
 // design. Scoped to web/src/app/, so it never shadows web/src/app/ops/(console)/not-found.tsx
 // — Next.js resolves the nearest boundary in the route tree, and /ops keeps its own.

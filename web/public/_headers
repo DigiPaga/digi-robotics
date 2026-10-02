@@ -7,10 +7,10 @@
 # developers.cloudflare.com/workers/static-assets/headers/ before relying on this file at
 # all: `_headers` rules are NOT applied to responses the Worker generates (every HTML page
 # here, via the OpenNext Next.js server), only to genuine static-asset passthrough
-# responses like these. Security headers (DR-C-01/DR-L-13) therefore live in
+# responses like these. Security headers therefore live in
 # next.config.ts instead, not here. 7-day cache, not `immutable`: these filenames have no
-# content hash, so a future in-place asset replacement (e.g. DR-L-06's logo re-export)
-# should not get stuck behind a year-long cache (DR-L-16).
+# content hash, so a future in-place asset replacement (e.g. a logo re-export)
+# should not get stuck behind a year-long cache.
 /digirobotics/*
   Cache-Control: public, max-age=604800
 

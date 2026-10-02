@@ -25,7 +25,7 @@ describe("Reveal", () => {
     vi.restoreAllMocks();
   });
 
-  // DR-L-01: with prefers-reduced-motion: reduce, the home page used to stay permanently at
+  // With prefers-reduced-motion: reduce, the home page used to stay permanently at
   // opacity:0 because `whileInView` was undefined and nothing else ever told framer-motion to
   // animate to the visible state.
   it("renders its content visibly when the user prefers reduced motion", async () => {

@@ -10,7 +10,7 @@ type HeaderRule = { source: string; headers: { key: string; value: string }[] };
 
 const OPS_SOURCES = ["/api/ops/:path*", "/ops", "/ops/:path*"];
 // next.config.ts also returns a sitewide "/:path*" rule with the cheap public security
-// headers (DR-C-01/DR-L-13). It carries no CSP and must not weaken anything below.
+// headers. It carries no CSP and must not weaken anything below.
 const ALL_SOURCES = [...OPS_SOURCES, "/:path*"].sort();
 
 async function rules(): Promise<HeaderRule[]> {
@@ -41,7 +41,7 @@ describe("/ops Content-Security-Policy", () => {
   it("is set by the proxy on every ops route and only there", async () => {
     expect([...proxyConfig.matcher].sort()).toEqual(OPS_SOURCES);
     // The static ops headers stay in next.config.ts, without a CSP that cannot carry a nonce.
-    // next.config.ts also returns one sitewide rule (DR-C-01/DR-L-13); no rule anywhere sets CSP.
+    // next.config.ts also returns one sitewide rule; no rule anywhere sets CSP.
     const all = await rules();
     expect(all.map((rule) => rule.source).sort()).toEqual(ALL_SOURCES);
     for (const rule of all) {

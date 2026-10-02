@@ -5,7 +5,7 @@ import { Footer } from "@/components/landing/Footer";
 import { Navbar } from "@/components/landing/Navbar";
 import { PrimaryLink, SectionTitle, primaryAction } from "@/components/ui/Primitives";
 
-// DR-C-09: the public site had no error boundary at all, so any render error below the root
+// The public site had no error boundary at all, so any render error below the root
 // layout fell through to Next's unstyled default. Reuses the site's own Navbar/Footer and
 // heading primitives (error boundaries must be Client Components per Next.js). Scoped to
 // web/src/app/, so it never shadows web/src/app/ops/(console)/error.tsx.

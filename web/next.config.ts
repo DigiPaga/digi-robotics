@@ -1,15 +1,14 @@
 import type { NextConfig } from "next";
 
-// Cheap, safe-everywhere headers for every public route (DR-C-01, DR-L-13). No
+// Cheap, safe-everywhere headers for every public route. No
 // Content-Security-Policy here: the public site loads third-party wallet/checkout scripts
-// (thirdweb, ZeroDev) and a CSP needs their origins audited first, which is out of scope
-// before the submission deadline — see audit-code-security-2026-10-02.md DR-C-01.
+// (thirdweb, ZeroDev) and a CSP needs their origins audited first.
 const publicHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Frame-Options", value: "DENY" },
-  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), interest-cohort=()" },
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
 ];
 
 // /ops is a private operator surface: never indexed, never cached, never framed.

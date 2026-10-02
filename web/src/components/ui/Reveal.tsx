@@ -11,7 +11,7 @@ export function Reveal({ children, delay = 0, className = "" }: { children: Reac
       // reports `null` until its effect runs), so the server HTML always starts from the hidden
       // `initial` state below. Once the effect confirms prefers-reduced-motion, `animate` gives
       // the element an explicit, zero-duration target to reach instead of leaving it stranded at
-      // `initial` with no `whileInView` to ever fire (DR-L-01).
+      // `initial` with no `whileInView` to ever fire.
       className={`reveal ${className}`}
       initial={reduced ? false : { opacity: 0, y: 24 }}
       animate={reduced ? { opacity: 1, y: 0 } : undefined}

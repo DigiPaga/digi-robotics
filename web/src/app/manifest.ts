@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-// DR-L-30: /manifest.json and /manifest.webmanifest both 404'd, and layout.tsx referenced
+// /manifest.json and /manifest.webmanifest both 404'd, and layout.tsx referenced
 // neither. Next.js serves this file's export at /manifest.webmanifest automatically. Reuses
 // the existing favicon rather than commissioning new icon artwork (fix, not redesign).
 export default function manifest(): MetadataRoute.Manifest {
