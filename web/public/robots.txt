@@ -1,22 +1,32 @@
 User-agent: *
 Allow: /
+Disallow: /ops
+Disallow: /api/ops
 
 # AI/LLM Crawlers
 User-agent: GPTBot
 Allow: /ai/
 Allow: /
+Disallow: /ops
+Disallow: /api/ops
 
 User-agent: CCBot
 Allow: /ai/
 Allow: /
+Disallow: /ops
+Disallow: /api/ops
 
 User-agent: Google-Extended
 Allow: /ai/
 Allow: /
+Disallow: /ops
+Disallow: /api/ops
 
 User-agent: anthropic-ai
 Allow: /ai/
 Allow: /
+Disallow: /ops
+Disallow: /api/ops
 
 # Sitemap
 Sitemap: https://digirobotics.xyz/sitemap.xml
