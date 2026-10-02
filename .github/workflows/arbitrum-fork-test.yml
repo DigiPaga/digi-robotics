@@ -1,26 +1,53 @@
-name: Arbitrum Fork Testing
+name: Testnet Fork Tests
 
-# Manual only: no ForkTest contracts exist yet, so running on every push always failed.
+# Manual only: forks live testnet state through public RPCs, which are too slow and flaky for every push.
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  test-arbitrum-fork:
+  fork-test:
+    name: Fork tests (${{ matrix.name }})
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Arbitrum Sepolia
+            chain-id: 421614
+            rpc-secret: ARBITRUM_SEPOLIA_RPC
+            public-rpc: https://sepolia-rollup.arbitrum.io/rpc
+          - name: Robinhood Chain Testnet
+            chain-id: 46630
+            rpc-secret: ''
+            public-rpc: https://rpc.testnet.chain.robinhood.com
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
-      - name: Install dependencies
-        run: cd contracts && forge install
-
-      - name: Run Arbitrum Sepolia Fork Tests
+      - name: Check the RPC serves the expected chain
         env:
-          ARBITRUM_SEPOLIA_RPC: ${{ secrets.ARBITRUM_SEPOLIA_RPC || 'https://sepolia-rollup.arbitrum.io/rpc' }}
+          FORK_RPC_URL: ${{ (matrix.rpc-secret && secrets[matrix.rpc-secret]) || matrix.public-rpc }}
+        run: |
+          actual="$(cast chain-id --rpc-url "$FORK_RPC_URL")"
+          if [ "$actual" != "${{ matrix.chain-id }}" ]; then
+            echo "::error::RPC reports chain $actual, expected ${{ matrix.chain-id }}"
+            exit 1
+          fi
+
+      # Fork tests skip themselves without a deployment record, so the chain check above is what
+      # keeps a misconfigured RPC from passing with zero tests run.
+      - name: Run fork tests against deployments/x402-${{ matrix.chain-id }}.json
+        env:
+          FORK_RPC_URL: ${{ (matrix.rpc-secret && secrets[matrix.rpc-secret]) || matrix.public-rpc }}
         run: |
           cd contracts
-          # Test against real Arbitrum Sepolia state (e.g., USDC contract interactions)
-          forge test --fork-url "$ARBITRUM_SEPOLIA_RPC" --match-contract ForkTest -vvv
+          forge test --fork-url "$FORK_RPC_URL" --match-contract ForkTest -vvv
