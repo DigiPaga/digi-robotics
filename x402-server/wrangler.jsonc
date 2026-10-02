@@ -41,5 +41,41 @@
 	"observability": {
 		"enabled": true,
 		"traces": { "enabled": true }
+	},
+	"env": {
+		// Second, parallel deployment on Robinhood Chain Testnet: `npm run worker:deploy:robinhood`.
+		// A separate Worker with its own Durable Object (agent runs, rate limits and the demo spend
+		// budget are not shared with the Arbitrum Worker). Same MockUSDG and X402Facilitator
+		// addresses as on Arbitrum Sepolia, see contracts/deployments/x402-46630.json.
+		// vars, durable_objects and secrets are never inherited from the top level, so every one
+		// of them is repeated here.
+		"robinhood": {
+			"name": "digirobotics-x402-robinhood",
+			"routes": [{ "pattern": "x402-rh.digirobotics.xyz", "custom_domain": true }],
+			"workers_dev": true,
+			"preview_urls": false,
+			"durable_objects": {
+				"bindings": [{ "name": "X402_SERVER", "class_name": "X402Server" }]
+			},
+			"migrations": [{ "tag": "v1", "new_sqlite_classes": ["X402Server"] }],
+			"vars": {
+				"NODE_ENV": "production",
+				"X402_MODE": "REAL_MUSDG_X402",
+				"X402_NETWORK": "eip155:46630",
+				"X402_ASSET_ADDRESS": "0xBbB4155d20D739faABC3af41A3344FAEfD76dDD4",
+				"X402_SETTLEMENT_CONTRACT": "0xB7D6F2aC244C8562CEd113AAf1a1A41C253FE816",
+				"X402_PRICE_DISPLAY": "0.05",
+				"X402_RESOURCE_BASE_URL": "https://x402-rh.digirobotics.xyz",
+				"AGENT_ALLOWED_HOSTS": "x402-rh.digirobotics.xyz",
+				"AGENT_MAX_TOTAL_SPEND_ATOMIC": "2500000"
+			},
+			"secrets": {
+				"required": ["PRIVATE_KEY", "X402_FACILITATOR_PRIVATE_KEY", "X402_PAY_TO", "AGENT_ALLOWED_PAY_TO"]
+			},
+			"observability": {
+				"enabled": true,
+				"traces": { "enabled": true }
+			}
+		}
 	}
 }
