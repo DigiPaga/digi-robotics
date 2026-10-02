@@ -1,109 +1,74 @@
-# DigiRobotics real x402 agent demo runbook
-
-> **Current deployment:** the live server at `https://x402.digirobotics.xyz` runs `REAL_MUSDG_X402` on Arbitrum Sepolia (see `x402-server/wrangler.jsonc` and the "REAL_MUSDG_X402 mode" section below). `REAL_X402_TEST_ASSET` on Base Sepolia, described first, is the default in `.env.example` and remains available for local runs.
+# DigiRobotics mUSDG x402 agent demo runbook
 
 ## Implementation mode
 
 | Property | Value |
 | :--- | :--- |
-| Mode | `REAL_X402_TEST_ASSET` |
-| Protocol | x402 v2, `exact`, EIP-3009 authorization |
-| Network | Base Sepolia, chain `84532`, CAIP-2 `eip155:84532` |
-| Asset | Test USDC, `0x036CbD53842c5426634e7929541eC2318f3dCF7e` |
-| EIP-712 domain | `name: USDC`, `version: 2`, both checked onchain before signing |
-| Decimals | `6`, checked onchain before a run |
-| Price | `0.05 USDC` (`50000` atomic units) |
-| Facilitator | `https://x402.org/facilitator` |
-| Seller | `0x7Fdf0074C6e40c5B4ABDaBcE8397DaE284194331` |
-| Buyer | Server-side EOA derived from `PRIVATE_KEY`; never sent to the browser |
-| Explorer | `https://sepolia.basescan.org` |
+| Mode | `REAL_MUSDG_X402` |
+| Protocol | x402 v2, `exact`, Permit2 authorization for a standard ERC-20 |
+| Network | Arbitrum Sepolia, chain `421614`, CAIP-2 `eip155:421614` |
+| Asset | MockUSDG (`mUSDG`), `0x39271d08C111912B1F32465745f3123a878C83Bb` |
+| Decimals | `6`, verified onchain before a run |
+| Price | `0.05 mUSDG` (`50000` atomic units) |
+| Facilitator | Configured x402 v2 facilitator with `exact` Permit2 support on `eip155:421614` |
+| Buyer | Server-side signer derived from `PRIVATE_KEY`; never sent to the browser |
+| Seller | Configured `X402_PAY_TO`, distinct from the buyer and explicitly allowlisted |
+| Explorer | `https://sepolia.arbiscan.io` |
 
-The live settlement-evidence section must remain unfilled until a real paid run completes. A submitted or simulated transaction is not success.
+The demo uses the configured mUSDG deployment on Arbitrum Sepolia. A run is valid only when the selected facilitator advertises the exact network, asset-transfer method, and settlement capability required for this configuration. If those capabilities are unavailable, the backend must report `BLOCKED`; it must never substitute a normal ERC-20 transfer and describe it as x402.
 
 ## Compatibility decision
 
-The first MockUSDG deployment on Arbitrum Sepolia (`0x39271d08C111912B1F32465745f3123a878C83Bb`) is a plain OpenZeppelin `ERC20` without EIP-3009 or EIP-2612, and the public facilitator's `/supported` response does not advertise Arbitrum Sepolia or Robinhood Chain Testnet. With that token, `REAL_X402_TEST_ASSET` on Base Sepolia was the only real x402 path. A normal `transfer()` is not used as an x402 substitute.
+MockUSDG is deployed on Arbitrum Sepolia at `0x39271d08C111912B1F32465745f3123a878C83Bb`, reports symbol `mUSDG`, uses `6` decimals, and is a standard OpenZeppelin ERC-20 with a public testnet faucet. It does not implement native EIP-3009 or EIP-2612 authorization.
 
-`contracts/src/MockUSDG.sol` now implements EIP-3009 and EIP-2612, and the server can verify and settle in-process. That enables `REAL_MUSDG_X402`, described below.
+The x402 payment flow therefore adapts to the available testnet infrastructure through Permit2:
 
-## REAL_MUSDG_X402 mode
+1. Query the configured facilitator's supported capabilities.
+2. Require x402 v2 `exact` support for `eip155:421614` and Permit2 settlement.
+3. Confirm the buyer has sufficient mUSDG balance and Permit2 allowance before launch.
+4. Sign the x402 Permit2 authorization on the server.
+5. Retry the protected HTTP resource with the x402 payment header.
+6. Unlock content only after facilitator verification and successful Arbitrum Sepolia settlement.
 
-| Property | Value |
-| :--- | :--- |
-| Protocol | x402 v2, `exact`, EIP-3009 authorization |
-| Networks | Arbitrum Sepolia `eip155:421614`, Robinhood Chain Testnet `eip155:46630` |
-| Asset | MockUSDG from `contracts/script/DeployX402.s.sol`, 6 decimals |
-| EIP-712 domain | `name: Mock USDG (Demo)`, `version: 1`, checked onchain before signing |
-| Facilitator | In-process (`@x402/core` facilitator with the `@x402/evm` exact scheme) |
-| Settlement | `X402Facilitator.settle` when `X402_SETTLEMENT_CONTRACT` is set, otherwise `token.transferWithAuthorization` |
-| Seller | `X402_PAY_TO`, an EOA treasury (preflight rejects a payee with contract code) |
-| Explorers | `https://sepolia.arbiscan.io`, `https://explorer.testnet.chain.robinhood.com` |
-
-Deployed (2026-10-01, `contracts/deployments/x402-<chainId>.json`), same addresses on both chains:
-
-| Contract | Address | Arbitrum Sepolia | Robinhood Chain Testnet |
-| :--- | :--- | :--- | :--- |
-| MockUSDG | `0xBbB4155d20D739faABC3af41A3344FAEfD76dDD4` | [Arbiscan](https://sepolia.arbiscan.io/address/0xBbB4155d20D739faABC3af41A3344FAEfD76dDD4) | [Blockscout](https://explorer.testnet.chain.robinhood.com/address/0xBbB4155d20D739faABC3af41A3344FAEfD76dDD4) |
-| X402Facilitator | `0xB7D6F2aC244C8562CEd113AAf1a1A41C253FE816` | [Arbiscan](https://sepolia.arbiscan.io/address/0xB7D6F2aC244C8562CEd113AAf1a1A41C253FE816) | [Blockscout](https://explorer.testnet.chain.robinhood.com/address/0xB7D6F2aC244C8562CEd113AAf1a1A41C253FE816) |
-
-Owner (cold deployer) `0x962B67f92E9BAfc3A584fe2EA3ad871AcA3509d6`; approved settler (hot key) `0xd98aC3064B36dFb19b62558d48cB16f00105F473`. Sources are verified on Blockscout for both chains.
-
-First live settlements through X402Facilitator (0.05 mUSDG for `engine-assembly-pov`):
-[Arbitrum Sepolia](https://sepolia.arbiscan.io/tx/0xd2d5a3851db8723f65c1c441d3fa83f468443f6860b1a1ab82efe002dd521d89),
-[Robinhood Chain Testnet](https://explorer.testnet.chain.robinhood.com/tx/0x73f27e20114467706967ae30ff3c034a34214cb5be432af4759985c861f3fc6b).
-
-Roles and funding:
-
-- Buyer (`PRIVATE_KEY`): holds mUSDG only. EIP-3009 is gasless for the payer. Fund it with `faucet()` from the buyer address (once per day) or a normal transfer.
-- Facilitator signer (`X402_FACILITATOR_PRIVATE_KEY`): pays settlement gas, so it needs native ETH. Use a separate hot key, never the owner/deployer key. Pass its address as `X402_SETTLER` to the deploy script, which approves it as a settler; on Arbitrum Sepolia and Robinhood Chain Testnet the script reverts if `X402_SETTLER` is unset or equals the deployer. The owner key stays cold and only manages settlers (`setSettler`); if the hot key leaks, the owner revokes it.
-- Treasury (`X402_PAY_TO`): receives payments.
-
-Deploy and configure:
-
-```bash
-cd contracts
-export X402_SETTLER=<address of the X402_FACILITATOR_PRIVATE_KEY hot key>
-forge script script/DeployX402.s.sol --rpc-url arbitrum_sepolia_public            # dry run
-forge script script/DeployX402.s.sol --rpc-url arbitrum_sepolia_public --broadcast
-cat deployments/x402-421614.json
-```
-
-```dotenv
-X402_MODE=REAL_MUSDG_X402
-X402_NETWORK=eip155:421614
-X402_ASSET_ADDRESS=0xBbB4155d20D739faABC3af41A3344FAEfD76dDD4
-X402_SETTLEMENT_CONTRACT=0xB7D6F2aC244C8562CEd113AAf1a1A41C253FE816
-X402_FACILITATOR_PRIVATE_KEY=<settler hot key, not the deployer>
-X402_PAY_TO=<treasury EOA>
-AGENT_ALLOWED_PAY_TO=<treasury EOA>
-```
-
-In production each chain has its own Cloudflare Worker: `x402.digirobotics.xyz` on Arbitrum Sepolia and `x402-rh.digirobotics.xyz` on Robinhood Chain Testnet, and `/agent-demo` has a chain switch between them. See [CLOUDFLARE_WORKERS.md](CLOUDFLARE_WORKERS.md) for commands, secrets and domains.
-
-Verify the whole flow locally without testnet funds (needs Foundry on `PATH`):
-
-```bash
-cd x402-server
-npm run test:e2e
-```
+If any capability or allowance is missing, stop before signing and return an actionable blocked status.
 
 ## Component responsibilities
 
 | Component | Role in this demo |
 | :--- | :--- |
-| x402 | Builds the 402 requirements, signs the authorization, verifies it, and settles through the facilitator. |
-| ZeroDev | Not used by this payment. The existing Kernel flow remains limited to the separate human mUSDG checkout. |
-| Thirdweb | Not used by this payment. It remains the human checkout authentication/embedded-wallet provider. |
-| CDP | Not used. The public x402 facilitator and existing backend signer are sufficient for Phase 1. |
-| Permit2 | Supported by the installed SDK, but not used for Base Sepolia USDC; the selected path uses native EIP-3009. |
-| Pinata | Existing upload integration is preserved. The demo serves an access-controlled local manifest with a five-minute HMAC URL; no public CID is disclosed. |
-| Bazaar | Queried first through `@x402/extensions`; external auto-payment still requires an allowlisted host and `payTo`. |
+| x402 | Produces the HTTP 402 requirements, constructs the authorization, verifies payment, and coordinates settlement. |
+| Permit2 | Provides the authorization path for mUSDG because MockUSDG has no native EIP-3009 support. |
+| Facilitator | Must advertise and settle x402 v2 `exact` Permit2 payments on Arbitrum Sepolia. |
+| ZeroDev | Remains the smart-account provider for the separate human checkout unless explicitly wired into the x402 signer. |
+| Thirdweb | Remains the human authentication and embedded-wallet provider; it is not the server-side x402 signer. |
+| Pinata | Existing upload support is preserved. The demo returns a five-minute signed local manifest URL only after settlement. |
+| Bazaar | Discovery is attempted first; external resources are never paid unless host, network, asset, and recipient are allowlisted. |
 
 ## Environment
 
-Copy `.env.example` to `.env`, retain all secrets only in `.env`, and configure the public x402 values shown above. Real `.env` files are ignored by Git. The server fails at startup when the signer, addresses, allowlists, or numeric bounds are invalid.
+Keep secrets only in `x402-server/.env`; real environment files are ignored by Git. The server must fail closed when the signer, addresses, allowlists, numeric bounds, or chain configuration are invalid.
 
-The default `AGENT_MAX_TOTAL_SPEND_ATOMIC=50000` reserves at most one `0.05 USDC` authorization for the lifetime of a server process, including failed or indeterminate attempts. This fail-closed demo budget prevents an unauthenticated public page from draining the signer through repeated runs. Restart only after inspecting any indeterminate settlement onchain.
+Use the following public configuration values:
+
+```dotenv
+X402_MODE=REAL_MUSDG_X402
+X402_NETWORK=eip155:421614
+X402_CHAIN_ID=421614
+X402_RESOURCE_BASE_URL=http://localhost:3001
+X402_ASSET_ADDRESS=0x39271d08C111912B1F32465745f3123a878C83Bb
+X402_ASSET_NAME=Mock USDG
+X402_ASSET_SYMBOL=mUSDG
+X402_ASSET_DECIMALS=6
+X402_PRICE_DISPLAY=0.05
+X402_RPC_URL=https://sepolia-rollup.arbitrum.io/rpc
+AGENT_MAX_SPEND_ATOMIC=50000
+AGENT_MAX_TOTAL_SPEND_ATOMIC=50000
+AGENT_ALLOWED_HOSTS=localhost:3001
+AGENT_REQUEST_TIMEOUT_MS=30000
+AGENT_MAX_CONCURRENT_RUNS=1
+```
+
+Set `X402_FACILITATOR_URL`, `X402_PAY_TO`, and `AGENT_ALLOWED_PAY_TO` to reviewed values. The seller must differ from the buyer. Do not start a paid run until the facilitator capability response confirms Arbitrum Sepolia and the configured Permit2 path.
 
 The frontend needs only:
 
@@ -113,9 +78,11 @@ NEXT_PUBLIC_X402_BACKEND_URL=http://localhost:3001
 
 No signer, facilitator credential, or privileged SDK belongs in `web/.env*`.
 
+The default process-lifetime budget permits at most one `0.05 mUSDG` authorization per server process, including failed or indeterminate attempts. Restart only after inspecting the previous authorization and settlement state onchain.
+
 ## Preflight and funding
 
-Read the buyer address and balances without printing its private key:
+Read the buyer address, token metadata, balance, and Permit2 allowance without printing its private key:
 
 ```bash
 cd x402-server
@@ -125,21 +92,22 @@ set +a
 
 AGENT_ADDRESS="$(cast wallet address --private-key "$PRIVATE_KEY")"
 cast balance "$AGENT_ADDRESS" --rpc-url "$X402_RPC_URL"
-cast call "$X402_ASSET_ADDRESS" "decimals()(uint8)" --rpc-url "$X402_RPC_URL"
 cast call "$X402_ASSET_ADDRESS" "name()(string)" --rpc-url "$X402_RPC_URL"
-cast call "$X402_ASSET_ADDRESS" "version()(string)" --rpc-url "$X402_RPC_URL"
+cast call "$X402_ASSET_ADDRESS" "symbol()(string)" --rpc-url "$X402_RPC_URL"
+cast call "$X402_ASSET_ADDRESS" "decimals()(uint8)" --rpc-url "$X402_RPC_URL"
 cast call "$X402_ASSET_ADDRESS" "balanceOf(address)(uint256)" "$AGENT_ADDRESS" --rpc-url "$X402_RPC_URL"
+cast call "$X402_ASSET_ADDRESS" "allowance(address,address)(uint256)" "$AGENT_ADDRESS" "$PERMIT2_ADDRESS" --rpc-url "$X402_RPC_URL"
 ```
 
-If funding is required, perform it separately from the **Run agent demo** button. The following is a normal test-token funding transfer and is not x402:
+MockUSDG provides a public testnet faucet. Funding is separate from x402 and must never be reported as a purchase:
 
 ```bash
-cast send "$X402_ASSET_ADDRESS" "transfer(address,uint256)" "$AGENT_ADDRESS" 1000000 \
-  --private-key "$FUNDING_PRIVATE_KEY" \
+cast send "$X402_ASSET_ADDRESS" "faucet()" \
+  --private-key "$PRIVATE_KEY" \
   --rpc-url "$X402_RPC_URL"
 ```
 
-The funding wallet needs Base Sepolia ETH for that transaction. Never place `FUNDING_PRIVATE_KEY` in the frontend.
+The wallet needs Arbitrum Sepolia ETH for faucet or approval transactions. Approve only the reviewed Permit2 contract and cap the allowance to the smallest practical demo amount.
 
 ## Start the demo
 
@@ -157,7 +125,7 @@ npm run dev
 
 Open `http://localhost:3000/agent-demo`.
 
-## Prove the unpaid 402
+## Prove the unpaid HTTP 402
 
 ```bash
 curl -i \
@@ -165,26 +133,30 @@ curl -i \
   http://localhost:3001/x402/datasets/engine-assembly-pov/content
 ```
 
-Expected evidence includes `HTTP/1.1 402 Payment Required`, a `PAYMENT-REQUIRED` header, and a JSON body containing only `PAYMENT_REQUIRED`. Decode the header if needed:
+Expected evidence includes `HTTP/1.1 402 Payment Required`, a `PAYMENT-REQUIRED` header, and a JSON body containing only the public payment error. The decoded requirement must contain:
 
-```bash
-curl -sS -D /tmp/digi-402-headers.txt \
-  -H 'Accept: application/json' \
-  http://localhost:3001/x402/datasets/engine-assembly-pov/content \
-  -o /tmp/digi-402-body.json
-```
+| Field | Required value |
+| :--- | :--- |
+| `x402Version` | `2` |
+| `scheme` | `exact` |
+| `network` | `eip155:421614` |
+| `asset` | `0x39271d08C111912B1F32465745f3123a878C83Bb` |
+| `amount` | `50000` |
+| transfer method | `permit2` |
+| `payTo` | Configured allowlisted seller |
 
-The decoded requirement must contain `x402Version: 2`, `scheme: exact`, `network: eip155:84532`, `asset: 0x036C...CF7e`, `amount: 50000`, the configured seller, `assetTransferMethod: eip3009`, and EIP-712 domain `name: USDC`, `version: 2`. It must not contain a private storage reference or access URL.
+The unpaid response must not contain a storage reference, signed URL, private gateway URL, or protected manifest.
 
 ## Run and verify a paid purchase
 
-1. Confirm the backend preflight reports the expected buyer and at least `0.05 USDC`.
-2. Open `/agent-demo` and select **Run agent demo** once.
-3. Watch genuine SSE states progress from `queued` through `payment_required`, `validating_policy`, and `settling`.
-4. Treat the run as successful only when its final status is `unlocked`, it contains a non-zero transaction hash, and the access response contains a short-lived URL.
-5. Open `https://sepolia.basescan.org/tx/<TRANSACTION_HASH>` and confirm a successful Base Sepolia transaction.
-6. Confirm the seller's USDC balance increased by exactly `50000` atomic units.
-7. Open the signed dataset URL before its five-minute expiry and confirm the protected manifest is returned.
+1. Confirm the facilitator advertises x402 v2 `exact` Permit2 settlement for `eip155:421614`.
+2. Confirm the buyer has at least `0.05 mUSDG`, sufficient Arbitrum Sepolia ETH for any required approval, and the expected Permit2 allowance.
+3. Open `/agent-demo` and select **Run agent demo** once.
+4. Watch backend-generated SSE states progress from `queued` through `payment_required`, `validating_policy`, and `settling`.
+5. Treat the run as successful only when its final state is `unlocked`, it includes a non-zero transaction hash, and the response contains a short-lived access URL.
+6. Open `https://sepolia.arbiscan.io/tx/<TRANSACTION_HASH>` and confirm a successful Arbitrum Sepolia transaction.
+7. Confirm the seller's mUSDG balance increased by exactly `50000` atomic units.
+8. Open the signed dataset URL before its five-minute expiry and confirm the protected manifest is returned.
 
 ## Tests
 
@@ -201,22 +173,25 @@ npm run lint
 npm run build
 ```
 
-The live test is skipped by default with an explicit reason because it spends test USDC. Execute the user-approved purchase through the run API/UI and record its transaction evidence; never replace it with a mocked receipt.
+The live settlement test must remain skipped unless valid facilitator capability, signer funding, Permit2 allowance, and explicit spend approval are available. Never treat a simulated receipt, faucet call, approval, or direct transfer as a passing x402 purchase.
 
 ## Recovery
 
 | Failure | Recovery |
 | :--- | :--- |
-| Insufficient USDC | Fund the server-side buyer with the separate transfer command, then rerun preflight. The UI run never invokes a faucet. |
-| Facilitator unavailable | Check `GET https://x402.org/facilitator/supported`; do not retry blindly after an indeterminate settlement timeout. Inspect the buyer nonce and explorer before another run. |
-| Unsupported capability | Keep the mode blocked until `/supported` advertises x402 v2 `exact` for the exact network. Do not fall back to ERC-20 `transfer()`. |
-| Expired access URL | A new paid purchase is required in the current demo. Production should persist entitlements and reissue links without charging twice. |
-| Expired ZeroDev session key | Not applicable to this x402 payment. Rotate/revoke it only for the separate human checkout flow. |
+| Insufficient mUSDG | Fund the server-side buyer with the separate faucet command, then repeat preflight. |
+| Missing Permit2 allowance | Approve only the reviewed Permit2 contract with a bounded amount, then verify the allowance onchain. |
+| Facilitator unavailable | Inspect the facilitator capability endpoint and any indeterminate authorization on Arbiscan before restarting. |
+| Unsupported Arbitrum capability | Keep the mode blocked until the facilitator supports the exact Arbitrum Sepolia Permit2 route. Do not fall back to `transfer()`. |
+| Expired access URL | Reissue an entitlement without charging again in production; the current in-memory demo requires operator recovery. |
+| Expired ZeroDev session key | Rotate or revoke it only for the separate human checkout unless ZeroDev is explicitly integrated into the x402 signer. |
 
 ## Known limitations
 
-- Runs and entitlements are in memory and expire; multi-instance production needs a durable idempotency and entitlement store.
-- Bazaar availability is optional. An allowed DigiRobotics resource is selected through the same interface when no external result passes policy.
-- The access object is local demo data, not a private Pinata object. The signed URL is process-local and expires after five minutes.
-- The configured seller is repository-documented and distinct from the buyer, but operational ownership on Base Sepolia must be confirmed before using anything other than valueless test assets.
-- Base Sepolia, its RPC, the public facilitator, Circle's test token contract, and the hosted frontend can censor or observe requests.
+- Runs, spend reservations, and entitlements are process-local; multi-instance production needs durable idempotency and entitlement storage.
+- A compatible Arbitrum Sepolia x402 facilitator is an external operational dependency and must be verified before every live demo.
+- MockUSDG is a faucet-backed test token with no monetary value.
+- Permit2 requires a separate bounded approval transaction before its first use.
+- The protected object is a local demo manifest rather than a private Pinata object.
+- Buyer, seller, amount, and settlement activity are publicly visible on Arbitrum Sepolia.
+- RPC, facilitator, sequencer, backend, and frontend operators can observe or censor requests.

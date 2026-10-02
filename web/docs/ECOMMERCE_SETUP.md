@@ -1,23 +1,18 @@
 # Stablecoin ecommerce demo
 
-The capture-gear checkout and autonomous agent demo are separate payment rails. Human checkout uses a ZeroDev Kernel account to perform a direct mUSDG ERC-20 transfer on Arbitrum Sepolia. `/agent-demo` uses a server-side EOA and a genuine x402 v2 EIP-3009 payment in MockUSDG (`mUSDG`) on Arbitrum Sepolia or Robinhood Chain Testnet, settled through the `X402Facilitator` contract. A direct ERC-20 transfer is never described as x402.
+The capture-gear checkout and autonomous agent demo are separate payment rails. Human checkout uses a ZeroDev Kernel account to perform a direct mUSDG ERC-20 transfer on Arbitrum Sepolia. The frontend permits only USDG, PYUSD, or mUSDG on Arbitrum Sepolia and Robinhood Chain Testnet. A direct ERC-20 transfer is never described as x402.
 
-## Real x402 agent demo
+## x402 agent constraints
 
-| Property | Value |
+| Property | Allowed values |
 | :--- | :--- |
 | UI | `/agent-demo` |
 | Backend | `x402-server`, default `http://localhost:3001` |
-| Mode | `REAL_MUSDG_X402` |
-| Network | Arbitrum Sepolia (`421614`) on the live server; Robinhood Chain Testnet (`46630`) is also supported |
-| Asset | MockUSDG (`mUSDG`, EIP-3009), `0xBbB4155d20D739faABC3af41A3344FAEfD76dDD4` |
-| Settlement contract | `X402Facilitator`, `0xB7D6F2aC244C8562CEd113AAf1a1A41C253FE816` |
-| Price | `0.05 mUSDG` |
-| Signer | Server-side EOA; not Thirdweb or ZeroDev |
+| Networks | Arbitrum Sepolia (`421614`), Robinhood Chain Testnet (`46630`) |
+| Assets | USDG, PYUSD, mUSDG |
+| Signer | Server-side signer; not Thirdweb or ZeroDev unless the backend reports otherwise |
 
-`x402-server/.env.example` still defaults to the earlier `REAL_X402_TEST_ASSET` mode (Base Sepolia test USDC through the public x402.org facilitator), which remains available for local runs.
-
-Set `NEXT_PUBLIC_X402_BACKEND_URL` in `web/.env.local`. It is the only agent-demo frontend variable. See `x402-server/docs/AGENT_DEMO_RUNBOOK.md` for the compatibility audit, server configuration, funding, 402 proof, and settlement verification.
+Set `NEXT_PUBLIC_X402_BACKEND_URL` in `web/.env.local`. It is the only agent-demo frontend variable. The page validates the backend compatibility report and keeps launch disabled when the reported network or asset falls outside the allowlist above.
 
 ## Deployed demo contract
 
@@ -29,8 +24,6 @@ Set `NEXT_PUBLIC_X402_BACKEND_URL` in `web/.env.local`. It is the only agent-dem
 | Contract | [`0x39271d08C111912B1F32465745f3123a878C83Bb`](https://sepolia.arbiscan.io/address/0x39271d08C111912B1F32465745f3123a878C83Bb) |
 | Deployment transaction | [`0x9396115a76fdc62f77c2a07fdf52926072bd0a1fa2b3f482f684ab3c8749d1f0`](https://sepolia.arbiscan.io/tx/0x9396115a76fdc62f77c2a07fdf52926072bd0a1fa2b3f482f684ab3c8749d1f0) |
 | Store wallet | [`0xB282276c54c6Cc9912A37c538fdD60a98a4EF5f1`](https://sepolia.arbiscan.io/address/0xB282276c54c6Cc9912A37c538fdD60a98a4EF5f1) |
-
-This is the first MockUSDG, a plain ERC-20 without EIP-3009. Checkout falls back to it when neither `NEXT_PUBLIC_MOCK_USDG_ADDRESS_ARBITRUM_SEPOLIA` nor `NEXT_PUBLIC_MOCK_USDG_ADDRESS` is set at build time (`web/src/lib/stablecoinConfig.ts`). The x402 rail uses a second MockUSDG with EIP-3009 at `0xBbB4155d20D739faABC3af41A3344FAEfD76dDD4`.
 
 The store address is the checksum-valid address historically committed as both `DEPLOYER_ADDRESS` and `PAYMENT_RECIPIENT`. The token is a demo asset with a repeatable public faucet; it has no monetary value.
 
@@ -113,7 +106,7 @@ npm run dev
 
 ## Demo boundaries
 
-- `web/data/orders.json` is intentionally lightweight, single-instance storage for local runs; the Cloudflare deployment stores orders in the D1 database bound as `ORDERS_DB` (`web/wrangler.jsonc`). Serverless or horizontally scaled production deployment needs durable storage and coordinated writes.
+- `web/data/orders.json` is intentionally lightweight, single-instance storage. Serverless or horizontally scaled production deployment needs durable storage and coordinated writes.
 - Shipping is simulated. No carrier, warehouse, drop-shipper, email service, admin panel, escrow, or refund workflow is connected.
 - The public faucet is intentionally repeatable and must never be presented as a real stablecoin.
 - Shipping data is stored unencrypted in the local JSON file for the demo. Use encrypted, access-controlled storage with a retention policy before collecting real personal data.
