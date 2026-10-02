@@ -25,8 +25,11 @@ export function HeroSection() {
           <AuthButton className={`inline-flex min-h-12 items-center justify-center whitespace-nowrap rounded-full bg-[var(--primary)] px-6 py-3 text-[15px] font-semibold uppercase tracking-[.04em] text-[var(--page-bg)] ${primaryAction}`}>Become a contributor ↗</AuthButton>
           <SecondaryLink href="#custom-data" className="whitespace-nowrap">Request custom data</SecondaryLink>
         </div>
-        <Link href="/agent-demo" className="mt-6 inline-flex min-h-11 items-center gap-2 font-mono text-[11px] uppercase tracking-[.14em] text-white/55 transition-colors duration-300 ease-out hover:text-[var(--primary)]">
-          Phase 1 preview · Arbitrum Sepolia + Robinhood Chain Testnet · mock USDG · watch the agent demo <ArrowUpRight aria-hidden="true" size={14} />
+        <p className="mt-6 font-mono text-[11px] uppercase tracking-[.14em] text-white/55">
+          Phase 1 preview · Arbitrum Sepolia + Robinhood Chain Testnet · mock USDG
+        </p>
+        <Link href="/agent-demo" className="mt-3 inline-flex min-h-11 items-center gap-1.5 whitespace-nowrap text-[15px] font-semibold text-[var(--primary)] transition-colors duration-300 ease-out hover:text-white">
+          Watch the agent demo <ArrowUpRight aria-hidden="true" size={16} />
         </Link>
       </div>
 
