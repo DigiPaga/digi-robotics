@@ -3,7 +3,7 @@ import { inlineLink, shell } from "@/components/ui/Primitives";
 
 const links = [
   ["Contributor", "/#contributors"], ["Marketplace", "/#marketplace"], ["Custom Data", "/#custom-data"], ["Capture Gear", "/gear"],
-  ["Field Notes", "/blog"], ["Privacy", "/#privacy-note"], ["Terms", "/#privacy-note"], ["Contact Us", "mailto:hello@digirobotics.xyz"],
+  ["Field Notes", "/blog"], ["Agent Demo", "/agent-demo"], ["Privacy & Terms", "/#privacy-note"], ["Contact Us", "mailto:hello@digirobotics.xyz"],
 ];
 
 export function Footer() {
