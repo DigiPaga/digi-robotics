@@ -102,9 +102,17 @@ async function runAgent(baseUrl: string) {
 }
 
 before(async () => {
-  execFileSync("forge", ["build", "--skip", "test"], { cwd: CONTRACTS_DIR, stdio: "ignore" });
+  try {
+    execFileSync("forge", ["build", "--skip", "test"], { cwd: CONTRACTS_DIR, stdio: "pipe" });
+  } catch (error) {
+    // Outside CI this usually means Foundry is missing, submodules are not checked out, or solc
+    // cannot be downloaded. Say which instead of failing every test with a bare exit status.
+    const output = (error as { stdout?: Buffer; stderr?: Buffer; message: string });
+    throw new Error(`forge build failed: ${output.stderr?.toString() || output.stdout?.toString() || output.message}`);
+  }
   anvil = spawn("anvil", ["--port", String(PORT), "--chain-id", String(CHAIN_ID), "--silent"], { stdio: "ignore" });
-  await waitForRpc();
+  const anvilFailed = new Promise<never>((_, reject) => anvil.once("error", error => reject(new Error(`anvil could not start: ${error.message}`))));
+  await Promise.race([waitForRpc(), anvilFailed]);
   token = await deploy("MockUSDG.sol", "MockUSDG");
   settlementContract = await deploy("X402Facilitator.sol", "X402Facilitator", [token, deployer.account.address]);
   const { abi } = artifact("MockUSDG.sol", "MockUSDG");
