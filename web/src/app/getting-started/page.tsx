@@ -1,15 +1,33 @@
 import type { Metadata } from "next";
-import { Check, Radio, Upload, WalletCards } from "lucide-react";
+import type { ReactNode } from "react";
+import { Check, ClipboardList, Upload, WalletCards } from "lucide-react";
+import { Footer } from "@/components/landing/Footer";
 import { Navbar } from "@/components/landing/Navbar";
-import { Eyebrow, PrimaryLink, SectionTitle, shell } from "@/components/ui/Primitives";
+import { Eyebrow, PrimaryLink, shell } from "@/components/ui/Primitives";
 
 export const metadata: Metadata = {
   title: "Getting Started — DigiRobotics",
-  description: "Your next steps as a registered DigiRobotics contributor.",
+  description: "How contributing to DigiRobotics works, from registration to getting paid.",
+  alternates: { canonical: "/getting-started" },
+  openGraph: {
+    title: "Getting Started — DigiRobotics",
+    description: "How contributing to DigiRobotics works, from registration to getting paid.",
+    url: "/getting-started",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Getting Started — DigiRobotics",
+    description: "How contributing to DigiRobotics works, from registration to getting paid.",
+  },
 };
 
+function PageTitle({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return <h1 className={`max-w-4xl font-heading text-[clamp(2.45rem,5vw,5.4rem)] font-medium leading-[.94] tracking-[-.045em] text-[var(--foreground)] ${className}`}>{children}</h1>;
+}
+
 const steps = [
-  { number: "01", title: "You’re registered", description: "Your contributor profile is ready for upcoming campaigns and eligibility checks.", icon: Radio },
+  { number: "01", title: "Register your profile", description: "Create a contributor profile so you can be matched against upcoming campaigns and eligibility checks.", icon: ClipboardList },
   { number: "02", title: "Capture an approved task", description: "When a campaign is assigned, record the requested first-person task with your phone or supported camera.", icon: Upload },
   { number: "03", title: "Submit and earn", description: "After review and acceptance, your contribution is paid in USDG or PYUSD.", icon: WalletCards },
 ];
@@ -20,9 +38,9 @@ export default function GettingStartedPage() {
     <section className="py-20 sm:py-28 lg:py-32">
       <div className={shell}>
         <div className="max-w-4xl">
-          <Eyebrow>Registration successful</Eyebrow>
-          <SectionTitle className="mt-5">Welcome to DigiRobotics. Here’s what happens next.</SectionTitle>
-          <p className="mt-6 max-w-2xl text-[19px] leading-[1.5] text-[var(--muted-foreground)] lg:text-[21px]">You’re in the contributor network. We’ll use your registered account to connect you with suitable capture campaigns as they open.</p>
+          <Eyebrow>Contributor program / How it works</Eyebrow>
+          <PageTitle className="mt-5">Here’s how contributing to DigiRobotics works.</PageTitle>
+          <p className="mt-6 max-w-2xl text-[19px] leading-[1.5] text-[var(--muted-foreground)] lg:text-[21px]">Three steps take you from registering a contributor profile to getting paid for approved capture tasks.</p>
         </div>
         <ol className="mt-14 grid gap-5 lg:grid-cols-3">
           {steps.map(({ number, title, description, icon: Icon }) => <li key={number} className="group rounded-2xl border border-white/[.09] bg-[var(--surface)] p-7 transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[var(--primary)]/30">
@@ -38,5 +56,6 @@ export default function GettingStartedPage() {
         <div className="mt-9"><PrimaryLink href="/gear">Explore capture gear</PrimaryLink></div>
       </div>
     </section>
+    <Footer />
   </main>;
 }
