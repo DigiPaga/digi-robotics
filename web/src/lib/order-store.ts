@@ -12,11 +12,25 @@ import type { StoredOrder } from "@/lib/orders";
 export interface OrderStore {
   listByWallet(walletAddress: string): Promise<StoredOrder[]>;
   append(order: StoredOrder): Promise<{ order: StoredOrder; created: boolean }>;
+  /** How many orders are stored and when the newest was created. No order content leaves the store. */
+  count(): Promise<OrderCount>;
+}
+
+export interface OrderCount {
+  total: number;
+  /** ISO timestamp of the newest order, or null when there is none with a valid date. */
+  latestAt: string | null;
 }
 
 export const ORDER_TX_CONFLICT = "This transaction is already associated with another order.";
 
 const sameAddress = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
+
+/** Normalizes a stored createdAt to ISO, or null when it is missing or not a date. */
+function isoOrNull(value: unknown): string | null {
+  const time = typeof value === "string" ? Date.parse(value) : Number.NaN;
+  return Number.isFinite(time) ? new Date(time).toISOString() : null;
+}
 
 function resolveExisting(existing: StoredOrder, incoming: StoredOrder) {
   if (!sameAddress(existing.walletAddress, incoming.walletAddress)) throw new Error(ORDER_TX_CONFLICT);
@@ -54,6 +68,15 @@ export function createFileOrderStore(dataPath: string): OrderStore {
       });
       writeQueue = task.catch(() => undefined);
       return task;
+    },
+    async count() {
+      const orders = await readOrders();
+      let latest = 0;
+      for (const order of orders) {
+        const created = Date.parse(order?.createdAt);
+        if (Number.isFinite(created) && created > latest) latest = created;
+      }
+      return { total: orders.length, latestAt: latest > 0 ? new Date(latest).toISOString() : null };
     },
   };
 }
@@ -122,6 +145,13 @@ export function createD1OrderStore(db: D1Like): OrderStore {
       const row = await db.prepare("SELECT payload FROM orders WHERE tx_hash = ?1").bind(txHash).first<{ payload: string }>();
       if (!row) throw new Error("The order could not be stored.");
       return resolveExisting(JSON.parse(row.payload) as StoredOrder, order);
+    },
+    async count() {
+      await ensureSchema(db);
+      const row = await db
+        .prepare("SELECT COUNT(*) AS total, MAX(created_at) AS latest_at FROM orders")
+        .first<{ total: number; latest_at: string | null }>();
+      return { total: Number(row?.total ?? 0), latestAt: isoOrNull(row?.latest_at) };
     },
   };
 }

@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -66,6 +66,15 @@ function orderStoreContract(name: string, store: () => OrderStore, base: number)
       expect(results.filter((result) => result.created)).toHaveLength(1);
       expect(await store().listByWallet(WALLET_B)).toEqual([racing]);
     });
+
+    it("counts every stored order once and reports the newest", async () => {
+      const before = await store().count();
+      const newest = order(base + 5, WALLET_A, "2027-01-02T00:00:00.000Z");
+      await store().append(order(base + 6, WALLET_B, "2027-01-01T00:00:00.000Z"));
+      await store().append(newest);
+      await store().append(newest);
+      expect(await store().count()).toEqual({ total: before.total + 2, latestAt: "2027-01-02T00:00:00.000Z" });
+    });
   });
 }
 
@@ -80,6 +89,17 @@ describe("file order store", () => {
   afterAll(() => rm(directory, { recursive: true, force: true }));
 
   orderStoreContract("contract", () => store, 100);
+
+  it("counts nothing before the first order is written", async () => {
+    expect(await createFileOrderStore(path.join(directory, "missing", "orders.json")).count()).toEqual({ total: 0, latestAt: null });
+  });
+
+  it("counts orders without a valid date but leaves them out of the newest", async () => {
+    const file = path.join(directory, "undated", "orders.json");
+    await mkdir(path.dirname(file), { recursive: true });
+    await writeFile(file, JSON.stringify([order(150, WALLET_A, "2026-09-30T08:00:00Z"), { ...order(151, WALLET_A), createdAt: "not a date" }]));
+    expect(await createFileOrderStore(file).count()).toEqual({ total: 2, latestAt: "2026-09-30T08:00:00.000Z" });
+  });
 
   it("writes a JSON array that a new store instance reads back", async () => {
     const file = path.join(directory, "nested", "orders.json");
@@ -117,6 +137,16 @@ describe.skipIf(!wranglerRuns)("D1 order store", () => {
     await store.append(order(297, wallet, "2026-10-01T09:00:00.000Z"));
     expect((await store.listByWallet(wallet)).map((item) => item.id)).toEqual(["DR-TEST-297", "DR-TEST-298"]);
   });
+
+  it("counts an empty database as zero orders", async () => {
+    const { getPlatformProxy } = await import("wrangler");
+    const fresh = await getPlatformProxy({ configPath: "wrangler.jsonc", persist: false });
+    try {
+      expect(await createD1OrderStore(fresh.env.ORDERS_DB as D1Like).count()).toEqual({ total: 0, latestAt: null });
+    } finally {
+      await fresh.dispose();
+    }
+  }, 60_000);
 });
 
 describe("getOrderStore", () => {
