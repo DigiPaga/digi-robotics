@@ -10,8 +10,9 @@ export function Eyebrow({ children }: { children: ReactNode }) {
   return <p className="font-mono text-[12px] font-medium uppercase tracking-[0.18em] text-[var(--primary)] sm:text-[13px]">{children}</p>;
 }
 
-export function SectionTitle({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <h2 className={`max-w-4xl font-heading text-[clamp(2.45rem,5vw,5.4rem)] font-medium leading-[.94] tracking-[-.045em] text-[var(--foreground)] ${className}`}>{children}</h2>;
+export function SectionTitle({ children, className = "", as = "h2" }: { children: ReactNode; className?: string; as?: "h1" | "h2" | "h3" }) {
+  const Tag = as;
+  return <Tag className={`max-w-4xl font-heading text-[clamp(2.45rem,5vw,5.4rem)] font-medium leading-[.94] tracking-[-.045em] text-[var(--foreground)] ${className}`}>{children}</Tag>;
 }
 
 export function PrimaryLink({ children, className = "", ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) {

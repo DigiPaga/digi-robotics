@@ -38,10 +38,47 @@ export const metadata: Metadata = {
   },
 };
 
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "DigiRobotics",
+  url: "https://digirobotics.xyz",
+  logo: "https://digirobotics.xyz/digirobotics/brand/digirobotics-logo.png",
+  description: "Egocentric data for robotics training, captured through human eyes.",
+};
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "DigiRobotics.xyz",
+  url: "https://digirobotics.xyz",
+};
+
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en">
       <body>
+        {/*
+          Keyboard/screen-reader users otherwise land on the sticky Navbar on every page with
+          no way to jump past it. Targets the #main-content wrapper below.
+        */}
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-[var(--primary)] focus:px-5 focus:py-3 focus:text-[15px] focus:font-semibold focus:text-[var(--page-bg)]">
+          Skip to content
+        </a>
+        {/*
+          Reveal (components/ui/Reveal.tsx) hides its content behind an inline opacity:0 style
+          until framer-motion's client-side animation runs. Without JavaScript that animation
+          never fires, so this noscript-only rule (inert while scripting is enabled, and
+          `!important` beats the inline style once it is not) keeps every `.reveal` section
+          visible for no-JS visitors.
+        */}
+        <noscript>
+          <style>{".reveal { opacity: 1 !important; transform: none !important; }"}</style>
+        </noscript>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify([organizationJsonLd, websiteJsonLd]).replace(/</g, "\\u003c") }}
+        />
         {/*
           Thirdweb used to mount only inside the sign-in modal. Closing that modal
           destroyed its React context before the embedded wallet could restore its
@@ -52,7 +89,14 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         */}
         <ThirdwebSessionProvider>
           <CartProvider>
-            <AuthFlowProvider>{children}</AuthFlowProvider>
+            <AuthFlowProvider>
+              {/*
+                A plain wrapper, not another <main>: every route already renders its own <main>,
+                and this only needs to be a stable skip-link target that does not depend on each
+                page/batch agreeing on an id.
+              */}
+              <div id="main-content">{children}</div>
+            </AuthFlowProvider>
           </CartProvider>
         </ThirdwebSessionProvider>
         <AppToaster />
