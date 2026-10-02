@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_OPS_WALLETS, parseOpsWallets, readMusdgTokens, readOpsWallets } from "./wallets";
+import { isLowBalance } from "./balances";
+import { DEFAULT_MIN_ETH, DEFAULT_OPS_WALLETS, parseOpsWallets, readMusdgTokens, readOpsWallets } from "./wallets";
 
 describe("OPS_WALLETS parsing", () => {
   it("uses the deployer and settler defaults when unset", () => {
@@ -9,7 +10,14 @@ describe("OPS_WALLETS parsing", () => {
       "0x962B67f92E9BAfc3A584fe2EA3ad871AcA3509d6",
       "0xd98aC3064B36dFb19b62558d48cB16f00105F473",
     ]);
-    expect(wallets.every((wallet) => wallet.minEth > 0)).toBe(true);
+    expect(wallets.map((wallet) => wallet.minEth)).toEqual([0.0005, 0.0005]);
+    expect(DEFAULT_MIN_ETH).toBe(0.0005);
+  });
+
+  it("keeps the default threshold testnet-sane", () => {
+    // A testnet deploy costs about 0.0002 ETH: a wallet holding a few deploys is not Low, a nearly empty one is.
+    expect(isLowBalance(10n ** 15n, DEFAULT_MIN_ETH)).toBe(false); // 0.001 ETH
+    expect(isLowBalance(2n * 10n ** 14n, DEFAULT_MIN_ETH)).toBe(true); // 0.0002 ETH
   });
 
   it("parses, checksums and dedupes a custom list", () => {

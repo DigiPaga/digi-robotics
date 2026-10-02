@@ -10,18 +10,25 @@ export interface OpsWallet {
   minEth: number;
 }
 
+/**
+ * Default low-balance threshold. Sized for the testnets the console watches, where a
+ * contract deploy costs about 0.0002 ETH: 0.0005 ETH still covers a couple of deploys
+ * or many settlements, so only a wallet that is really running dry shows Low.
+ */
+export const DEFAULT_MIN_ETH = 0.0005;
+
 export const DEFAULT_OPS_WALLETS: readonly OpsWallet[] = [
   {
     label: "Deployer",
     address: "0x962B67f92E9BAfc3A584fe2EA3ad871AcA3509d6",
     role: "Owner / deployer",
-    minEth: 0.01,
+    minEth: DEFAULT_MIN_ETH,
   },
   {
     label: "Settler",
     address: "0xd98aC3064B36dFb19b62558d48cB16f00105F473",
     role: "x402 settler (pays gas per settlement)",
-    minEth: 0.005,
+    minEth: DEFAULT_MIN_ETH,
   },
 ];
 
