@@ -1,5 +1,7 @@
 # Production Deployment Runbook
 
+> **Status:** the live deployment runs on Cloudflare Workers, not Docker Compose (see `deployment/README.md`). The steps below describe an earlier plan: the repository has no `docker-compose.prod.yml`, and the Prisma schema is not used by the running services.
+
 ## Prerequisites
 - Node.js v20+
 - Docker & Docker Compose
