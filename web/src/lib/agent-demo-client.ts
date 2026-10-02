@@ -1,3 +1,5 @@
+import { agentDemoChains, resolveAgentDemoChain } from "@/lib/agent-demo-chains";
+
 export type DemoMode = "REAL_MUSDG_X402" | "REAL_X402_TEST_ASSET" | "BLOCKED";
 export type RunState = "queued" | "preflight" | "searching" | "candidates_found" | "selected" | "requesting_resource" | "payment_required" | "validating_policy" | "signing_payment" | "retrying_request" | "verifying" | "settling" | "unlocked" | "failed";
 export type AgentLifecycleState = "idle" | "discovering" | "dataset_selected" | "payment_required" | "authorizing" | "settling" | "confirming" | "unlocked" | "failed";
@@ -80,7 +82,8 @@ export interface CompatibilityReport {
   price: string;
 }
 
-const BACKEND = (process.env.NEXT_PUBLIC_X402_BACKEND_URL ?? "http://localhost:3001").replace(/\/$/, "");
+/** Every call below takes the backend of the selected chain; the default chain's is the fallback. */
+const DEFAULT_BACKEND = resolveAgentDemoChain(agentDemoChains).backendUrl;
 
 async function readJson<T>(response: Response): Promise<T> {
   const body = await response.json().catch(() => ({}));
@@ -93,24 +96,24 @@ async function readJson<T>(response: Response): Promise<T> {
   return body as T;
 }
 
-export async function getCompatibility(): Promise<CompatibilityReport> {
-  return readJson(await fetch(`${BACKEND}/agent-demo/compatibility`, { cache: "no-store" }));
+export async function getCompatibility(backend = DEFAULT_BACKEND): Promise<CompatibilityReport> {
+  return readJson(await fetch(`${backend}/agent-demo/compatibility`, { cache: "no-store" }));
 }
 
-export async function createAgentRun(idempotencyKey: string): Promise<{ runId: string; created: boolean }> {
-  return readJson(await fetch(`${BACKEND}/agent-demo/runs`, {
+export async function createAgentRun(idempotencyKey: string, backend = DEFAULT_BACKEND): Promise<{ runId: string; created: boolean }> {
+  return readJson(await fetch(`${backend}/agent-demo/runs`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "Idempotency-Key": idempotencyKey },
     body: "{}",
   }));
 }
 
-export async function getAgentRun(runId: string): Promise<DemoRun> {
-  return readJson(await fetch(`${BACKEND}/agent-demo/runs/${encodeURIComponent(runId)}`, { cache: "no-store" }));
+export async function getAgentRun(runId: string, backend = DEFAULT_BACKEND): Promise<DemoRun> {
+  return readJson(await fetch(`${backend}/agent-demo/runs/${encodeURIComponent(runId)}`, { cache: "no-store" }));
 }
 
-export function subscribeToAgentRun(runId: string, handlers: { onEvent: (event: DemoEvent) => void; onError: () => void }): () => void {
-  const source = new EventSource(`${BACKEND}/agent-demo/runs/${encodeURIComponent(runId)}/events`);
+export function subscribeToAgentRun(runId: string, handlers: { onEvent: (event: DemoEvent) => void; onError: () => void }, backend = DEFAULT_BACKEND): () => void {
+  const source = new EventSource(`${backend}/agent-demo/runs/${encodeURIComponent(runId)}/events`);
   source.addEventListener("run", raw => {
     try {
       handlers.onEvent(JSON.parse((raw as MessageEvent).data) as DemoEvent);
