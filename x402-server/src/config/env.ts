@@ -54,6 +54,7 @@ export function loadEnv(source: EnvSource = process.env) {
   }
 
   const value = parsed.data;
+  applyChainDefaults(value, source);
   if (value.X402_MODE === "REAL_MUSDG_X402") applyMockUsdgDefaults(value, source);
   if (value.X402_MODE !== "BLOCKED" && !value.PRIVATE_KEY) {
     throw new Error("Invalid x402 server configuration: PRIVATE_KEY is required for a real buyer mode");
@@ -113,9 +114,24 @@ export function loadEnv(source: EnvSource = process.env) {
 }
 
 /**
+ * On a known network the chain id and RPC follow X402_NETWORK unless set explicitly, so a
+ * deployment only names the network instead of repeating (or forgetting) the Base Sepolia defaults.
+ */
+function applyChainDefaults(value: z.infer<typeof rawEnvSchema>, source: EnvSource): void {
+  const chain = getX402Chain(value.X402_NETWORK);
+  if (!chain) return;
+  if (source.X402_CHAIN_ID && value.X402_CHAIN_ID !== chain.chainId) {
+    throw new Error(`Invalid x402 server configuration: X402_CHAIN_ID ${value.X402_CHAIN_ID} does not match ${value.X402_NETWORK}`);
+  }
+  value.X402_CHAIN_ID = chain.chainId;
+  if (!source.X402_RPC_URL) value.X402_RPC_URL = chain.defaultRpcUrl;
+}
+
+/**
  * REAL_MUSDG_X402 settles MockUSDG on Arbitrum Sepolia or Robinhood Chain Testnet through the
- * in-process facilitator. Asset metadata, chain id and RPC default to the MockUSDG deployment on
- * the selected network; only the token address and the facilitator key must be supplied.
+ * in-process facilitator. Asset metadata defaults to the MockUSDG deployment on the selected
+ * network (chain id and RPC come from applyChainDefaults); only the token address and the
+ * facilitator key must be supplied.
  */
 function applyMockUsdgDefaults(value: z.infer<typeof rawEnvSchema>, source: EnvSource): void {
   const fail = (message: string): never => { throw new Error(`Invalid x402 server configuration: ${message}`); };
@@ -123,9 +139,6 @@ function applyMockUsdgDefaults(value: z.infer<typeof rawEnvSchema>, source: EnvS
   if (!chain?.supportsMockUsdg) fail("REAL_MUSDG_X402 requires X402_NETWORK eip155:421614 (Arbitrum Sepolia) or eip155:46630 (Robinhood Chain Testnet)");
   if (!source.X402_ASSET_ADDRESS) fail("REAL_MUSDG_X402 requires X402_ASSET_ADDRESS (the MockUSDG deployment on the selected network)");
   if (!value.X402_FACILITATOR_PRIVATE_KEY) fail("REAL_MUSDG_X402 requires X402_FACILITATOR_PRIVATE_KEY (the gas-paying settlement signer)");
-  if (source.X402_CHAIN_ID && value.X402_CHAIN_ID !== chain!.chainId) fail(`X402_CHAIN_ID ${value.X402_CHAIN_ID} does not match ${value.X402_NETWORK}`);
-  value.X402_CHAIN_ID = chain!.chainId;
-  if (!source.X402_RPC_URL) value.X402_RPC_URL = chain!.defaultRpcUrl;
   if (!source.X402_ASSET_NAME) value.X402_ASSET_NAME = MOCK_USDG_TOKEN.name;
   if (!source.X402_ASSET_VERSION) value.X402_ASSET_VERSION = MOCK_USDG_TOKEN.version;
   if (!source.X402_ASSET_SYMBOL) value.X402_ASSET_SYMBOL = MOCK_USDG_TOKEN.symbol;
