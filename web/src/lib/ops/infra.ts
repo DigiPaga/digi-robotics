@@ -135,6 +135,7 @@ const OPTIONAL_ENV: readonly { name: string; purpose: string }[] = [
   { name: "X402_PAY_TO", purpose: "Treasury row in Wallets." },
   { name: "X402_SERVER_URL", purpose: "x402 server for Marketplace and health checks." },
   { name: "NEXT_PUBLIC_X402_BACKEND_URL", purpose: "Agent demo backend. Fallback for X402_SERVER_URL." },
+  { name: "NEXT_PUBLIC_X402_BACKEND_URL_ROBINHOOD", purpose: "Agent demo backend on Robinhood Chain Testnet." },
   { name: "OPS_GITHUB_REPO", purpose: "Repository for CI status. Unset means DigiPaga/digi-robotics." },
   { name: "NEXT_PUBLIC_COMMIT_SHA", purpose: "Commit shown as the deployed build." },
   { name: "NEXT_PUBLIC_BUILD_TIME", purpose: "Build time shown next to the commit." },
