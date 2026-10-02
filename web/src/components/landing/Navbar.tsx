@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronDown, Menu, ShoppingBag, X } from "lucide-react";
+import { ChevronDown, Menu, PackageSearch, ShoppingBag, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { AuthButton } from "@/components/auth/AuthButton";
 import { primaryAction, secondaryAction } from "@/components/ui/Primitives";
@@ -14,6 +14,7 @@ const links = [
   { label: "Request custom data", href: "/#custom-data" },
   { label: "Gadgets for capture", href: "/gear" },
   { label: "Field notes", href: "/blog" },
+  { label: "Agent demo", href: "/agent-demo" },
   { label: "Your orders", href: "/orders" },
 ];
 
@@ -79,9 +80,13 @@ export function Navbar() {
           </div>
           <Link href="/gear" className="shrink-0 whitespace-nowrap py-3 text-[13px] font-medium tracking-normal text-white/80 transition-colors duration-300 ease-out hover:text-[var(--primary)]">Gadgets for capture</Link>
           <Link href="/blog" className="shrink-0 whitespace-nowrap py-3 text-[13px] font-medium tracking-normal text-white/80 transition-colors duration-300 ease-out hover:text-[var(--primary)]">Field notes</Link>
+          <Link href="/agent-demo" className="shrink-0 whitespace-nowrap py-3 text-[13px] font-medium tracking-normal text-white/80 transition-colors duration-300 ease-out hover:text-[var(--primary)]">Agent demo</Link>
         </div>
 
         <div className="hidden items-center gap-6 sm:flex">
+          <Link href="/orders" aria-label="Your orders" className="relative grid size-11 shrink-0 place-items-center rounded-full border border-white/15 text-white/75 transition-colors hover:border-[var(--primary)]/50 hover:text-[var(--primary)]">
+            <PackageSearch size={18} aria-hidden="true" />
+          </Link>
           <Link href="/checkout" aria-label={`Cart with ${itemCount} items`} className="relative grid size-11 shrink-0 place-items-center rounded-full border border-white/15 text-white/75 transition-colors hover:border-[var(--primary)]/50 hover:text-[var(--primary)]">
             <ShoppingBag size={18} aria-hidden="true" />
             {itemCount > 0 ? <span className="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-[var(--primary)] px-1 font-mono text-[9px] font-bold text-[var(--page-bg)]">{itemCount}</span> : null}
@@ -92,7 +97,7 @@ export function Navbar() {
         <button ref={menuButtonRef} aria-label="Open navigation" aria-expanded={mobileOpen} aria-controls="mobile-nav" onClick={() => setMobileOpen(true)} className="grid size-11 place-items-center rounded-full border border-white/15 xl:hidden"><Menu aria-hidden="true" size={21} /></button>
       </nav>
 
-      {mobileOpen ? <div id="mobile-nav" ref={drawerRef} className="fixed inset-x-0 top-0 z-[60] min-h-dvh bg-[#131822] p-5 xl:hidden">
+      {mobileOpen ? <div id="mobile-nav" ref={drawerRef} role="dialog" aria-modal="true" aria-label="Site navigation" className="fixed inset-x-0 top-0 z-[60] h-dvh overflow-y-auto bg-[#131822] p-5 xl:hidden">
         <div className="flex items-center justify-between border-b border-white/10 pb-5">
           <Image src="/digirobotics/brand/digirobotics-logo.png" alt="DigiRobotics" width={180} height={42} className="h-auto w-[168px]" />
           <button aria-label="Close navigation" onClick={() => setMobileOpen(false)} className="grid size-11 place-items-center rounded-full border border-white/15"><X aria-hidden="true" size={21} /></button>

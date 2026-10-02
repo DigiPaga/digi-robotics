@@ -27,10 +27,10 @@ export function ContributorSection() {
         <div className="grid grid-cols-[1fr_.28fr] gap-3">
           <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-white/10"><Image src="/digirobotics/contributor/parcel-capture.webp" alt="First-person view of a contributor packing a parcel" fill sizes="(max-width: 1024px) 75vw, 45vw" className="object-cover" /></div>
           <div className="flex flex-col gap-3">
-            {["ASSIGN", "CAPTURE", "REVIEW", "ACCEPT"].map((item, index) => <div key={item} className="flex flex-1 flex-col justify-between rounded-xl border border-white/10 bg-[#1a202d] p-3"><span className="font-mono text-[10px] text-[var(--primary)]">0{index + 1}</span><span className="font-mono text-[9px] uppercase tracking-[.1em] [writing-mode:vertical-rl] text-white/65">{item}</span></div>)}
+            {["ASSIGN", "CAPTURE", "REVIEW", "ACCEPT"].map((item, index) => <div key={item} className="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-white/10 bg-[#1a202d] p-3"><span className="font-mono text-[10px] text-[var(--primary)]">0{index + 1}</span><span className="font-mono text-[9px] uppercase tracking-[.1em] [writing-mode:vertical-rl] text-white/65">{item}</span></div>)}
           </div>
         </div>
-        <div className="absolute -bottom-5 -left-3 rounded-xl border border-[var(--primary)]/30 bg-[#11170f] px-4 py-3 font-mono text-[10px] uppercase tracking-[.15em] text-[var(--primary)] shadow-xl">Human signal / verified task</div>
+        <div className="absolute -bottom-5 left-3 max-w-[calc(100%-1.5rem)] rounded-xl border border-[var(--primary)]/30 bg-[#11170f] px-4 py-3 font-mono text-[10px] uppercase tracking-[.15em] text-[var(--primary)] shadow-xl sm:-left-3 sm:max-w-none">Human signal / verified task</div>
       </Reveal>
     </div>
   </section>;
