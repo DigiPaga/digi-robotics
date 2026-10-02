@@ -56,4 +56,27 @@ contract AgentRegistryV2Test is Test {
         vm.expectRevert("Pausable: paused");
         registry.registerAgent(agent, "robot", "ipfs://hash");
     }
+
+    function test_VerifyAgent() public {
+        vm.prank(owner);
+        registry.registerAgent(agent, "robot", "ipfs://hash");
+
+        // setUp() deploys `registry` from this test contract, so this contract is the
+        // Pausable-defined registry owner.
+        registry.verifyAgent(agent, keccak256("verification_data"));
+    }
+
+    function test_RevertWhen_VerifyAgentCalledByNonOwner() public {
+        vm.prank(owner);
+        registry.registerAgent(agent, "robot", "ipfs://hash");
+
+        vm.prank(owner);
+        vm.expectRevert("Not registry owner");
+        registry.verifyAgent(agent, keccak256("verification_data"));
+    }
+
+    function test_RevertWhen_VerifyAgentNotRegistered() public {
+        vm.expectRevert("Agent not registered");
+        registry.verifyAgent(agent, keccak256("verification_data"));
+    }
 }

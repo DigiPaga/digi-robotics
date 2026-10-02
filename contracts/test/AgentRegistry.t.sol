@@ -38,9 +38,23 @@ contract AgentRegistryTest is Test {
     function test_VerifyAgent() public {
         vm.prank(owner);
         registry.registerAgent(agentAddress, "robot", "ipfs://hash");
-        
+
         bytes32 mockHash = keccak256("verification_data");
+        vm.prank(owner);
         registry.verifyAgent(agentAddress, mockHash);
         // Si llega aquí sin revertir, el evento se emitió correctamente
+    }
+
+    function test_RevertWhen_VerifyAgentCalledByNonRegistrant() public {
+        vm.prank(owner);
+        registry.registerAgent(agentAddress, "robot", "ipfs://hash");
+
+        vm.expectRevert("Not agent owner");
+        registry.verifyAgent(agentAddress, keccak256("verification_data"));
+    }
+
+    function test_RevertWhen_VerifyAgentNotRegistered() public {
+        vm.expectRevert("Agent not registered");
+        registry.verifyAgent(agentAddress, keccak256("verification_data"));
     }
 }

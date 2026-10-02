@@ -4,8 +4,19 @@ pragma solidity ^0.8.20;
 import "./interfaces/IAgentRegistry.sol";
 
 /// @title AgentRegistry
-/// @notice Manages the registration and verification of AI agents following ERC-8004 standards.
-/// @dev Implements access control and emits events for all state changes.
+/// @notice A minimal on-chain registry: any address can register an AI agent identity and record
+///         agent metadata.
+/// @dev This contract takes inspiration from the ERC-8004 "agent identity" concept but does NOT
+///      implement the ERC-8004 standard: there is no validator or reputation registry, no trust
+///      model, and no feedback mechanism. `verifyAgent` (below) is a restricted self-attestation,
+///      not independent third-party verification. `isAgentActive`/`getAgentIdentity` should be
+///      read as registry bookkeeping, not as a compliance or security guarantee.
+///
+///      Known limitation (not fixed here, see `registerAgent`): nothing proves the caller
+///      controls `agentAddress`, so any address can be registered by any caller
+///      ("address squatting"). Acceptable for a demo registry; a production identity system
+///      would need the registrant to present a signature from `agentAddress` (e.g. EIP-191 over
+///      a registration message) before accepting the registration.
 contract AgentRegistry is IAgentRegistry {
     uint256 private _nextAgentId;
     mapping(address => AgentIdentity) private _agents;
@@ -15,6 +26,7 @@ contract AgentRegistry is IAgentRegistry {
     event AgentVerified(address indexed agentAddress, bytes32 indexed verificationHash, uint256 timestamp);
 
     /// @notice Registers a new AI agent in the system.
+    /// @dev Does not verify that the caller controls `agentAddress` (see contract-level natspec).
     /// @param agentAddress The Ethereum address of the agent.
     /// @param agentType The type of agent (e.g., "vps", "robot", "mobile").
     /// @param metadataURI IPFS URI containing the agent's metadata.
@@ -38,11 +50,17 @@ contract AgentRegistry is IAgentRegistry {
         return agentId;
     }
 
-    /// @notice Verifies an agent's action or data.
+    /// @notice Lets the agent's registrant mark the agent as verified.
+    /// @dev Restricted self-attestation, not independent verification: the only check is that
+    ///      `msg.sender` is the address that originally called `registerAgent` for
+    ///      `agentAddress` (`_agents[agentAddress].owner`). It proves nothing about the agent's
+    ///      behavior or about `verificationHash` itself; it only stops an unrelated third party
+    ///      from emitting `AgentVerified` events for agents it does not control.
     /// @param agentAddress The address of the agent to verify.
     /// @param verificationHash The hash of the data or action being verified.
     function verifyAgent(address agentAddress, bytes32 verificationHash) external override {
         require(_isActive[agentAddress], "Agent not registered");
+        require(msg.sender == _agents[agentAddress].owner, "Not agent owner");
         emit AgentVerified(agentAddress, verificationHash, block.timestamp);
     }
 
