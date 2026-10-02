@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Braces, CircleDot, Radio } from "lucide-react";
-import { AgentDemoConsole } from "@/components/agent-demo/AgentDemoConsole";
+import { AgentDemo } from "@/components/agent-demo/AgentDemo";
 
 export const metadata: Metadata = {
   title: "Real x402 Agent Demo — DigiRobotics",
@@ -21,7 +21,7 @@ export default function AgentDemoPage() {
         <h1 className="mt-6 max-w-6xl font-display text-[clamp(3.4rem,9vw,8.7rem)] font-bold leading-[.83] tracking-[-.065em]">AN AGENT JUST BOUGHT <span className="text-[var(--primary)]">ROBOT VISION.</span></h1>
         <div className="mt-9 flex max-w-4xl flex-col gap-5 border-l border-[var(--primary)]/50 pl-5 sm:flex-row sm:items-center sm:justify-between sm:pl-7"><p className="max-w-2xl text-base leading-7 text-white/70 sm:text-lg">Real discovery. Deterministic policy. A genuine x402 v2 challenge, authorization, facilitator settlement, and gated dataset unlock.</p><p className="shrink-0 font-mono text-[10px] uppercase leading-5 tracking-[.14em] text-white/40">Configured testnet<br />USDG-compatible · exact</p></div>
       </header>
-      <AgentDemoConsole />
+      <AgentDemo />
     </main>
   );
 }
