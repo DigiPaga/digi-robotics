@@ -2,7 +2,14 @@
   "MockUSDG": "0xBbB4155d20D739faABC3af41A3344FAEfD76dDD4",
   "X402Facilitator": "0xB7D6F2aC244C8562CEd113AAf1a1A41C253FE816",
   "chainId": 421614,
+  "deployBlocks": {
+    "MockUSDG": 314673947,
+    "X402Facilitator": 314673957
+  },
   "deployer": "0x962B67f92E9BAfc3A584fe2EA3ad871AcA3509d6",
+  "deployerIsSettler": true,
   "eip712Name": "Mock USDG (Demo)",
-  "eip712Version": "1"
+  "eip712Version": "1",
+  "owner": "0x962B67f92E9BAfc3A584fe2EA3ad871AcA3509d6",
+  "settler": "0xd98aC3064B36dFb19b62558d48cB16f00105F473"
 }
