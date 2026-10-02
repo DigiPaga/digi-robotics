@@ -2,12 +2,23 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ReentrancyGuardTransient} from "@openzeppelin/contracts/utils/ReentrancyGuardTransient.sol";
 import "./interfaces/IAgentRegistry.sol";
 import "./utils/Pausable.sol";
 import "./libraries/SafeTransfer.sol";
 
-contract RoboticsMarketplaceV2 is Pausable {
+/// @title RoboticsMarketplaceV2
+/// @notice Dual-rail marketplace for listing and purchasing robotics training data, with fees.
+/// @dev `purchaseWithAgent` follows checks-effects-interactions (state is finalized before any
+///      token transfer) and is additionally guarded by `nonReentrant`. The guard uses transient
+///      storage (`ReentrancyGuardTransient`), the same primitive `X402Facilitator` uses in this
+///      repository, which requires the Cancun EVM target already configured in `foundry.toml`.
+contract RoboticsMarketplaceV2 is Pausable, ReentrancyGuardTransient {
     using SafeTransfer for IERC20;
+
+    /// @notice Upper bound on `batchListAssets` array length, to keep a single batch call within
+    ///         a sane gas budget instead of letting the caller self-grief an unbounded loop.
+    uint256 public constant MAX_BATCH_LIST_SIZE = 50;
 
     IERC20 public immutable paymentToken;
     IAgentRegistry public immutable agentRegistry;
@@ -60,27 +71,38 @@ contract RoboticsMarketplaceV2 is Pausable {
         emit AssetListed(assetId, seller, price);
     }
 
-    function purchaseWithAgent(uint256 assetId, address agentAddress) external whenNotPaused {
+    /// @notice Purchases an asset on behalf of a verified AI agent.
+    /// @dev Checks-effects-interactions: `asset.isSold` is finalized before any token transfer is
+    ///      attempted, and `nonReentrant` blocks any reentrant call into this contract for the
+    ///      duration of the transfers, in case `paymentToken` has transfer hooks.
+    function purchaseWithAgent(uint256 assetId, address agentAddress) external whenNotPaused nonReentrant {
         Asset storage asset = assets[assetId];
         require(!asset.isSold, "Asset already sold");
         require(agentRegistry.isAgentActive(agentAddress), "Invalid agent");
 
         uint256 fee = (asset.price * feePercentage) / 10000;
         uint256 sellerAmount = asset.price - fee;
+        address seller = asset.seller;
+        uint256 price = asset.price;
 
-        paymentToken.safeTransferFrom(msg.sender, address(this), asset.price);
-        
+        asset.isSold = true;
+        emit AssetPurchased(assetId, msg.sender, agentAddress, price);
+
+        paymentToken.safeTransferFrom(msg.sender, address(this), price);
+
         if (fee > 0) {
             paymentToken.safeTransfer(feeRecipient, fee);
         }
-        paymentToken.safeTransfer(asset.seller, sellerAmount);
-
-        asset.isSold = true;
-        emit AssetPurchased(assetId, msg.sender, agentAddress, asset.price);
+        paymentToken.safeTransfer(seller, sellerAmount);
     }
 
+    /// @notice Lists several assets in a single call.
+    /// @dev Capped at `MAX_BATCH_LIST_SIZE` entries so a single batch cannot blow past a sane gas
+    ///      budget; this only protects the caller from self-inflicted gas griefing, since each
+    ///      listing in the batch is attributed to `msg.sender` as seller.
     function batchListAssets(string[] calldata ipfsURIs, uint256[] calldata prices) external whenNotPaused {
         require(ipfsURIs.length == prices.length, "Length mismatch");
+        require(ipfsURIs.length <= MAX_BATCH_LIST_SIZE, "Batch too large");
         for (uint256 i = 0; i < ipfsURIs.length; i++) {
             _listAsset(msg.sender, ipfsURIs[i], prices[i]);
         }
