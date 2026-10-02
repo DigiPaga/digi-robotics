@@ -22,12 +22,14 @@ The `/agent-demo` route demonstrates a complete **x402 v2 payment cycle** across
 
 1. An unpaid resource request receives a machine-readable **HTTP 402 Payment Required** response.
 2. A deterministic server-side agent validates the payment against strict spending policies.
-3. The agent signs an **EIP-3009 `transferWithAuthorization`** authorization using **EIP-712** typed data for test stablecoins.
+3. The agent signs an **EIP-3009 `transferWithAuthorization`** authorization using **EIP-712** typed data for MockUSDG (`mUSDG`), the project's test stablecoin.
 4. The agent retries the protected resource with the x402 payment signature.
-5. The x402 facilitator verifies and settles the payment on-chain.
+5. The x402 facilitator verifies the payment and settles it on-chain through the `X402Facilitator` contract.
 6. Only after confirmed settlement does the server issue a short-lived signed URL for the protected robotics dataset.
 
-> **Dual-rail architecture:** The autonomous-agent demo uses x402 with test stablecoins on Robinhood Chain Testnet and Arbitrum Sepolia. The human checkout flow uses direct mUSDG transfers through ZeroDev embedded wallets on Arbitrum Sepolia.
+> **Dual-rail architecture:** The autonomous-agent demo uses x402 with MockUSDG (`mUSDG`, EIP-3009) on Robinhood Chain Testnet (`46630`) and Arbitrum Sepolia (`421614`). The human checkout flow uses direct mUSDG transfers through ZeroDev embedded wallets on Arbitrum Sepolia.
+
+> **Live deployment:** The web app runs at [digirobotics.xyz](https://digirobotics.xyz) and the x402 server at [x402.digirobotics.xyz](https://x402.digirobotics.xyz), both on Cloudflare Workers. An x402 server instance settles on one network, so there are two: [x402.digirobotics.xyz](https://x402.digirobotics.xyz) for Arbitrum Sepolia and [x402-rh.digirobotics.xyz](https://x402-rh.digirobotics.xyz) for Robinhood Chain Testnet (see [`x402-server/wrangler.jsonc`](x402-server/wrangler.jsonc)). The chain switch on `/agent-demo` picks between them.
 
 📖 **Full runbook:** [`x402-server/docs/AGENT_DEMO_RUNBOOK.md`](x402-server/docs/AGENT_DEMO_RUNBOOK.md)
 
@@ -44,6 +46,7 @@ The `/agent-demo` route demonstrates a complete **x402 v2 payment cycle** across
 - [Tech Stack](#tech-stack)
 - [Smart Contracts](#smart-contracts)
 - [Getting Started](#getting-started)
+- [Testing](#testing)
 - [Project Structure](#project-structure)
 - [Sponsors and Integrations](#sponsors)
 - [Team](#team)
@@ -79,7 +82,7 @@ As a result, valuable human dexterity data remains difficult to source while bil
 **DigiRobotics** connects human contributors, robotics teams, datasets, and autonomous agents through two purpose-built payment rails:
 
 1. **Agentic Commerce**  
-   A real x402 v2 `exact` payment flow using test stablecoins on Robinhood Chain Testnet and Arbitrum Sepolia. A server-side agent discovers a dataset, validates its payment requirements, signs an EIP-3009 authorization, and unlocks the resource after confirmed settlement.
+   A real x402 v2 `exact` payment flow using MockUSDG (`mUSDG`) on Robinhood Chain Testnet and Arbitrum Sepolia. A server-side agent discovers a dataset, validates its payment requirements, signs an EIP-3009 authorization, and unlocks the resource after confirmed settlement.
 
 2. **Human Checkout**  
    A Thirdweb and ZeroDev embedded-wallet experience using direct mUSDG transfers on Arbitrum Sepolia, with no seed phrases required.
@@ -104,10 +107,10 @@ Together, these rails create a marketplace where humans can capture and monetize
 ### For Human Contributors
 
 - ✅ **Zero-friction onboarding:** Embedded wallets without seed phrases.
-- ✅ **Egocentric capture:** Contributors can upload first-person robotics training videos.
-- ✅ **Stablecoin rewards:** Contributors can receive USDG or PYUSD after validation.
-- ✅ **Telegram ingestion:** Videos can be submitted through the DigiRobotics Telegram bot.
-- ✅ **Campaign discovery:** Contributors can find capture tasks requested by robotics teams.
+- 🧪 **Egocentric capture:** Contributors can upload first-person robotics training videos (prototype, through the Telegram bot).
+- 🚧 **Stablecoin rewards:** Contributors can receive USDG or PYUSD after validation (planned; this repository has no payout flow yet).
+- 🧪 **Telegram ingestion:** Videos can be submitted through the DigiRobotics Telegram bot (prototype; it starts only with the Node server when `TELEGRAM_BOT_TOKEN` is set).
+- 🚧 **Campaign discovery:** Contributors can find capture tasks requested by robotics teams (planned).
 
 ### For Robotics Teams
 
@@ -119,7 +122,7 @@ Together, these rails create a marketplace where humans can capture and monetize
 ### For Developers
 
 - ✅ **Full TypeScript stack:** Shared types across the frontend and backend.
-- ✅ **Foundry-based contracts:** Solidity testing, deployment, fuzzing, and invariant testing.
+- ✅ **Foundry-based contracts:** Solidity testing, deployment, and fuzzing.
 - ✅ **Modular architecture:** Clear separation between the frontend, agent runtime, payment policy, protected resources, contracts, and storage.
 - ✅ **Fail-closed configuration:** Missing payment or wallet configuration does not expose protected content.
 
@@ -139,7 +142,7 @@ flowchart LR
     D["Server-Side<br/>x402 Buyer"]
     E{"Protected Dataset<br/>Resource"}
     F["x402<br/>Facilitator"]
-    G[("Robinhood Chain Testnet<br/>and Arbitrum Sepolia<br/>Test Stablecoins")]
+    G[("Robinhood Chain Testnet<br/>and Arbitrum Sepolia<br/>MockUSDG (mUSDG)")]
     H[("Protected Dataset<br/>Storage")]
 
     A -->|"Create run"| B
@@ -263,7 +266,7 @@ No agent private key is exposed to the browser.
 
 The agent retries the protected resource with the x402 payment signature.
 
-The facilitator verifies the authorization and settles the payment on Robinhood Chain Testnet or Arbitrum Sepolia, depending on the selected resource and configured payment rail.
+The facilitator verifies the authorization and settles the payment through the `X402Facilitator` contract on Robinhood Chain Testnet or Arbitrum Sepolia, depending on the network the server is configured for (`X402_NETWORK`).
 
 ### 7. Fulfillment
 
@@ -299,15 +302,16 @@ The frontend receives genuine backend events through Server-Sent Events and disp
 
 | Layer | Technologies |
 |---|---|
-| Smart contracts | Foundry, Solidity 0.8.20, EIP-712, EIP-3009, ERC-8004 |
+| Smart contracts | Foundry, Solidity 0.8.24, EIP-712, EIP-3009, ERC-8004 |
 | Backend | Node.js, Express.js, TypeScript, x402 v2 |
 | Frontend | Next.js 16, React 19, Tailwind CSS 4 |
-| Web3 | Viem, Wagmi v2 |
-| Account abstraction | ZeroDev SDK, ERC-4337 session keys |
+| Web3 | Viem |
+| Account abstraction | ZeroDev SDK, ERC-4337 Kernel accounts (session keys planned) |
 | Authentication | Thirdweb |
-| Storage | Pinata and IPFS |
-| RPC infrastructure | QuickNode |
-| Analytics | Dune Analytics |
+| Storage | Pinata and IPFS (Telegram capture prototype) |
+| RPC infrastructure | Public RPC endpoints (QuickNode planned) |
+| Analytics | Dune Analytics (planned) |
+| Hosting | Cloudflare Workers |
 | CI/CD | GitHub Actions |
 
 ---
@@ -321,13 +325,22 @@ The frontend receives genuine backend events through Server-Sent Events and disp
 | Network | Component | Purpose |
 |---|---|---|
 | Arbitrum Sepolia | MockUSDG (`mUSDG`) | Human marketplace checkout asset |
-| Arbitrum Sepolia | ZeroDev smart account | Embedded account experience and session keys |
+| Arbitrum Sepolia | ZeroDev smart account | Embedded account experience (session keys planned) |
 | Arbitrum Sepolia | Thirdweb authentication | User authentication and onboarding |
-| Arbitrum Sepolia | Test stablecoin payment rail | Testnet x402 and direct payment experimentation |
-| Robinhood Chain Testnet | Test USDG or PYUSD | Agentic x402 payment asset |
+| Arbitrum Sepolia | MockUSDG (`mUSDG`, EIP-3009) | Agentic x402 payment asset |
+| Robinhood Chain Testnet | MockUSDG (`mUSDG`, EIP-3009) | Agentic x402 payment asset |
 | Robinhood Chain Testnet | Server-side agent wallet | Signs bounded EIP-3009 payment authorizations |
-| Robinhood Chain Testnet and Arbitrum Sepolia | x402 facilitator integration | Payment verification and settlement |
+| Robinhood Chain Testnet and Arbitrum Sepolia | `X402Facilitator` contract | Payment verification and settlement |
 | Mainnet — planned | Production USDG and PYUSD | Production settlement for robotics data purchases |
+
+The x402 contracts are deployed at the same addresses on Arbitrum Sepolia (`421614`) and Robinhood Chain Testnet (`46630`), as recorded in [`contracts/deployments`](contracts/deployments):
+
+| Contract | Address |
+|---|---|
+| MockUSDG (`mUSDG`, EIP-3009) | `0xBbB4155d20D739faABC3af41A3344FAEfD76dDD4` |
+| `X402Facilitator` | `0xB7D6F2aC244C8562CEd113AAf1a1A41C253FE816` |
+
+The human checkout still uses the first MockUSDG on Arbitrum Sepolia (`0x39271d08C111912B1F32465745f3123a878C83Bb`, a plain ERC-20 without EIP-3009) unless `NEXT_PUBLIC_MOCK_USDG_ADDRESS_ARBITRUM_SEPOLIA` or `NEXT_PUBLIC_MOCK_USDG_ADDRESS` is set at build time. See [`web/src/lib/stablecoinConfig.ts`](web/src/lib/stablecoinConfig.ts).
 
 ### Legacy and Prototype Contracts
 
@@ -335,7 +348,7 @@ The frontend receives genuine backend events through Server-Sent Events and disp
 |---|---|---|
 | `AgentRegistry` | ERC-8004 agent identity management | Arbitrum Sepolia, Robinhood Chain Testnet |
 | `RoboticsMarketplace` | Dataset listing and purchase logic | Arbitrum Sepolia, Robinhood Chain Testnet |
-| `AssetVault` | Escrow and IPFS delivery | Arbitrum Sepolia, Robinhood Chain Testnet |
+| `AssetVault` | Asset URI storage | No deployment recorded in this repository |
 
 ---
 
@@ -372,6 +385,8 @@ x402-server/.env
 ```
 
 Do not commit real wallet keys, bot tokens, or API credentials.
+
+`.env.example` ships with the `REAL_X402_TEST_ASSET` mode enabled, which pays in Base Sepolia test USDC through the public x402.org facilitator. To run the same rail as the live deployment, switch to the commented `REAL_MUSDG_X402` block in that file.
 
 ### 3. Install Frontend Dependencies
 
@@ -452,6 +467,47 @@ For the complete funding, configuration, and verification procedure, see:
 
 [`x402-server/docs/AGENT_DEMO_RUNBOOK.md`](x402-server/docs/AGENT_DEMO_RUNBOOK.md)
 
+### Operator Console
+
+A private operator console is served at `/ops`. It requires Google sign-in and an email allowlist; the variables are documented in [`web/.env.example`](web/.env.example).
+
+---
+
+<a id="testing"></a>
+
+## 🧪 Testing
+
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs four jobs on every push and pull request to `main`: `web`, `contracts`, `x402-server`, and `x402-e2e`, an end-to-end mUSDG x402 flow on a local Anvil chain. The same checks run locally:
+
+```bash
+# web: lint, unit tests, production build
+cd web
+npm ci
+npm run lint
+npm test
+npm run build
+```
+
+```bash
+# contracts: needs Foundry and the git submodules
+git submodule update --init --recursive
+cd contracts
+forge build
+forge test -vvv
+```
+
+```bash
+# x402-server: unit and integration tests
+cd x402-server
+npm ci
+npm test
+
+# x402-server: end-to-end on Anvil, needs Foundry on PATH
+npm run test:e2e
+```
+
+`x402-server` also provides `npm run typecheck` and `npm run lint`, which CI does not run.
+
 ---
 
 <a id="project-structure"></a>
@@ -503,9 +559,9 @@ DigiRobotics uses infrastructure and tooling from the following ecosystem partne
 | Paxos | USDG and PYUSD stablecoin ecosystem |
 | ZeroDev | ERC-4337 account abstraction |
 | Thirdweb | Authentication and wallet onboarding |
-| QuickNode | High-performance RPC infrastructure |
-| Pinata | IPFS storage and controlled dataset delivery |
-| Dune Analytics | On-chain marketplace analytics |
+| QuickNode | High-performance RPC infrastructure (planned; the code uses public RPC endpoints) |
+| Pinata | IPFS storage for the Telegram capture prototype |
+| Dune Analytics | On-chain marketplace analytics (planned) |
 
 ---
 
@@ -532,7 +588,7 @@ This project follows ETHSKILLS guidance for production-oriented Ethereum develop
 - ✅ **Security-first development:** Contracts and backend flows are reviewed and tested against common vulnerabilities, including reentrancy and access-control failures.
 - ✅ **Spending constraints:** Autonomous payments are restricted by explicit asset, network, recipient, host, amount, and timeout policies.
 - ✅ **Gas awareness:** Storage and computation patterns are designed with L2 execution in mind.
-- ✅ **Testing:** Foundry unit, fuzz, and invariant tests are used where applicable.
+- ✅ **Testing:** Foundry unit and fuzz tests are used where applicable.
 - ✅ **Typed transactions:** EIP-712 typed data is used for payment authorization.
 - ✅ **Secret isolation:** Agent signing credentials remain on the backend.
 - ✅ **Documentation:** Contracts and critical flows include NatSpec and implementation documentation.
@@ -541,10 +597,10 @@ This project follows ETHSKILLS guidance for production-oriented Ethereum develop
 
 - **Foundry:** Contract compilation, testing, fuzzing, and deployment.
 - **OpenZeppelin:** Standard contract implementations and security primitives.
-- **ZeroDev:** ERC-4337 smart accounts and session-key infrastructure.
+- **ZeroDev:** ERC-4337 smart accounts and sponsored transactions (session keys planned).
 - **Viem:** Typed EVM reads, writes, and receipt verification.
 - **x402:** Machine-readable HTTP payment requirements and settlement.
-- **Pinata:** IPFS storage and controlled dataset delivery.
+- **Pinata:** IPFS storage for the Telegram capture prototype.
 
 ---
 

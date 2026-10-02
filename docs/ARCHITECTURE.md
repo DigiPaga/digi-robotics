@@ -24,8 +24,8 @@ DigiPaga Marketplace is a dual-rail platform connecting AI agents and humans thr
   - X402Facilitator
 
 ### 3. Frontend
-- **Framework**: Next.js 14
-- **Web3**: Wagmi + Viem
+- **Framework**: Next.js 16
+- **Web3**: Viem + Thirdweb
 - **AA**: ZeroDev SDK
 
 ## Data Flow
@@ -34,7 +34,7 @@ DigiPaga Marketplace is a dual-rail platform connecting AI agents and humans thr
 2. **402 Response** → Payment Details
 3. **Signature** → EIP-712 Authorization
 4. **Verification** → Smart Contract
-5. **Settlement** → USDC Transfer
+5. **Settlement** → mUSDG Transfer (EIP-3009)
 6. **Delivery** → IPFS Asset
 
 ## Security

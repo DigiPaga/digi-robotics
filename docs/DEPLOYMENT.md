@@ -1,5 +1,7 @@
 # Deployment Guide
 
+> **Status:** the live deployment runs on Cloudflare Workers, not PM2, Docker, or systemd: the web app at `https://digirobotics.xyz` and the x402 servers at `https://x402.digirobotics.xyz` (Arbitrum Sepolia) and `https://x402-rh.digirobotics.xyz` (Robinhood Chain Testnet) (see `deployment/README.md`, `web/wrangler.jsonc`, and `x402-server/wrangler.jsonc`). The steps below describe an earlier self-hosting plan and have not been kept up to date.
+
 ## Prerequisites
 
 - Node.js v20+

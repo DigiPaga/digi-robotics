@@ -7,17 +7,25 @@ DigiRobotics is an agentic commerce marketplace for Physical AI training data, b
 - Frontend: Next.js 16, React 19, Tailwind CSS 4
 - Backend: Node.js, Express, x402 protocol
 - Blockchain: Arbitrum Sepolia (421614), Robinhood Chain Testnet (46630)
-- Smart Contracts: Solidity 0.8.20, Foundry
+- Smart Contracts: Solidity 0.8.24, Foundry
 - Wallets: Thirdweb Embedded Wallets, ZeroDev (ERC-4337)
-- Storage: IPFS/Pinata
-- Payments: USDC, USDG, PYUSD (stablecoins)
+- Storage: IPFS/Pinata (Telegram capture prototype)
+- Payments: MockUSDG (mUSDG) test stablecoin on both testnets; USDG and PYUSD planned for mainnet
+- Hosting: Cloudflare Workers
 
 ## Key Features
 1. Zero-friction onboarding (email/Google → embedded wallet)
 2. x402 agentic payments (HTTP 402 + EIP-3009)
-3. RWA tokenization (ERC-721/1155 for datasets)
+3. RWA tokenization (ERC-721/1155 for datasets) (planned)
 4. Multi-chain support (Arbitrum, Robinhood)
-5. Global stablecoin payouts
+5. Global stablecoin payouts (planned)
+
+## x402 Payment Rail
+- Asset: MockUSDG (mUSDG), EIP-3009, 6 decimals
+- Networks: Arbitrum Sepolia (421614), Robinhood Chain Testnet (46630)
+- MockUSDG: 0xBbB4155d20D739faABC3af41A3344FAEfD76dDD4 (same address on both networks)
+- X402Facilitator: 0xB7D6F2aC244C8562CEd113AAf1a1A41C253FE816 (same address on both networks)
+- Live x402 servers: https://x402.digirobotics.xyz (Arbitrum Sepolia) and https://x402-rh.digirobotics.xyz (Robinhood Chain Testnet)
 
 ## Repository Structure
 - /web: Next.js frontend
@@ -30,11 +38,15 @@ DigiRobotics is an agentic commerce marketplace for Physical AI training data, b
 cd web && npm install && npm run dev
 cd x402-server && npm install && npm run dev
 cd contracts && forge build
-Documentation
-README.md: Project overview
-docs/ROBINHOOD_CHAIN_SETUP.md: Robinhood Chain integration
-x402-server/docs/AGENT_DEMO_RUNBOOK.md: x402 agent demo guide
-Website
+```
+
+## Documentation
+- README.md: Project overview
+- web/docs/ROBINHOOD_CHAIN_SETUP.md: Robinhood Chain integration
+- x402-server/docs/AGENT_DEMO_RUNBOOK.md: x402 agent demo guide
+
+## Website
 https://digirobotics.xyz
-GitHub
+
+## GitHub
 https://github.com/DigiPaga/digi-robotics
