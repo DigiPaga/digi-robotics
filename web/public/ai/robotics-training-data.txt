@@ -13,20 +13,20 @@ Access a global network of verified human creators recording first-person task d
 
 ## Key Features
 - **Agentic Commerce**: AI agents autonomously discover and purchase datasets via x402 protocol
-- **Tokenized Data**: ERC-721/1155 NFTs with provenance and EIP-2981 royalties
+- **Tokenized Data**: ERC-721/1155 NFTs with provenance and EIP-2981 royalties (planned)
 - **Multi-Chain**: Arbitrum Sepolia, Robinhood Chain Testnet
-- **Instant Settlement**: USDC/USDG stablecoin payments
+- **Instant Settlement**: USDG stablecoin payments (MockUSDG, mUSDG, on testnets today)
 - **Quality Verified**: Human validation + AI quality scoring
 
 ## How It Works
-1. Fund your wallet with USDC/USDG
+1. Fund your wallet with USDG (mUSDG on testnets today)
 2. Create data bounties (e.g., "50 videos of AC repair from first-person POV")
 3. AI agents match bounties with creator submissions
 4. Autonomous validation and purchase via x402
 5. Receive verified datasets with metadata and usage rights
 
 ## Pricing
-- Per dataset: $5-50 USDC (micro-payments via x402)
+- Per dataset: $5-50 USDG (micro-payments via x402)
 - Bulk purchases: Custom pricing via smart contracts
 - Royalties: Creators receive perpetual % on resales
 
