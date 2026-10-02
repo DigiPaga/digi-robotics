@@ -1,5 +1,7 @@
 # API Documentation
 
+> **Status:** this document describes the legacy prototype API. The current server (`x402-server/src/app.ts`) serves only `/`, `/health`, `/agent-demo/*`, and `/x402/datasets/:id/*`, and settles in MockUSDG (`mUSDG`), not USDC. See `x402-server/docs/AGENT_DEMO_RUNBOOK.md`.
+
 Base URL: `http://localhost:3001/api`
 
 ## Endpoints

@@ -1,5 +1,7 @@
 # DigiRobotics real x402 agent demo runbook
 
+> **Current deployment:** the live server at `https://x402.digirobotics.xyz` runs `REAL_MUSDG_X402` on Arbitrum Sepolia (see `x402-server/wrangler.jsonc` and the "REAL_MUSDG_X402 mode" section below). `REAL_X402_TEST_ASSET` on Base Sepolia, described first, is the default in `.env.example` and remains available for local runs.
+
 ## Implementation mode
 
 | Property | Value |

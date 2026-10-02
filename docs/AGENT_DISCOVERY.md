@@ -1,5 +1,7 @@
 # Agent Discovery & Interaction Protocol (x402 + ERC-8004)
 
+> **Status:** sections 3 and 4 describe the legacy prototype API, which the current server does not serve. The live x402 flow is `GET /x402/datasets/:id/content` on `https://x402.digirobotics.xyz`, paid in MockUSDG (`mUSDG`) with EIP-3009. See `x402-server/docs/AGENT_DEMO_RUNBOOK.md`.
+
 ## 1. Overview
 DigiRobotics is a dual-rail marketplace for egocentric robotics training data. This document provides a machine-readable specification for AI agents to discover, evaluate, and purchase data autonomously.
 

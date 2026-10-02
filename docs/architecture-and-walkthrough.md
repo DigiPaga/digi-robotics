@@ -5,7 +5,7 @@
 | Decision | Rationale |
 | :--- | :--- |
 | Keep autonomous payment logic in `x402-server` | The browser never receives the buyer key or privileged payment SDK state. |
-| Use `REAL_X402_TEST_ASSET` on Base Sepolia | The public facilitator advertises x402 v2 `exact` there; deployed mUSDG is on unsupported Arbitrum Sepolia and lacks EIP-3009. |
+| Use `REAL_MUSDG_X402` on Arbitrum Sepolia and Robinhood Chain Testnet | MockUSDG implements EIP-3009 and no hosted facilitator serves these chains, so the server verifies in-process and settles through the `X402Facilitator` contract. `REAL_X402_TEST_ASSET` on Base Sepolia (test USDC, public facilitator) was the first path and remains as a local fallback. |
 | Require the `upfront` payment flow | Facilitator settlement completes before the protected route handler issues access. |
 | Use deterministic discovery and policy | The demo is reproducible and every spending condition is an explicit code boundary. |
 | Keep runs in memory for Phase 1 | It is sufficient for a single demo process; production needs durable idempotency and entitlements. |
@@ -23,8 +23,8 @@ Next.js /agent-demo
                  ├─ unpaid GET → HTTP 402
                  └─ paid GET + PAYMENT-SIGNATURE
                       └─ x402 resource server
-                           └─ public facilitator verify + settle
-                                └─ Base Sepolia test USDC
+                           └─ in-process facilitator verify + settle
+                                └─ X402Facilitator contract, MockUSDG (mUSDG)
 ```
 
 The public catalog contains descriptions, prices, and resource URLs only. Protected storage references live in a server-only registry. Successful settlement produces a five-minute signed access URL; unpaid responses never contain that URL or the protected manifest.
@@ -45,11 +45,11 @@ The public catalog contains descriptions, prices, and resource URLs only. Protec
 
 Chosen default:
 
-- A capped, allowlisted, server-side testnet agent using a public facilitator. This provides a truthful x402 demo with no browser signer exposure.
+- A capped, allowlisted, server-side testnet agent using an in-process facilitator. This provides a truthful x402 demo with no browser signer exposure.
 
 Censorship Resistance:
 
-- Risk: the Base sequencer, RPC, public facilitator, backend host, and frontend host can block the flow.
+- Risk: the Arbitrum or Robinhood Chain sequencer, RPC, backend host, and frontend host can block the flow.
 - Mitigation: protocol requests and contract addresses are documented; the SDK and app are self-hostable.
 - User escape: operators can switch RPC/facilitator only after re-running the exact capability audit; token holders retain direct wallet access.
 
@@ -73,4 +73,4 @@ Security:
 
 Accepted compromises:
 
-- Testnet assets, a public facilitator, an in-memory run store, and process-local access links are acceptable for the hackathon demo only.
+- Testnet assets, an in-process facilitator with a hot settlement key, an in-memory run store, and process-local access links are acceptable for the hackathon demo only.
