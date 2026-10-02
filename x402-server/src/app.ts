@@ -15,7 +15,7 @@ export interface AppOptions {
 export function createApp(env: AgentDemoEnv, options: AppOptions = {}) {
   const app = express();
   app.disable("x-powered-by");
-  // origin: true (reflect any Origin) is intentional, not an oversight (DR-C-11). This is a public
+  // origin: true (reflect any Origin) is intentional, not an oversight. This is a public
   // x402 resource server: every route is either unauthenticated (catalog, compatibility, health) or
   // authenticated by an x402 payment signature / download-link signature, never by a cookie or
   // session. There is nothing here for a malicious page to ride on with a victim's credentials, so

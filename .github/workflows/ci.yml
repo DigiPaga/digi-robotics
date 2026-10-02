@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ main ]
 
-# DR-C-16: least-privilege default for every job below. No job pushes, comments, or uploads
+# Least-privilege default for every job below. No job pushes, comments, or uploads
 # release assets, so read-only is enough.
 permissions:
   contents: read
@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # Non-secret placeholder so scripts/check-deploy-env.mjs and the OpenNext build have a
-      # valid, non-localhost https URL to inline (DR-C-03). The .invalid TLD (RFC 2606) makes it
+      # valid, non-localhost https URL to inline. The .invalid TLD (RFC 2606) makes it
       # obvious this is a CI-only stand-in, never a real backend; nothing in CI calls this URL.
       NEXT_PUBLIC_X402_BACKEND_URL: https://x402.ci-build.invalid
     steps:
@@ -34,7 +34,7 @@ jobs:
       - name: Test
         run: cd web && npm run test --if-present
       - name: Build deploy artifact
-        # DR-C-03: this is `npm run deploy` (web/package.json) minus the final `opennextjs-cloudflare
+        # This is `npm run deploy` (web/package.json) minus the final `opennextjs-cloudflare
         # deploy`, so CI actually builds what gets shipped instead of the plain `next build` that a
         # broken OpenNext adapter config could pass right through. It does not call any Cloudflare
         # API and needs no account credentials.
@@ -76,7 +76,7 @@ jobs:
       - name: Lint
         run: cd x402-server && npm run lint
       - name: Typecheck worker entrypoint
-        # DR-C-03: validates src/worker.ts (the Worker entrypoint, not src/server.ts) against the
+        # Validates src/worker.ts (the Worker entrypoint, not src/server.ts) against the
         # generated Cloudflare Workers types, which the plain `npm test` job never touched.
         run: cd x402-server && npm run typecheck:worker
       - name: Test

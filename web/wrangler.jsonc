@@ -16,9 +16,7 @@
 		{ "pattern": "digirobotics.xyz/*", "zone_name": "digirobotics.xyz" },
 		{ "pattern": "www.digirobotics.xyz/*", "zone_name": "digirobotics.xyz" }
 	],
-	// DR-C-07: nothing in this repo or the workspace deploy docs (DEPLOY-CLOUDFLARE.md,
-	// OPS-DASHBOARD.md, .env.example files, web/src/app/ops, web/src/lib/ops) references
-	// *.workers.dev for this Worker; the zone routes above are the only intended entry point.
+	// Nothing references *.workers.dev for this Worker; the zone routes above are the only intended entry point.
 	"workers_dev": false,
 	"preview_urls": false,
 	// Orders written by POST /api/orders.
