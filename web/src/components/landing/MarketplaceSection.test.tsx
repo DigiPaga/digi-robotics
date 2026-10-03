@@ -30,6 +30,7 @@ describe("MarketplaceSection", () => {
     expect(images).toHaveLength(9);
     // next/image renders through the optimizer, so the local source path is URL-encoded
     // (e.g. /_next/image?url=%2Fmarketplace%2F...). Assert the un-encoded segment instead.
-    for (const image of images) expect(image.getAttribute("src")).toContain("marketplace");
+    for (const image of images)
+      expect(image.getAttribute("src")).toContain("marketplace");
   });
 });
