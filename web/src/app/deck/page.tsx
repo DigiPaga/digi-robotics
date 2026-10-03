@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export const metadata = {
   title: "DigiRobotics Pitch Deck",
   description: "The future of agentic commerce and Physical AI training data.",
@@ -18,12 +20,12 @@ export default function DeckPage() {
             Final presentation loading... 
           </p>
         </div>
-        <a 
-          href="/" 
+        <Link
+          href="/"
           className="inline-block mt-8 px-6 py-3 bg-[#84cc16] text-[#0e1118] font-bold rounded-lg hover:bg-[#65a30d] transition-colors"
         >
           ← Back to Homepage
-        </a>
+        </Link>
       </div>
     </main>
   );
