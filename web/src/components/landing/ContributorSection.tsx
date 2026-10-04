@@ -7,7 +7,7 @@ import { Reveal } from "@/components/ui/Reveal";
 const steps = [
   ["01", "LOGIN —", "Create your profile, register for upcoming campaigns.", Radio],
   ["02", "CAPTURE —", "Record approved first-person tasks using a phone or supported camera.", Upload],
-  ["03", "EARN —", "Receive USDG or PYUSD after acceptance.", WalletCards],
+  ["03", "EARN —", "Receive USDG after acceptance.", WalletCards],
 ] as const;
 
 export function ContributorSection() {
