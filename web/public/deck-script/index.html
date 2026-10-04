@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="robots" content="noindex">
+<title>DigiRobotics — speaker script</title>
+<style>
+  :root{--page:#0e1118;--ink:#fff;--body:#d6d9df;--muted:#8b93a3;--lime:#84cc16;--hair:rgba(255,255,255,.12)}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:var(--page);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overscroll-behavior:none}
+  #app{display:flex;flex-direction:column;height:100dvh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+  header{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--hair);font:600 13px/1 ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  header .mode{display:flex;gap:6px;margin-left:auto}
+  header button{font:inherit;color:var(--muted);background:none;border:1px solid var(--hair);border-radius:999px;padding:8px 12px}
+  header button.on{color:#0e1118;background:var(--lime);border-color:var(--lime)}
+  #bar{height:3px;background:var(--hair)}#bar i{display:block;height:100%;background:var(--lime);width:0;transition:width .2s}
+  main{flex:1;overflow-y:auto;padding:18px 20px 28px}
+  .n{font:600 13px/1 ui-monospace,Menlo,monospace;letter-spacing:.1em;color:var(--lime);text-transform:uppercase}
+  h1{font-size:30px;line-height:1.1;margin:8px 0 6px;letter-spacing:-.01em}
+  .hint{font:500 14px/1.35 ui-monospace,Menlo,monospace;color:var(--muted);margin:0 0 16px}
+  .hint b{color:var(--lime);font-weight:600}
+  .say{font-size:var(--fs,25px);line-height:1.42;color:var(--body);margin:0 0 14px}
+  .do{font-size:calc(var(--fs,25px) - 5px);line-height:1.4;color:var(--ink);background:rgba(132,204,22,.1);border-left:3px solid var(--lime);padding:10px 12px;margin:0 0 12px;border-radius:0 8px 8px 0}
+  pre{font:500 13px/1.45 ui-monospace,Menlo,monospace;white-space:pre-wrap;word-break:break-all;background:#161c29;border:1px solid var(--hair);border-radius:8px;padding:10px;color:#cfe8a6;margin:0 0 12px}
+  footer{display:flex;gap:10px;padding:10px 16px;border-top:1px solid var(--hair)}
+  footer button{flex:1;font:700 18px/1 inherit;padding:18px 0;border-radius:12px;border:1px solid var(--hair);background:#161c29;color:var(--ink)}
+  footer button.next{background:var(--lime);color:#0e1118;border-color:var(--lime);flex:2}
+  footer button.sz{flex:0 0 54px;font-size:16px}
+  #clock{color:var(--ink)}
+</style>
+</head>
+<body>
+<div id="app">
+  <header><span id="pos">1 / 12</span><span id="clock">0:00</span>
+    <div class="mode"><button id="mPitch" class="on">Pitch</button><button id="mDemo">Demo</button></div></header>
+  <div id="bar"><i></i></div>
+  <main id="main"></main>
+  <footer><button class="sz" id="minus">A−</button><button id="prev">←</button><button class="next" id="next">Next →</button><button class="sz" id="plus">A+</button></footer>
+</div>
+<script>
+// Each card: n = label, t = title, k = key presses on the deck for this slide, say = what to say, do = on-screen action.
+const PITCH = [
+ {n:"Slide 1", t:"DigiRobotics", k:"→ ×1", say:["DigiRobotics lets anyone train robots with their phone and get paid in stablecoins.","You record a real task in first person, a robotics team or an AI agent buys it, and the payment settles on-chain."]},
+ {n:"Slide 2", t:"Problem", k:"→ ×1", say:["There are 5.4 billion smartphones, and most of that attention goes into scrolling.","Meanwhile robotics teams are short of exactly one thing: first-person video of people doing real tasks.","The people who can record it have no simple way to get paid, and today's data marketplaces are manual, slow and built on fiat rails."]},
+ {n:"Slide 3", t:"Solution", k:"→ ×4 (3 points)", say:["Three pieces.","One: an embedded wallet with social login, so a contributor needs no seed phrase.","Two: an agent-ready marketplace, where an AI agent can discover a dataset, pay for it over x402 and unlock it with no human in the loop.","Three: tokenized knowledge. That part is on the roadmap: today the demo serves a signed manifest; licensing and IPFS storage come next."]},
+ {n:"Slide 4", t:"Why now?", k:"→ ×1", say:["Robots are shipping; their data isn't.","Humanoid funding is at a record high and vision-action models are converging. The missing input is human first-person data at scale."]},
+ {n:"Slide 5", t:"Market size", k:"→ ×1", say:["On the supply side, 1.5 billion people work in the gig economy.","On the demand side, robotics R&D is a multi-billion-dollar yearly spend.","We start with AI-active users in emerging markets, where an extra stablecoin income matters most."]},
+ {n:"Slide 6", t:"Wedge & moat", k:"→ ×3 (wedge, then moats)", say:["Our wedge: we are the first marketplace paying for robot training data in stablecoins, with agent-ready buying built in.","The moat is distribution and data: DigiAgent is built to source robotics buyers and match them with creators, and every validated capture and repeat buyer makes the next campaign easier."]},
+ {n:"Slide 7", t:"Why we win", k:"→ ×1", say:["Traditional data marketplaces are small, manually approved and have no agents.","We give instant stablecoin payouts, zero-friction onboarding and native x402 purchasing, for humans and for agents."]},
+ {n:"Slide 8", t:"Agents + product", k:"→ ×4 (People, Agents, Next)", say:["This is what exists.","For people: social login, embedded wallet, checkout in USDG on testnet.","For agents: an HTTP 402 challenge, a signed authorization and on-chain settlement that unlocks the resource.","Next: capture through Telegram, quality scoring, storage on IPFS, mainnet payouts."]},
+ {n:"Slide 9", t:"How it works", k:"→ ×1", say:["For a contributor it is three steps: log in, record, get paid."]},
+ {n:"Slide 10", t:"Team", k:"→ ×1", say:["Oscar leads product and design. I handle deployments and integrations. DigiAgent is our autonomous teammate for research."]},
+ {n:"Slide 11", t:"Demo status", k:"→ ×3 (built, then next)", say:["Everything on this slide is live.","The marketplace and gear shop are at digirobotics.xyz.","The x402 purchase settles on-chain on two testnets, Arbitrum Sepolia and Robinhood Chain.","We are pre-revenue; Telegram capture and the first paid campaign are next."]},
+ {n:"Slide 12", t:"The time is now", k:"end", say:["Built on Arbitrum and Robinhood Chain, x402 for payments, ZeroDev for accounts, USDG-ready.","Let me show you the product."]},
+];
+const DEMO = [
+ {n:"Before", t:"Setup", k:"", do:["Terminal open, large font.","Tabs: digirobotics.xyz/agent-demo · Blockscout."], say:[]},
+ {n:"Demo 1", t:"The server asks for payment", k:"≈25 s", do:["Run in the terminal:"], pre:["curl -si https://x402.digirobotics.xyz/x402/datasets/engine-assembly-pov/content | head -3"], say:["This is not our UI. Any HTTP client asking for the dataset gets a 402 with the price: 0.05 mUSDG, on Arbitrum Sepolia, paid to the seller by EIP-3009."]},
+ {n:"Demo 2", t:"The agent pays", k:"≈40 s", do:["/agent-demo → Arbitrum Sepolia → launch."], say:["The agent signs an EIP-3009 authorization. It never sends a transaction itself and holds no gas."]},
+ {n:"Demo 3", t:"The explorer confirms", k:"≈45 s", do:["Click the tx hash → Blockscout.","Show: Success · settle · X402Facilitator (verified) · 0.05 mUSDG transfer · decoded input → resourceId."], say:["Status success. Method settle, on our verified X402Facilitator contract. 0.05 mUSDG moved from buyer to seller.","Same resource id as the 402. The payment and the unlock are bound on-chain."]},
+ {n:"Demo 4", t:"Second chain", k:"≈25 s", do:["Selector → Robinhood Chain Testnet → launch → open hash."], say:["Same contract, same flow, second chain.","Two chains, real settlement, no human in the loop."]},
+ {n:"Do not say", t:"Off limits", k:"", do:["Paxos · PYUSD · yield / APY · mainnet · users or revenue.","It is testnet, pre-revenue; mUSDG stands in for USDG."], say:[]},
+];
+let deck = PITCH, i = 0, fs = +(localStorage.fs || 25), t0 = null;
+const $ = id => document.getElementById(id), main = $("main");
+function render(){
+  const c = deck[i];
+  main.innerHTML = `<div class="n">${c.n}</div><h1>${c.t}</h1>` + (c.k?`<p class="hint">deck: <b>${c.k}</b></p>`:"") +
+    (c.do||[]).map(x=>`<p class="do">${x}</p>`).join("") + (c.pre||[]).map(x=>`<pre>${x}</pre>`).join("") + (c.say||[]).map(x=>`<p class="say">${x}</p>`).join("");
+  main.scrollTop = 0; main.style.setProperty("--fs", fs+"px");
+  $("pos").textContent = `${i+1} / ${deck.length}`; document.querySelector("#bar i").style.width = ((i+1)/deck.length*100)+"%";
+  history.replaceState(null,"",`#${deck===PITCH?"p":"d"}${i+1}`);
+}
+const go = d => { const n = Math.max(0, Math.min(deck.length-1, i+d)); if (n!==i){ i=n; if(!t0) t0=Date.now(); render(); } };
+const mode = m => { deck = m==="d"?DEMO:PITCH; i=0; t0=null; $("mPitch").classList.toggle("on",m!=="d"); $("mDemo").classList.toggle("on",m==="d"); render(); };
+$("next").onclick=()=>go(1); $("prev").onclick=()=>go(-1); $("mPitch").onclick=()=>mode("p"); $("mDemo").onclick=()=>mode("d");
+$("plus").onclick=()=>{fs=Math.min(40,fs+2);localStorage.fs=fs;render()}; $("minus").onclick=()=>{fs=Math.max(16,fs-2);localStorage.fs=fs;render()};
+$("clock").onclick=()=>{t0=null;$("clock").textContent="0:00"};
+addEventListener("keydown",e=>{if(["ArrowRight"," ","PageDown"].includes(e.key))go(1);if(["ArrowLeft","PageUp"].includes(e.key))go(-1)});
+let sx=null; main.addEventListener("touchstart",e=>sx=e.touches[0].clientX,{passive:true});
+main.addEventListener("touchend",e=>{if(sx===null)return;const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>70)go(dx<0?1:-1);sx=null},{passive:true});
+setInterval(()=>{if(!t0)return;const s=Math.floor((Date.now()-t0)/1000);$("clock").textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0")},500);
+// Keep the phone screen awake while the script is open.
+const wake=async()=>{try{await navigator.wakeLock.request("screen")}catch(e){}}; wake(); document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")wake()});
+const h=location.hash.match(/^#([pd])(\d+)$/); if(h){ if(h[1]==="d") mode("d"); i=Math.min(deck.length-1,Math.max(0,+h[2]-1)); } render();
+</script>
+</body>
+</html>
