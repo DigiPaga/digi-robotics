@@ -17,9 +17,12 @@ import { CountUp, Headline, ImageFrame, Kicker, OrbitalMotif, PartnerLockup, Rev
 
 export type SlideProps = { active: boolean; step: number };
 
-function TwoCol({ imageSide = "right", copy, media }: { imageSide?: "left" | "right"; copy: ReactNode; media: ReactNode }) {
+const LEFT_RATIO: Record<"7-5" | "8-4", "5-7" | "4-8"> = { "7-5": "5-7", "8-4": "4-8" };
+
+function TwoCol({ imageSide = "right", ratio = "7-5", copy, media }: { imageSide?: "left" | "right"; ratio?: "7-5" | "8-4"; copy: ReactNode; media: ReactNode }) {
+  const cols = imageSide === "left" ? LEFT_RATIO[ratio] : ratio;
   return (
-    <div className={`deck-slide-body ${imageSide === "left" ? "deck-slide-body--5-7" : "deck-slide-body--7-5"}`}>
+    <div className={`deck-slide-body deck-slide-body--${cols}`}>
       <div className="deck-col-copy">{copy}</div>
       <div className="deck-col-media">{media}</div>
     </div>
@@ -157,7 +160,7 @@ function Slide05({ active }: SlideProps) {
           </div>
         </Reveal>
         <Reveal d={3} style={{ textAlign: "center", margin: "0 auto" }}>
-          <RichText parts={slide05.closingParts} className="deck-closing" />
+          <RichText parts={slide05.closingParts} className="deck-closing deck-closing--lg" />
         </Reveal>
       </div>
     </>
@@ -170,6 +173,7 @@ function Slide06() {
       <OrbitalMotif motif={slide06.motif} />
       <Kicker lines={slide06.kicker} />
       <TwoCol
+        ratio="8-4"
         copy={
           <>
             <Headline parts={slide06.headline} d={1} />
@@ -180,12 +184,12 @@ function Slide06() {
                 </Reveal>
               ))}
             </div>
-            <Reveal d={6} as="p" className="deck-mono" style={{ marginTop: "auto" }}>
+            <Reveal d={6} as="p" className="deck-mono deck-mono--lg" style={{ marginTop: "auto" }}>
               <span className="deck-lime">{slide06.closingLead}</span> {slide06.closing}
             </Reveal>
           </>
         }
-        media={<ImageFrame media={slide06.image} />}
+        media={<ImageFrame media={slide06.image} heightPx={520} />}
       />
     </>
   );
@@ -215,7 +219,7 @@ function Slide07() {
                 </div>
               ))}
             </Reveal>
-            <Reveal d={3} as="p" className="deck-body" style={{ fontWeight: 600, color: "var(--deck-ink)" }}>
+            <Reveal d={3} as="p" className="deck-body" style={{ fontWeight: 600, color: "var(--deck-ink)", fontSize: 34 }}>
               {slide07.tagline}
             </Reveal>
           </>
@@ -233,6 +237,7 @@ function Slide08({ step }: SlideProps) {
       <Kicker lines={slide08.kicker} />
       <TwoCol
         imageSide="left"
+        ratio="8-4"
         copy={
           <>
             <Headline parts={slide08.headline} d={1} inline />
@@ -249,13 +254,13 @@ function Slide08({ step }: SlideProps) {
             </div>
             <Reveal d={6} className="deck-cta-row" style={{ alignItems: "center" }}>
               <span className="deck-cta deck-cta--static">{slide08.ctaLabel}</span>
-              <p className="deck-body" style={{ maxWidth: "40ch", fontSize: 18 }}>
+              <p className="deck-body" style={{ maxWidth: "40ch", fontSize: 26 }}>
                 {slide08.ctaNote}
               </p>
             </Reveal>
           </>
         }
-        media={<ImageFrame media={slide08.image} />}
+        media={<ImageFrame media={slide08.image} heightPx={560} />}
       />
     </>
   );
@@ -303,7 +308,7 @@ function Slide10() {
                   <p>
                     {r.name}{" "}
                     {r.note ? (
-                      <span className="deck-mono" style={{ display: "inline", fontSize: 14 }}>
+                      <span className="deck-mono" style={{ display: "inline", fontSize: 18 }}>
                         {r.note}
                       </span>
                     ) : null}
@@ -363,7 +368,7 @@ function Slide12() {
       <OrbitalMotif motif={slide12.motif} />
       <Kicker lines={slide12.kicker} />
       <div className="deck-slide-body deck-slide-body--wide" style={{ padding: "150px 80px 56px" }}>
-        <Reveal d={1} as="p" className="deck-body" style={{ fontFamily: "Ubuntu, sans-serif", fontSize: 28, color: "#fff", maxWidth: "70ch" }}>
+        <Reveal d={1} as="p" className="deck-body" style={{ fontFamily: "Ubuntu, sans-serif", fontSize: 36, color: "#fff", maxWidth: "70ch" }}>
           {slide12.subheadline}
         </Reveal>
         <Reveal d={2} className="deck-ledger">
@@ -380,14 +385,14 @@ function Slide12() {
             </div>
           ))}
         </Reveal>
-        <div style={{ alignSelf: "center", width: "min(50%, 760px)" }}>
-          <ImageFrame media={slide12.image} heightPx={240} d={3} />
+        <div style={{ alignSelf: "center", width: "min(56%, 860px)" }}>
+          <ImageFrame media={slide12.image} heightPx={320} d={3} />
         </div>
         <Reveal d={4} className="deck-cta-row">
           {/* All three open in a new tab, same as the static deck's `<base target="_blank">` —
               a presenter clicking through live should never navigate the deck tab away. */}
           {slide12.ctas.map((cta) => (
-            <a key={cta.label} href={cta.href} className="deck-cta" target="_blank" rel="noopener noreferrer">
+            <a key={cta.label} href={cta.href} className="deck-cta deck-cta--lg" target="_blank" rel="noopener noreferrer">
               {cta.label}
             </a>
           ))}

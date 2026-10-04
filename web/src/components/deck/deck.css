@@ -84,7 +84,7 @@
   grid-template-columns: 1fr 1fr;
   align-items: center;
   gap: 64px;
-  padding: 172px 80px 44px;
+  padding: 158px 80px 34px;
 }
 .deck-slide-body--wide {
   display: flex;
@@ -94,20 +94,35 @@
 .deck-slide-body--7-5 {
   grid-template-columns: 7fr 5fr;
 }
+.deck-slide-body--8-4 {
+  grid-template-columns: 8fr 4fr;
+}
+/* imageSide="left" variants: same copy:media ratio, but the narrower track
+   comes first (visually on the left) and the columns swap places via order. */
 .deck-slide-body--5-7 {
   grid-template-columns: 5fr 7fr;
 }
-.deck-slide-body--5-7 .deck-col-media {
+.deck-slide-body--4-8 {
+  grid-template-columns: 4fr 8fr;
+}
+.deck-slide-body--5-7 .deck-col-media,
+.deck-slide-body--4-8 .deck-col-media {
   order: 1;
 }
-.deck-slide-body--5-7 .deck-col-copy {
+.deck-slide-body--5-7 .deck-col-copy,
+.deck-slide-body--4-8 .deck-col-copy {
   order: 2;
 }
 
 .deck-col-copy {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 15px;
+  min-width: 0;
+}
+/* Same min-width:auto grid-overflow guard as .deck-stat-card, in case a future
+   image or caption is wider than its track's fr share. */
+.deck-col-media {
   min-width: 0;
 }
 
@@ -159,8 +174,8 @@
   color: var(--deck-body);
   font-family: "Fira Sans", sans-serif;
   font-weight: 400;
-  font-size: 24px;
-  line-height: 1.55;
+  font-size: 28px;
+  line-height: 1.5;
 }
 .deck-body--wide {
   max-width: 70ch;
@@ -171,9 +186,12 @@
   color: var(--deck-muted);
   font-family: "JetBrains Mono", monospace;
   font-weight: 500;
-  font-size: 14px;
-  letter-spacing: 0.16em;
+  font-size: 18px;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
+}
+.deck-mono--lg {
+  font-size: 20px;
 }
 
 /* Image frame */
@@ -220,7 +238,7 @@
   flex: 0 0 auto;
   font-family: "JetBrains Mono", monospace;
   font-weight: 500;
-  font-size: 15px;
+  font-size: 18px;
   letter-spacing: 0.18em;
   color: var(--deck-lime);
 }
@@ -229,8 +247,8 @@
   max-width: 56ch;
   color: var(--deck-body);
   font-family: "Fira Sans", sans-serif;
-  font-size: 24px;
-  line-height: 1.5;
+  font-size: 28px;
+  line-height: 1.45;
 }
 .deck-step strong {
   color: var(--deck-ink);
@@ -255,11 +273,11 @@
   margin-top: 14px;
   font-family: "JetBrains Mono", monospace;
   font-weight: 500;
-  font-size: 16px;
+  font-size: 18px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--deck-muted);
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 /* Quote blocks (why-now) */
@@ -270,27 +288,31 @@
 .deck-quote p {
   margin: 0;
   font-family: "Fira Sans", sans-serif;
-  font-size: 26px;
+  font-size: 28px;
   line-height: 1.4;
   color: var(--deck-body);
 }
 .deck-quote-attr {
   margin-top: 10px;
   font-family: "JetBrains Mono", monospace;
-  font-size: 16px;
+  font-size: 18px;
   letter-spacing: 0.08em;
   color: var(--deck-lime);
 }
 .deck-closing {
   font-family: "Fira Sans", sans-serif;
-  font-size: 22px;
-  line-height: 1.6;
+  font-size: 28px;
+  line-height: 1.5;
   color: var(--deck-body);
   max-width: 60ch;
 }
 .deck-closing strong {
   color: var(--deck-ink);
   font-weight: 600;
+}
+.deck-closing--lg {
+  font-size: 34px;
+  max-width: 48ch;
 }
 
 /* Stat cards (market size) */
@@ -300,32 +322,38 @@
   gap: 28px;
 }
 .deck-stat-card {
+  /* Grid items default to min-width:auto, so a long unbreakable word (e.g.
+     "BILLION" at this font-size) would otherwise force the 1fr track wider
+     than its share and overflow the card. */
+  min-width: 0;
   border: 1px solid var(--deck-hair);
-  padding: 36px 28px;
+  padding: 56px 28px;
   text-align: center;
 }
 .deck-stat-card-tag {
   margin: 0;
   font-family: "Syne", sans-serif;
   font-weight: 800;
-  font-size: 26px;
+  font-size: 28px;
   letter-spacing: 0.1em;
   color: var(--deck-muted);
   text-transform: uppercase;
 }
 .deck-stat-card-value {
-  margin-top: 12px;
+  margin-top: 18px;
+  overflow-wrap: break-word;
   font-family: "Syne", sans-serif;
   font-weight: 800;
-  font-size: 52px;
+  font-size: 68px;
+  line-height: 1.05;
   color: var(--deck-lime);
   text-transform: uppercase;
 }
 .deck-stat-card-caption {
-  margin-top: 16px;
+  margin-top: 22px;
   font-family: "Fira Sans", sans-serif;
-  font-size: 20px;
-  line-height: 1.45;
+  font-size: 28px;
+  line-height: 1.4;
   color: var(--deck-body);
 }
 
@@ -334,17 +362,15 @@
   display: flex;
   flex-direction: column;
 }
+/* The row itself is the paragraph (Reveal as="p"), so the type lives on the row. */
 .deck-adv-row {
   border-top: 1px solid var(--deck-hair);
   border-left: 3px solid var(--deck-lime);
-  padding: 16px 0 16px 22px;
-  margin-bottom: 2px;
-}
-.deck-adv-row p {
-  margin: 0;
+  padding: 14px 0 14px 24px;
+  margin: 0 0 2px;
   font-family: "Fira Sans", sans-serif;
-  font-size: 23px;
-  line-height: 1.5;
+  font-size: 27px;
+  line-height: 1.42;
   color: var(--deck-body);
 }
 .deck-adv-row .deck-lead {
@@ -355,10 +381,10 @@
 /* Comparison rows (why we win) */
 .deck-cmp-row {
   display: flex;
-  gap: 18px;
+  gap: 20px;
   align-items: baseline;
   border-top: 1px solid var(--deck-hair);
-  padding: 20px 0 20px 22px;
+  padding: 26px 0 26px 24px;
   border-left: 3px solid transparent;
 }
 .deck-cmp-row:last-child {
@@ -372,7 +398,7 @@
 }
 .deck-cmp-mark {
   font-family: "JetBrains Mono", monospace;
-  font-size: 20px;
+  font-size: 26px;
 }
 .deck-cmp-row[data-tone="neg"] .deck-cmp-mark {
   color: var(--deck-red);
@@ -383,8 +409,8 @@
 .deck-cmp-row p {
   margin: 0;
   font-family: "Fira Sans", sans-serif;
-  font-size: 23px;
-  line-height: 1.5;
+  font-size: 30px;
+  line-height: 1.45;
   color: var(--deck-body);
 }
 
@@ -396,19 +422,19 @@
 .deck-ledger-row {
   display: flex;
   align-items: baseline;
-  gap: 28px;
+  gap: 24px;
   border-top: 1px solid var(--deck-hair);
-  padding: 16px 0;
+  padding: 13px 0;
 }
 .deck-ledger-row:last-child {
   border-bottom: 1px solid var(--deck-hair);
 }
 .deck-ledger-label {
-  flex: 0 0 240px;
+  flex: 0 0 220px;
   font-family: "JetBrains Mono", monospace;
   font-weight: 500;
-  font-size: 15px;
-  letter-spacing: 0.16em;
+  font-size: 22px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--deck-muted);
 }
@@ -416,42 +442,56 @@
   flex: 1;
   font-family: "JetBrains Mono", monospace;
   font-weight: 500;
-  font-size: 16px;
-  letter-spacing: 0.1em;
+  font-size: 22px;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  line-height: 2;
+  line-height: 1.45;
   color: var(--deck-ink);
 }
 
-/* Check rows (demo status) */
+/* Check rows (demo status). "Built" rows carry the slide — large and full
+   width; "next" rows are clearly secondary but still comfortably readable. */
 .deck-check-row {
   display: flex;
-  gap: 18px;
+  gap: 22px;
   align-items: baseline;
   border-top: 1px solid var(--deck-hair);
-  padding: 16px 0;
+  width: 100%;
 }
 .deck-check-row:last-child {
   border-bottom: 1px solid var(--deck-hair);
 }
 .deck-check-mark {
   font-family: "JetBrains Mono", monospace;
-  font-size: 18px;
-  flex: 0 0 22px;
+  flex: 0 0 auto;
+}
+.deck-check-row[data-done="true"] {
+  padding: 26px 0;
 }
 .deck-check-row[data-done="true"] .deck-check-mark {
+  font-size: 34px;
   color: var(--deck-lime);
 }
+.deck-check-row[data-done="false"] {
+  padding: 16px 0;
+}
 .deck-check-row[data-done="false"] .deck-check-mark {
+  font-size: 24px;
   color: var(--deck-muted);
 }
 .deck-check-row p {
   margin: 0;
+  flex: 1;
   font-family: "Fira Sans", sans-serif;
-  font-size: 23px;
   color: var(--deck-ink);
 }
+.deck-check-row[data-done="true"] p {
+  font-size: 36px;
+  line-height: 1.3;
+}
 .deck-check-row[data-done="false"] p {
+  font-size: 28px;
+  line-height: 1.35;
   color: var(--deck-muted);
 }
 
@@ -466,16 +506,20 @@
   align-items: center;
   gap: 12px;
   border: 1px solid var(--deck-hair);
-  padding: 16px 32px;
+  padding: 18px 34px;
   font-family: "JetBrains Mono", monospace;
   font-weight: 500;
-  font-size: 15px;
-  letter-spacing: 0.16em;
+  font-size: 18px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--deck-ink);
   background: transparent;
   text-decoration: none;
   transition: all 220ms ease;
+}
+.deck-cta--lg {
+  padding: 24px 42px;
+  font-size: 22px;
 }
 .deck-cta:hover {
   background: var(--deck-lime);
@@ -506,12 +550,12 @@
 .deck-team-row p {
   margin: 0;
   font-family: "Fira Sans", sans-serif;
-  font-size: 24px;
+  font-size: 28px;
   color: var(--deck-ink);
 }
 .deck-team-handle {
   font-family: "JetBrains Mono", monospace;
-  font-size: 15px;
+  font-size: 18px;
   color: var(--deck-muted);
 }
 .deck-team-handle--lime {
@@ -595,8 +639,8 @@
   right: 80px;
   font-family: "JetBrains Mono", monospace;
   font-weight: 500;
-  font-size: 15px;
-  letter-spacing: 0.15em;
+  font-size: 18px;
+  letter-spacing: 0.14em;
   color: var(--deck-muted);
 }
 
