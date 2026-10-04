@@ -29,7 +29,7 @@ function PageTitle({ children, className = "" }: { children: ReactNode; classNam
 const steps = [
   { number: "01", title: "Register your profile", description: "Create a contributor profile so you can be matched against upcoming campaigns and eligibility checks.", icon: ClipboardList },
   { number: "02", title: "Capture an approved task", description: "When a campaign is assigned, record the requested first-person task with your phone or supported camera.", icon: Upload },
-  { number: "03", title: "Submit and earn", description: "After review and acceptance, your contribution is paid in USDG or PYUSD.", icon: WalletCards },
+  { number: "03", title: "Submit and earn", description: "After review and acceptance, your contribution is paid in USDG.", icon: WalletCards },
 ];
 
 export default function GettingStartedPage() {

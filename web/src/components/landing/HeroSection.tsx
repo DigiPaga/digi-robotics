@@ -9,7 +9,6 @@ const partners = [
   ["/digirobotics/partners/arbitrum.png", "Built with Arbitrum", "w-full", "1.25fr"],
   ["/digirobotics/partners/robinhood-chain.png", "Built with Robinhood Chain", "w-full", "1.25fr"],
   ["/digirobotics/partners/zerodev.png", "Built with ZeroDev", "w-4/5", "1fr"],
-  ["/digirobotics/partners/paxos.png", "Built with Paxos", "w-4/5", "1fr"],
 ];
 
 export function HeroSection() {
@@ -20,7 +19,7 @@ export function HeroSection() {
         <h1 className="mt-7 max-w-[700px] font-display text-[clamp(2.6rem,10vw,4rem)] font-bold uppercase leading-[.9] tracking-[-.055em]">
           <span className="block">Teach robots.</span><span className="block text-[var(--primary)]">Earn stablecoins.</span><span className="block">Through human eyes.</span>
         </h1>
-        <p className="mt-7 max-w-2xl text-[19px] leading-[1.5] text-[var(--muted-foreground)] lg:text-[20px]">The first stablecoin-native marketplace for agentic commerce in real-world data collection. Everyday content creation becomes robotics training data — contributors are paid in USDG or PYUSD, with autonomous AI agents purchasing around the clock.</p>
+        <p className="mt-7 max-w-2xl text-[19px] leading-[1.5] text-[var(--muted-foreground)] lg:text-[20px]">The first stablecoin-native marketplace for agentic commerce in real-world data collection. Everyday content creation becomes robotics training data — contributors are paid in USDG, with autonomous AI agents purchasing around the clock.</p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <AuthButton className={`inline-flex min-h-12 items-center justify-center whitespace-nowrap rounded-full bg-[var(--primary)] px-6 py-3 text-[15px] font-semibold uppercase tracking-[.04em] text-[var(--page-bg)] ${primaryAction}`}>Become a contributor ↗</AuthButton>
           <SecondaryLink href="#custom-data" className="whitespace-nowrap">Request custom data</SecondaryLink>
@@ -47,7 +46,7 @@ export function HeroSection() {
     <div className={`${shell} mt-16 border-t border-white/[.07] py-7 lg:mt-24`}>
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-8">
         <span className="font-mono text-[11px] uppercase tracking-[.18em] text-white/55">Built with</span>
-        <div className="grid w-full max-w-[560px] grid-cols-[1.25fr_1.25fr_1fr_1fr] items-center gap-4 sm:gap-6">
+        <div className="grid w-full max-w-[420px] grid-cols-[1.25fr_1.25fr_1fr] items-center gap-4 sm:gap-6">
           {partners.map(([src, alt, width]) => <div key={src} className="group relative h-9 transition-transform duration-300 ease-out hover:-translate-y-0.5"><Image src={src} alt={alt} fill sizes="140px" className={`object-contain object-left opacity-70 transition-opacity duration-300 ease-out group-hover:opacity-100 ${width}`} /></div>)}
         </div>
       </div>

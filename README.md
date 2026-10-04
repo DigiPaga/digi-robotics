@@ -7,7 +7,7 @@
 
 [![Arbitrum](https://img.shields.io/badge/Arbitrum-Foundation-2D3748?style=for-the-badge&logo=arbitrum&logoColor=white)](https://arbitrum.io)
 [![Robinhood](https://img.shields.io/badge/Robinhood-Chain-00C805?style=for-the-badge&logo=robinhood&logoColor=white)](https://robinhood.com/us/en/crypto/chain/)
-[![Paxos](https://img.shields.io/badge/Paxos-USDG%20%2F%20PYUSD-00522C?style=for-the-badge&logoColor=white)](https://paxos.com)
+[![USDG](https://img.shields.io/badge/Stablecoin-USDG%20(mUSDG%20on%20testnet)-00522C?style=for-the-badge&logoColor=white)](https://paxos.com)
 [![ZeroDev](https://img.shields.io/badge/ZeroDev-ERC--4337-6366F1?style=for-the-badge&logoColor=white)](https://zerodev.app)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
