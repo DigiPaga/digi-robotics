@@ -12,6 +12,16 @@
     /* The layout was designed on a 2048x965 viewport with a 16px root. Scale the root with the
        viewport so rem-based type and spacing keep the same proportions on any screen. */
     html { font-size: min(calc(100vw / 128), calc(100vh / 60.3)); }
+    /* Portrait (phones): the 128-wide divisor above was calibrated for the landscape canvas
+       and shrinks to an illegible couple of px. Scale by width alone instead, and let each
+       slide keep its landscape aspect ratio rather than stretch to fill the tall viewport —
+       the page background letterboxes the rest above and below. */
+    @media (orientation: portrait) {
+      html { font-size: calc(100vw / 30); }
+      body { display: flex; align-items: center; }
+      #viewport { height: auto; }
+      .slide { height: calc(100vw * 965 / 2048); }
+    }
     /* Tailwind's font-sans resolves to the OS UI font; pin it so the deck looks the same everywhere. */
     .font-sans { font-family: 'Fira Sans', 'Inter Tight', sans-serif !important; }
 
@@ -277,7 +287,7 @@
       <h1 class="font-brand t1 lime reveal absolute z-10 top-14 left-8 md:top-16 md:left-20">How It<br>Works</h1>
       <h2 class="font-brand t2 reveal d1">Zero Friction. <span class="lime">Three Steps.</span></h2>
       <div class="flex flex-col reveal d2">
-        <div class="hair-t py-5" style="display:flex; gap:1.5rem; align-items:baseline;"><span class="step-num">01</span><p class="font-sans t3" style="max-width:none;"><strong>Login</strong> — connect with email or MetaMask, instant embedded wallet.</p></div>
+        <div class="hair-t py-5" style="display:flex; gap:1.5rem; align-items:baseline;"><span class="step-num">01</span><p class="font-sans t3" style="max-width:none;"><strong>Login</strong> — continue with Google or email, instant embedded wallet.</p></div>
         <div class="hair-t py-5" style="display:flex; gap:1.5rem; align-items:baseline;"><span class="step-num">02</span><p class="font-sans t3" style="max-width:none;"><strong>Record</strong> — strap phone to chest or head, record a tutorial.</p></div>
         <div class="hair-t hair-b py-5" style="display:flex; gap:1.5rem; align-items:baseline;"><span class="step-num">03</span><p class="font-sans t3" style="max-width:none;"><strong>Post &amp; Earn</strong> — upload, wait for a buyer, get paid instantly.</p></div>
       </div>
