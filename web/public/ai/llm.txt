@@ -10,10 +10,10 @@ DigiRobotics is the world's first agentic commerce marketplace for Physical AI, 
 
 ## Key Technologies
 - Blockchain: Arbitrum Sepolia, Robinhood Chain Testnet
-- Stablecoins: USDG (Paxos), PYUSD (Paxos), mUSDG (testnet demo asset)
+- Stablecoins: MockUSDG (mUSDG) on testnets today; USDG (Paxos) and PYUSD (Paxos) planned for mainnet
 - Protocol: x402 (HTTP 402 Payment Required + EIP-3009)
 - Wallet: ZeroDev (ERC-4337 Account Abstraction), Thirdweb Embedded Wallets
-- Tokenization: ERC-721/1155 for dataset NFTs with EIP-2981 royalties
+- Tokenization: ERC-721/1155 for dataset NFTs with EIP-2981 royalties (planned)
 
 ## How to Earn with DigiRobotics
 1. Sign up with email/Google (zero-friction onboarding)
