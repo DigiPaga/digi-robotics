@@ -18,6 +18,7 @@
     "validate:robinhood": "npx tsx scripts/validate-robinhood-config.ts"
   },
   "dependencies": {
+    "@fontsource/fira-sans": "^5.3.0",
     "@fontsource/inter-tight": "^5.3.0",
     "@fontsource/jetbrains-mono": "^5.3.0",
     "@fontsource/syne": "^5.3.0",

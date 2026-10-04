@@ -1,0 +1,739 @@
+/*
+ * DigiRobotics native deck. Scoped entirely under .deck-root so it never
+ * leaks into the rest of the site. The canvas is a fixed 1920x1080 design
+ * surface, scaled by a single CSS transform (see DeckStage) — every size
+ * below is a plain px value in that design space, not a viewport unit, so
+ * the framing is identical on every screen and in a recording.
+ */
+
+.deck-root {
+  --deck-page: #0e1118;
+  --deck-ink: #ffffff;
+  --deck-body: #d0d0d0;
+  --deck-muted: #a0a0a0;
+  --deck-lime: #84cc16;
+  --deck-red: #ef4444;
+  --deck-hair: rgba(255, 255, 255, 0.08);
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--deck-page);
+  overflow: hidden;
+  cursor: default;
+}
+.deck-root.deck-cursor-hidden,
+.deck-root.deck-cursor-hidden * {
+  cursor: none !important;
+}
+
+.deck-canvas {
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  flex: 0 0 auto;
+  background: var(--deck-page);
+  color: var(--deck-ink);
+  overflow: hidden;
+  font-family: "Fira Sans", "Inter Tight", sans-serif;
+  will-change: transform;
+}
+
+.deck-slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(44px);
+  transition:
+    opacity 380ms ease,
+    transform 420ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    visibility 0s linear 380ms;
+}
+.deck-slide[data-pos="before"] {
+  transform: translateX(-44px);
+}
+.deck-slide[data-pos="active"] {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  transition:
+    opacity 400ms ease 70ms,
+    transform 450ms cubic-bezier(0.22, 0.61, 0.36, 1) 70ms,
+    visibility 0s;
+}
+
+/* The landing slide (including a deep-linked #N) resolves before the first
+   paint, so there is nothing to slide in from — but its content should still
+   play its entrance once. Hold reveals hidden for exactly one frame so the
+   normal `.deck-reveal` transition has a "before" state to animate from. */
+.deck-root[data-ready="false"] .deck-reveal,
+.deck-root[data-ready="false"] .deck-reveal-step {
+  opacity: 0 !important;
+  transform: translateY(24px) !important;
+}
+
+.deck-slide-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 64px;
+  padding: 172px 80px 44px;
+}
+.deck-slide-body--wide {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+.deck-slide-body--7-5 {
+  grid-template-columns: 7fr 5fr;
+}
+.deck-slide-body--5-7 {
+  grid-template-columns: 5fr 7fr;
+}
+.deck-slide-body--5-7 .deck-col-media {
+  order: 1;
+}
+.deck-slide-body--5-7 .deck-col-copy {
+  order: 2;
+}
+
+.deck-col-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+/* Typography */
+.deck-kicker {
+  position: absolute;
+  z-index: 10;
+  top: 58px;
+  left: 80px;
+  margin: 0;
+  color: var(--deck-lime);
+  font-family: "Syne", sans-serif;
+  font-weight: 800;
+  font-size: 80px;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+.deck-kicker span {
+  display: block;
+}
+
+.deck-h2 {
+  margin: 0;
+  color: var(--deck-ink);
+  font-family: "Syne", sans-serif;
+  font-weight: 800;
+  font-size: 56px;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+.deck-h2--lg {
+  font-size: 64px;
+}
+.deck-h2 span {
+  display: block;
+}
+.deck-h2--inline span {
+  display: inline;
+}
+.deck-lime {
+  color: var(--deck-lime);
+}
+
+.deck-body {
+  margin: 0;
+  max-width: 44ch;
+  color: var(--deck-body);
+  font-family: "Fira Sans", sans-serif;
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 1.55;
+}
+.deck-body--wide {
+  max-width: 70ch;
+}
+
+.deck-mono {
+  margin: 0;
+  color: var(--deck-muted);
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* Image frame */
+.deck-frame {
+  position: relative;
+  height: 640px;
+  border: 1px solid var(--deck-hair);
+  background: var(--deck-page);
+  overflow: hidden;
+}
+
+/* Partner lockups (slide 1) */
+.deck-lockups {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+.deck-lockup {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--deck-hair);
+  padding: 14px 22px;
+}
+
+/* Numbered steps (solution / how-it-works) */
+.deck-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.deck-step {
+  display: flex;
+  gap: 24px;
+  align-items: baseline;
+  padding: 18px 0;
+  border-top: 1px solid var(--deck-hair);
+}
+.deck-step:last-child {
+  border-bottom: 1px solid var(--deck-hair);
+}
+.deck-step-num {
+  flex: 0 0 auto;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.18em;
+  color: var(--deck-lime);
+}
+.deck-step p {
+  margin: 0;
+  max-width: 56ch;
+  color: var(--deck-body);
+  font-family: "Fira Sans", sans-serif;
+  font-size: 24px;
+  line-height: 1.5;
+}
+.deck-step strong {
+  color: var(--deck-ink);
+  font-weight: 600;
+}
+
+/* Stat callout (problem slide) */
+.deck-stat {
+  padding-top: 28px;
+  border-top: 1px solid var(--deck-hair);
+}
+.deck-stat-value {
+  margin: 0;
+  font-family: "Syne", sans-serif;
+  font-weight: 800;
+  font-size: 80px;
+  line-height: 1;
+  color: var(--deck-lime);
+  text-transform: uppercase;
+}
+.deck-stat-cap {
+  margin-top: 14px;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 500;
+  font-size: 16px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--deck-muted);
+  line-height: 1.6;
+}
+
+/* Quote blocks (why-now) */
+.deck-quote {
+  padding: 4px 0 4px 26px;
+  border-left: 3px solid var(--deck-lime);
+}
+.deck-quote p {
+  margin: 0;
+  font-family: "Fira Sans", sans-serif;
+  font-size: 26px;
+  line-height: 1.4;
+  color: var(--deck-body);
+}
+.deck-quote-attr {
+  margin-top: 10px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  color: var(--deck-lime);
+}
+.deck-closing {
+  font-family: "Fira Sans", sans-serif;
+  font-size: 22px;
+  line-height: 1.6;
+  color: var(--deck-body);
+  max-width: 60ch;
+}
+.deck-closing strong {
+  color: var(--deck-ink);
+  font-weight: 600;
+}
+
+/* Stat cards (market size) */
+.deck-stat-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+.deck-stat-card {
+  border: 1px solid var(--deck-hair);
+  padding: 36px 28px;
+  text-align: center;
+}
+.deck-stat-card-tag {
+  margin: 0;
+  font-family: "Syne", sans-serif;
+  font-weight: 800;
+  font-size: 26px;
+  letter-spacing: 0.1em;
+  color: var(--deck-muted);
+  text-transform: uppercase;
+}
+.deck-stat-card-value {
+  margin-top: 12px;
+  font-family: "Syne", sans-serif;
+  font-weight: 800;
+  font-size: 52px;
+  color: var(--deck-lime);
+  text-transform: uppercase;
+}
+.deck-stat-card-caption {
+  margin-top: 16px;
+  font-family: "Fira Sans", sans-serif;
+  font-size: 20px;
+  line-height: 1.45;
+  color: var(--deck-body);
+}
+
+/* Advantage rows (wedge & moat) */
+.deck-adv-rows {
+  display: flex;
+  flex-direction: column;
+}
+.deck-adv-row {
+  border-top: 1px solid var(--deck-hair);
+  border-left: 3px solid var(--deck-lime);
+  padding: 16px 0 16px 22px;
+  margin-bottom: 2px;
+}
+.deck-adv-row p {
+  margin: 0;
+  font-family: "Fira Sans", sans-serif;
+  font-size: 23px;
+  line-height: 1.5;
+  color: var(--deck-body);
+}
+.deck-adv-row .deck-lead {
+  color: var(--deck-lime);
+  font-weight: 600;
+}
+
+/* Comparison rows (why we win) */
+.deck-cmp-row {
+  display: flex;
+  gap: 18px;
+  align-items: baseline;
+  border-top: 1px solid var(--deck-hair);
+  padding: 20px 0 20px 22px;
+  border-left: 3px solid transparent;
+}
+.deck-cmp-row:last-child {
+  border-bottom: 1px solid var(--deck-hair);
+}
+.deck-cmp-row[data-tone="neg"] {
+  border-left-color: var(--deck-red);
+}
+.deck-cmp-row[data-tone="pos"] {
+  border-left-color: var(--deck-lime);
+}
+.deck-cmp-mark {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 20px;
+}
+.deck-cmp-row[data-tone="neg"] .deck-cmp-mark {
+  color: var(--deck-red);
+}
+.deck-cmp-row[data-tone="pos"] .deck-cmp-mark {
+  color: var(--deck-lime);
+}
+.deck-cmp-row p {
+  margin: 0;
+  font-family: "Fira Sans", sans-serif;
+  font-size: 23px;
+  line-height: 1.5;
+  color: var(--deck-body);
+}
+
+/* Ledger rows (agents+product, time-is-now) */
+.deck-ledger {
+  display: flex;
+  flex-direction: column;
+}
+.deck-ledger-row {
+  display: flex;
+  align-items: baseline;
+  gap: 28px;
+  border-top: 1px solid var(--deck-hair);
+  padding: 16px 0;
+}
+.deck-ledger-row:last-child {
+  border-bottom: 1px solid var(--deck-hair);
+}
+.deck-ledger-label {
+  flex: 0 0 240px;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--deck-muted);
+}
+.deck-ledger-items {
+  flex: 1;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 500;
+  font-size: 16px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 2;
+  color: var(--deck-ink);
+}
+
+/* Check rows (demo status) */
+.deck-check-row {
+  display: flex;
+  gap: 18px;
+  align-items: baseline;
+  border-top: 1px solid var(--deck-hair);
+  padding: 16px 0;
+}
+.deck-check-row:last-child {
+  border-bottom: 1px solid var(--deck-hair);
+}
+.deck-check-mark {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 18px;
+  flex: 0 0 22px;
+}
+.deck-check-row[data-done="true"] .deck-check-mark {
+  color: var(--deck-lime);
+}
+.deck-check-row[data-done="false"] .deck-check-mark {
+  color: var(--deck-muted);
+}
+.deck-check-row p {
+  margin: 0;
+  font-family: "Fira Sans", sans-serif;
+  font-size: 23px;
+  color: var(--deck-ink);
+}
+.deck-check-row[data-done="false"] p {
+  color: var(--deck-muted);
+}
+
+/* CTAs */
+.deck-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.deck-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--deck-hair);
+  padding: 16px 32px;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--deck-ink);
+  background: transparent;
+  text-decoration: none;
+  transition: all 220ms ease;
+}
+.deck-cta:hover {
+  background: var(--deck-lime);
+  color: var(--deck-page);
+  border-color: var(--deck-lime);
+}
+.deck-cta--static {
+  cursor: default;
+}
+.deck-cta--static:hover {
+  background: transparent;
+  color: var(--deck-ink);
+  border-color: var(--deck-hair);
+}
+
+/* Team rows */
+.deck-team-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border-top: 1px solid var(--deck-hair);
+  padding: 18px 0;
+}
+.deck-team-row:last-child {
+  border-bottom: 1px solid var(--deck-hair);
+}
+.deck-team-row p {
+  margin: 0;
+  font-family: "Fira Sans", sans-serif;
+  font-size: 24px;
+  color: var(--deck-ink);
+}
+.deck-team-handle {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 15px;
+  color: var(--deck-muted);
+}
+.deck-team-handle--lime {
+  color: var(--deck-lime);
+}
+
+/* Reveal entrance */
+.deck-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 480ms ease,
+    transform 560ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.deck-slide[data-pos="active"] .deck-reveal {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: calc(130ms + var(--d, 0) * 110ms);
+}
+.deck-reveal--media {
+  transform: translateY(24px) scale(0.96);
+  transition:
+    opacity 620ms ease,
+    transform 680ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.deck-slide[data-pos="active"] .deck-reveal--media {
+  transform: translateY(0) scale(1);
+}
+
+.deck-reveal-step {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 320ms ease,
+    transform 380ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.deck-reveal-step.is-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Orbital rings motif */
+.deck-motif {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  animation: deck-orbit-spin 220s linear infinite;
+}
+.deck-motif circle {
+  animation: deck-ring-drift 28s ease-in-out infinite alternate;
+  animation-delay: calc(var(--ri, 0) * -6s);
+  transform-origin: center;
+}
+@keyframes deck-orbit-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes deck-ring-drift {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.035);
+  }
+}
+
+/* Chrome: progress bar, arrows, counter, notes, help, logo */
+.deck-logo {
+  position: absolute;
+  z-index: 20;
+  top: 56px;
+  right: 80px;
+  width: 160px;
+  height: 40px;
+}
+.deck-page-num {
+  position: absolute;
+  z-index: 20;
+  bottom: 56px;
+  right: 80px;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.15em;
+  color: var(--deck-muted);
+}
+
+.deck-progress-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  z-index: 60;
+  background: rgba(255, 255, 255, 0.06);
+}
+.deck-progress {
+  height: 100%;
+  background: var(--deck-lime);
+  transition: width 420ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.deck-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 55;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--deck-hair);
+  background: rgba(14, 17, 24, 0.5);
+  color: var(--deck-ink);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 220ms ease;
+}
+.deck-arrow:hover {
+  background: var(--deck-lime);
+  color: var(--deck-page);
+  border-color: var(--deck-lime);
+}
+.deck-arrow:disabled {
+  opacity: 0.2;
+  cursor: default;
+}
+.deck-arrow:disabled:hover {
+  background: rgba(14, 17, 24, 0.5);
+  color: var(--deck-ink);
+  border-color: var(--deck-hair);
+}
+.deck-arrow--prev {
+  left: 24px;
+}
+.deck-arrow--next {
+  right: 24px;
+}
+
+.deck-notes {
+  position: absolute;
+  z-index: 65;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 12, 17, 0.94);
+  border-top: 1px solid var(--deck-hair);
+  padding: 28px 80px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 40px;
+  transform: translateY(100%);
+  transition: transform 280ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.deck-notes.is-open {
+  transform: translateY(0);
+}
+.deck-notes p {
+  margin: 0;
+  max-width: 1400px;
+  font-family: "Fira Sans", sans-serif;
+  font-size: 20px;
+  line-height: 1.5;
+  color: var(--deck-body);
+}
+.deck-notes-timer {
+  flex: 0 0 auto;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 22px;
+  letter-spacing: 0.08em;
+  color: var(--deck-lime);
+  white-space: nowrap;
+}
+
+.deck-legend {
+  position: absolute;
+  z-index: 70;
+  left: 50%;
+  bottom: 120px;
+  transform: translateX(-50%);
+  background: rgba(10, 12, 17, 0.96);
+  border: 1px solid var(--deck-hair);
+  padding: 20px 28px;
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 8px 36px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+  color: var(--deck-body);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+.deck-legend.is-open {
+  opacity: 1;
+}
+.deck-legend kbd {
+  display: inline-block;
+  min-width: 1.4em;
+  padding: 1px 6px;
+  margin-right: 8px;
+  border: 1px solid var(--deck-hair);
+  color: var(--deck-ink);
+  font-family: inherit;
+  text-align: center;
+}
+
+/* Clean mode: hide chrome for recording. The logo and slide content stay. */
+.deck-root.deck-clean .deck-progress-wrap,
+.deck-root.deck-clean .deck-arrow,
+.deck-root.deck-clean .deck-page-num {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 760px), (orientation: portrait) {
+  .deck-arrow {
+    width: 44px;
+    height: 44px;
+  }
+}

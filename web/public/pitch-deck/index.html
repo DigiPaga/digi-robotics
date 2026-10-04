@@ -12,6 +12,16 @@
     /* The layout was designed on a 2048x965 viewport with a 16px root. Scale the root with the
        viewport so rem-based type and spacing keep the same proportions on any screen. */
     html { font-size: min(calc(100vw / 128), calc(100vh / 60.3)); }
+    /* Portrait (phones): the 128-wide divisor above was calibrated for the landscape canvas
+       and shrinks to an illegible couple of px. Scale by width alone instead, and let each
+       slide keep its landscape aspect ratio rather than stretch to fill the tall viewport —
+       the page background letterboxes the rest above and below. */
+    @media (orientation: portrait) {
+      html { font-size: calc(100vw / 30); }
+      body { display: flex; align-items: center; }
+      #viewport { height: auto; }
+      .slide { height: calc(100vw * 965 / 2048); }
+    }
     /* Tailwind's font-sans resolves to the OS UI font; pin it so the deck looks the same everywhere. */
     .font-sans { font-family: 'Fira Sans', 'Inter Tight', sans-serif !important; }
 
@@ -82,7 +92,7 @@
 
 <!-- SLIDE 01: HERO -->
 <section class="slide">
-  <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
+  <img src="/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
   <span class="page-num">01 / 12</span>
   <svg class="motif" style="position:absolute; right:-12vw; top:-18vh; width:55vw; height:55vw; opacity:0.05; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2"><circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="34"/><circle cx="50" cy="50" r="20"/></svg>
   <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-10 px-8 md:px-20 pt-40 md:pt-48 pb-10 items-center">
@@ -91,26 +101,26 @@
       <h2 class="font-brand t2-lg reveal d1">Train robots with your phone.<br><span class="lime">Get paid in stablecoins.</span></h2>
       <p class="font-sans t3 reveal d2">DigiRobotics turns first-person task video into verified datasets for robotics teams and AI agents — the first stablecoin-native marketplace for agentic commerce in real-world data collection.</p>
       <div class="flex flex-wrap items-center gap-4 reveal d3">
-        <div class="brand-lockup"><img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/digirobotics/partners/arbitrum.png" alt="Arbitrum" style="height:1.875rem;width:auto;object-fit:contain"></div>
-        <div class="brand-lockup"><img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/digirobotics/partners/robinhood-chain.png" alt="Robinhood Chain" style="height:1.395rem;width:auto;object-fit:contain"></div>
-        <div class="brand-lockup"><img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/digirobotics/partners/zerodev.png" alt="ZeroDev" style="height:1.425rem;width:auto;object-fit:contain"></div>
+        <div class="brand-lockup"><img src="/digirobotics/partners/arbitrum.png" alt="Arbitrum" style="height:1.875rem;width:auto;object-fit:contain"></div>
+        <div class="brand-lockup"><img src="/digirobotics/partners/robinhood-chain.png" alt="Robinhood Chain" style="height:1.395rem;width:auto;object-fit:contain"></div>
+        <div class="brand-lockup"><img src="/digirobotics/partners/zerodev.png" alt="ZeroDev" style="height:1.425rem;width:auto;object-fit:contain"></div>
       </div>
       <p class="font-mono reveal d4" style="font-size:0.75rem;letter-spacing:0.15em;color:var(--muted)">Built at Arbitrum Open House Singapore</p>
     </div>
     <div class="md:col-span-5 h-72 md:h-[69%] reveal d2 img-frame">
-      <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/pitch-deck/slide-01-hero-usdg.jpg" alt="Autonomous commerce — capturing robotics training data" class="p-4">
+      <img src="/pitch-deck/slide-01-hero-usdg.jpg" alt="Autonomous commerce — capturing robotics training data" class="p-4">
     </div>
   </div>
 </section>
 
 <!-- SLIDE 02: PROBLEM -->
 <section class="slide">
-  <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
+  <img src="/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
   <span class="page-num">02 / 12</span>
   <svg class="motif" style="position:absolute; left:-15vw; bottom:-22vh; width:50vw; height:50vw; opacity:0.05; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2"><circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="30"/></svg>
   <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-10 px-8 md:px-20 pt-40 md:pt-48 pb-10 items-center">
     <div class="md:col-span-5 h-72 md:h-[63%] order-2 md:order-1 reveal d2 img-frame">
-      <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/pitch-deck/slide-02-problem.png" alt="Problem — doom-scrolling versus robotics training" class="p-4">
+      <img src="/pitch-deck/slide-02-problem.png" alt="Problem — doom-scrolling versus robotics training" class="p-4">
     </div>
     <div class="md:col-span-7 flex flex-col gap-6 order-1 md:order-2">
       <h1 class="font-brand t1 lime reveal absolute z-10 top-14 left-8 md:top-16 md:left-20">Problem</h1>
@@ -123,7 +133,7 @@
 
 <!-- SLIDE 03: SOLUTION -->
 <section class="slide">
-  <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
+  <img src="/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
   <span class="page-num">03 / 12</span>
   <svg class="motif" style="position:absolute; right:-10vw; bottom:-25vh; width:48vw; height:48vw; opacity:0.04; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2"><circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="32"/><circle cx="50" cy="50" r="16"/></svg>
   <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-10 px-8 md:px-20 pt-40 md:pt-48 pb-10 items-center">
@@ -137,19 +147,19 @@
       </div>
     </div>
     <div class="md:col-span-5 h-72 md:h-[80%] reveal d2 img-frame">
-      <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/pitch-deck/slide-03-solution.jpg" alt="Solution — capture approved, USDG sent" class="p-4">
+      <img src="/pitch-deck/slide-03-solution.jpg" alt="Solution — capture approved, USDG sent" class="p-4">
     </div>
   </div>
 </section>
 
 <!-- SLIDE 04: WHY NOW -->
 <section class="slide" id="slide-why-now">
-  <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
+  <img src="/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
   <span class="page-num">04 / 12</span>
   <svg class="motif" style="position:absolute; left:-12vw; top:-15vh; width:52vw; height:52vw; opacity:0.05; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2"><circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="30"/></svg>
   <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-10 px-8 md:px-20 pt-40 md:pt-48 pb-10 items-center">
     <div class="md:col-span-5 h-72 md:h-[69%] order-2 md:order-1 reveal d2 img-frame">
-      <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/pitch-deck/slide-04-why-now.jpg" alt="Exponential growth of Physical AI" class="p-4">
+      <img src="/pitch-deck/slide-04-why-now.jpg" alt="Exponential growth of Physical AI" class="p-4">
     </div>
     <div class="md:col-span-7 flex flex-col gap-5 order-1 md:order-2">
       <h1 class="font-brand t1 lime reveal absolute z-10 top-14 left-8 md:top-16 md:left-20">Why Now?</h1>
@@ -170,7 +180,7 @@
 
 <!-- SLIDE 05: MARKET SIZE -->
 <section class="slide">
-  <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
+  <img src="/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
   <span class="page-num">05 / 12</span>
   <svg class="motif" style="position:absolute; right:-14vw; top:-10vh; width:50vw; height:50vw; opacity:0.05; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2"><circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="34"/></svg>
   <div class="flex-1 flex flex-col gap-10 px-8 md:px-20 pt-40 md:pt-48 pb-10">
@@ -199,7 +209,7 @@
 
 <!-- SLIDE 06: OUR UNFAIR ADVANTAGE -->
 <section class="slide">
-  <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
+  <img src="/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
   <span class="page-num">06 / 12</span>
   <svg class="motif" style="position:absolute; right:-16vw; top:-10vh; width:50vw; height:50vw; opacity:0.04; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2"><circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="30"/></svg>
   <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-10 px-8 md:px-20 pt-40 md:pt-48 pb-10 items-center">
@@ -215,14 +225,14 @@
       <p class="font-sans reveal d3" style="font-size:1rem; color:var(--body); margin-top:auto;"><span class="lime" style="font-weight:600;">DigiRobotics:</span> the world's first AI-native marketplace for audio-visual robotics training data, paying creators in stablecoins.</p>
     </div>
     <div class="md:col-span-5 h-72 md:h-[75%] reveal d2 img-frame">
-      <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/pitch-deck/slide-06-flywheel.jpg" alt="The DigiAgent flywheel" class="p-4">
+      <img src="/pitch-deck/slide-06-flywheel.jpg" alt="The DigiAgent flywheel" class="p-4">
     </div>
   </div>
 </section>
 
 <!-- SLIDE 07: WHY WE WIN -->
 <section class="slide">
-  <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
+  <img src="/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
   <span class="page-num">07 / 12</span>
   <svg class="motif" style="position:absolute; right:-12vw; top:-20vh; width:46vw; height:46vw; opacity:0.05; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2"><circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="32"/></svg>
   <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-10 px-8 md:px-20 pt-40 md:pt-48 pb-10 items-center">
@@ -236,19 +246,19 @@
       <p class="font-sans reveal d3" style="font-size:1.1rem; font-weight:600; color:var(--ink);">Your camera is now a money printer. Literally.</p>
     </div>
     <div class="md:col-span-5 h-72 md:h-[69%] reveal d2 img-frame">
-      <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/pitch-deck/slide-07-why-we-win.jpg" alt="Capture approved — paid in USDG" class="p-4">
+      <img src="/pitch-deck/slide-07-why-we-win.jpg" alt="Capture approved — paid in USDG" class="p-4">
     </div>
   </div>
 </section>
 
 <!-- SLIDE 08: AGENTS + PRODUCT -->
 <section class="slide">
-  <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
+  <img src="/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
   <span class="page-num">08 / 12</span>
   <svg class="motif" style="position:absolute; left:-10vw; top:-20vh; width:46vw; height:46vw; opacity:0.05; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2"><circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="32"/></svg>
   <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-10 px-8 md:px-20 pt-40 md:pt-48 pb-10 items-center">
     <div class="md:col-span-5 h-72 md:h-[75%] order-2 md:order-1 reveal d2 img-frame">
-      <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/pitch-deck/slide-07-agents.jpg" alt="DigiAgent — robotics manufacturer, creator matched, validated capture, USDG sent" class="p-4">
+      <img src="/pitch-deck/slide-07-agents.jpg" alt="DigiAgent — robotics manufacturer, creator matched, validated capture, USDG sent" class="p-4">
     </div>
     <div class="md:col-span-7 flex flex-col gap-5 order-1 md:order-2">
       <h1 class="font-brand t1 lime reveal absolute z-10 top-14 left-8 md:top-16 md:left-20">Agents + Product</h1>
@@ -269,7 +279,7 @@
 
 <!-- SLIDE 09: HOW IT WORKS -->
 <section class="slide">
-  <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
+  <img src="/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
   <span class="page-num">09 / 12</span>
   <svg class="motif" style="position:absolute; right:-14vw; bottom:-20vh; width:50vw; height:50vw; opacity:0.05; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2"><circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="32"/><circle cx="50" cy="50" r="16"/></svg>
   <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-10 px-8 md:px-20 pt-40 md:pt-48 pb-10 items-center">
@@ -277,20 +287,20 @@
       <h1 class="font-brand t1 lime reveal absolute z-10 top-14 left-8 md:top-16 md:left-20">How It<br>Works</h1>
       <h2 class="font-brand t2 reveal d1">Zero Friction. <span class="lime">Three Steps.</span></h2>
       <div class="flex flex-col reveal d2">
-        <div class="hair-t py-5" style="display:flex; gap:1.5rem; align-items:baseline;"><span class="step-num">01</span><p class="font-sans t3" style="max-width:none;"><strong>Login</strong> — connect with email or MetaMask, instant embedded wallet.</p></div>
+        <div class="hair-t py-5" style="display:flex; gap:1.5rem; align-items:baseline;"><span class="step-num">01</span><p class="font-sans t3" style="max-width:none;"><strong>Login</strong> — continue with Google or email, instant embedded wallet.</p></div>
         <div class="hair-t py-5" style="display:flex; gap:1.5rem; align-items:baseline;"><span class="step-num">02</span><p class="font-sans t3" style="max-width:none;"><strong>Record</strong> — strap phone to chest or head, record a tutorial.</p></div>
         <div class="hair-t hair-b py-5" style="display:flex; gap:1.5rem; align-items:baseline;"><span class="step-num">03</span><p class="font-sans t3" style="max-width:none;"><strong>Post &amp; Earn</strong> — upload, wait for a buyer, get paid instantly.</p></div>
       </div>
     </div>
     <div class="md:col-span-5 h-72 md:h-[69%] reveal d2 img-frame">
-      <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/pitch-deck/slide-08-how-it-works.jpg" alt="How it works — login, record, earn" class="p-4">
+      <img src="/pitch-deck/slide-08-how-it-works.jpg" alt="How it works — login, record, earn" class="p-4">
     </div>
   </div>
 </section>
 
 <!-- SLIDE 10: TEAM -->
 <section class="slide">
-  <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
+  <img src="/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
   <span class="page-num">10 / 12</span>
   <svg class="motif" style="position:absolute; right:-14vw; top:-12vh; width:52vw; height:52vw; opacity:0.05; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2"><circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="28"/></svg>
   <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-10 px-8 md:px-20 pt-40 md:pt-48 pb-10 items-center">
@@ -306,14 +316,14 @@
       <p class="font-sans reveal d4" style="font-size:1.1rem; color:var(--ink);">We're not building a platform. We're building the <span class="lime">agentic economy</span>, while tokenizing the data robots need to function.</p>
     </div>
     <div class="md:col-span-5 h-72 md:h-[69%] reveal d2 img-frame">
-      <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/pitch-deck/slide-10-team.jpg" alt="Oscar and Otto — the builders" class="p-4">
+      <img src="/pitch-deck/slide-10-team.jpg" alt="Oscar and Otto — the builders" class="p-4">
     </div>
   </div>
 </section>
 
 <!-- SLIDE 11: DEMO STATUS -->
 <section class="slide">
-  <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
+  <img src="/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
   <span class="page-num">11 / 12</span>
   <svg class="motif" style="position:absolute; right:-14vw; top:-12vh; width:50vw; height:50vw; opacity:0.04; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2"><circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="30"/></svg>
   <div class="flex-1 flex flex-col gap-8 px-8 md:px-20 pt-40 md:pt-48 pb-16">
@@ -333,7 +343,7 @@
 
 <!-- SLIDE 12: THE TIME IS NOW -->
 <section class="slide">
-  <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
+  <img src="/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
   <span class="page-num">12 / 12</span>
   <svg class="motif" style="position:absolute; left:-12vw; top:-20vh; width:46vw; height:46vw; opacity:0.05; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2"><circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="32"/></svg>
   <div class="flex-1 flex flex-col gap-4 px-8 md:px-20 pt-28 md:pt-36 pb-8">
@@ -345,7 +355,7 @@
       <div class="ledger-row"><span class="ledger-label">Infrastructure</span><span class="ledger-items muted">Next.js &middot; Solidity &middot; IPFS/Pinata &middot; QuickNode RPC</span></div>
     </div>
     <div class="reveal d3 img-frame" style="align-self:center; width:min(60%,48rem); height:28vh; margin-top:0.25rem;">
-      <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/pitch-deck/slide-09-tech.jpg" alt="DigiRobotics — robotic training and education economy at scale" class="p-3">
+      <img src="/pitch-deck/slide-09-tech.jpg" alt="DigiRobotics — robotic training and education economy at scale" class="p-3">
     </div>
     <div class="flex flex-wrap gap-4 reveal d4">
       <a href="https://digirobotics.xyz" class="cta">DigiRobotics.xyz &#8594;</a>
