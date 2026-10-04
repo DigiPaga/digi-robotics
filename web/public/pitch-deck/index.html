@@ -7,8 +7,14 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&family=Ubuntu:wght@500&family=Inter+Tight:wght@400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&family=Ubuntu:wght@500&family=Inter+Tight:wght@400;600&family=JetBrains+Mono:wght@500&family=Fira+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+    /* The layout was designed on a 2048x965 viewport with a 16px root. Scale the root with the
+       viewport so rem-based type and spacing keep the same proportions on any screen. */
+    html { font-size: min(calc(100vw / 128), calc(100vh / 60.3)); }
+    /* Tailwind's font-sans resolves to the OS UI font; pin it so the deck looks the same everywhere. */
+    .font-sans { font-family: 'Fira Sans', 'Inter Tight', sans-serif !important; }
+
   :root{ --page:#0e1118; --ink:#ffffff; --body:#d0d0d0; --muted:#a0a0a0; --lime:#84cc16; --red:#ef4444; --hair:rgba(255,255,255,0.08); --dash:rgba(255,255,255,0.2); }
   *{ box-sizing:border-box; margin:0; padding:0; font-style:normal; }
   html,body{ height:100%; background:var(--page); color:var(--ink); overflow:hidden; }
@@ -88,12 +94,11 @@
         <div class="brand-lockup"><img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/digirobotics/partners/arbitrum.png" alt="Arbitrum" style="height:1.875rem;width:auto;object-fit:contain"></div>
         <div class="brand-lockup"><img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/digirobotics/partners/robinhood-chain.png" alt="Robinhood Chain" style="height:1.395rem;width:auto;object-fit:contain"></div>
         <div class="brand-lockup"><img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/digirobotics/partners/zerodev.png" alt="ZeroDev" style="height:1.425rem;width:auto;object-fit:contain"></div>
-        <div class="brand-lockup"><img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/digirobotics/partners/paxos.png" alt="Paxos" style="height:1.5rem;width:auto;object-fit:contain"></div>
       </div>
       <p class="font-mono reveal d4" style="font-size:0.75rem;letter-spacing:0.15em;color:var(--muted)">Built at Arbitrum Open House Singapore</p>
     </div>
     <div class="md:col-span-5 h-72 md:h-[69%] reveal d2 img-frame">
-      <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/pitch-deck/slide-01-autonomous-commerce.jpg" alt="Autonomous commerce — capturing robotics training data" class="p-4">
+      <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/pitch-deck/slide-01-hero-usdg.jpg" alt="Autonomous commerce — capturing robotics training data" class="p-4">
     </div>
   </div>
 </section>
@@ -203,9 +208,9 @@
       <h2 class="font-brand t2 reveal d1">The Wedge &amp; The Moat</h2>
       <div class="flex flex-col reveal d2">
         <div class="adv-row"><p class="font-sans" style="font-size:1.05rem; color:var(--body);"><span class="lime" style="font-weight:600;">The Wedge:</span> First-mover stablecoin marketplace for robotics training data. Campaign capture, embedded-wallet onboarding, x402 agent-ready buying.</p></div>
-        <div class="adv-row"><p class="font-sans" style="font-size:1.05rem; color:var(--body);"><span class="lime" style="font-weight:600;">The Moat: Autonomous Distribution (DigiAgent).</span> Our autonomous CRM already holds hundreds of robotics builders and manufacturers, matching them with human creators in a self-sustaining flywheel.</p></div>
+        <div class="adv-row"><p class="font-sans" style="font-size:1.05rem; color:var(--body);"><span class="lime" style="font-weight:600;">The Moat: Autonomous Distribution (DigiAgent).</span> Our autonomous CRM is built to source robotics builders and manufacturers and match them with human creators in a self-sustaining flywheel.</p></div>
         <div class="adv-row"><p class="font-sans" style="font-size:1.05rem; color:var(--body);"><span class="lime" style="font-weight:600;">The Moat: Data Network Effects.</span> Validated footage, contributor quality history, and repeat buyers compound with every campaign.</p></div>
-        <div class="adv-row"><p class="font-sans" style="font-size:1.05rem; color:var(--body);"><span class="lime" style="font-weight:600;">The Moat: Multi-Continent Fiat &lt;&gt; Stablecoin Ramps.</span> Seamless cash-outs and competitive yield on earnings; partner coverage confirmed market by market.</p></div>
+        <div class="adv-row"><p class="font-sans" style="font-size:1.05rem; color:var(--body);"><span class="lime" style="font-weight:600;">The Moat: Multi-Continent Fiat &lt;&gt; Stablecoin Ramps.</span> Seamless cash-outs; partner coverage confirmed market by market.</p></div>
       </div>
       <p class="font-sans reveal d3" style="font-size:1rem; color:var(--body); margin-top:auto;"><span class="lime" style="font-weight:600;">DigiRobotics:</span> the world's first AI-native marketplace for audio-visual robotics training data, paying creators in stablecoins.</p>
     </div>
@@ -231,7 +236,7 @@
       <p class="font-sans reveal d3" style="font-size:1.1rem; font-weight:600; color:var(--ink);">Your camera is now a money printer. Literally.</p>
     </div>
     <div class="md:col-span-5 h-72 md:h-[69%] reveal d2 img-frame">
-      <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/pitch-deck/slide-06-innovation.jpg" alt="Your stablecoins work for you — 8% APY passive yield" class="p-4">
+      <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/pitch-deck/slide-07-why-we-win.jpg" alt="Capture approved — paid in USDG" class="p-4">
     </div>
   </div>
 </section>
@@ -336,8 +341,8 @@
     <h2 class="font-display reveal d1" style="font-size:clamp(1.25rem,2vw,1.5rem); color:var(--ink); margin-top:4rem;">Robotic Training &amp; Education Economy at Scale</h2>
     <div class="reveal d2">
       <div class="ledger-row"><span class="ledger-label">L2 &amp; Payments</span><span class="ledger-items muted">Arbitrum &middot; Robinhood Chain &middot; <span class="lime">x402 Protocol</span> &middot; USDG-ready (mUSDG on testnet)</span></div>
-      <div class="ledger-row"><span class="ledger-label">Autonomy &amp; Identity</span><span class="ledger-items muted">ZeroDev (ERC-4337, Session Keys) &middot; ERC-8004 &middot; EIP-712 / EIP-1271</span></div>
-      <div class="ledger-row"><span class="ledger-label">Infrastructure</span><span class="ledger-items muted">Next.js &middot; Solidity &middot; Prisma &middot; IPFS/Pinata &middot; QuickNode RPC</span></div>
+      <div class="ledger-row"><span class="ledger-label">Autonomy &amp; Identity</span><span class="ledger-items muted">ZeroDev (ERC-4337) &middot; ERC-8004 &middot; EIP-712 / EIP-1271</span></div>
+      <div class="ledger-row"><span class="ledger-label">Infrastructure</span><span class="ledger-items muted">Next.js &middot; Solidity &middot; IPFS/Pinata &middot; QuickNode RPC</span></div>
     </div>
     <div class="reveal d3 img-frame" style="align-self:center; width:min(60%,48rem); height:28vh; margin-top:0.25rem;">
       <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/pitch-deck/slide-09-tech.jpg" alt="DigiRobotics — robotic training and education economy at scale" class="p-3">
