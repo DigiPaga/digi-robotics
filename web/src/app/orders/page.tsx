@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Footer } from "@/components/landing/Footer";
 import { Navbar } from "@/components/landing/Navbar";
+import { WalletAutoConnect } from "@/components/auth/WalletAutoConnect";
 import { OrderHistory } from "@/components/orders/OrderHistory";
 import { Eyebrow, shell } from "@/components/ui/Primitives";
 
@@ -27,5 +28,5 @@ function PageTitle({ children, className = "" }: { children: ReactNode; classNam
 }
 
 export default function OrdersPage() {
-  return <main className="min-h-dvh pb-24"><Navbar /><section className="py-16 sm:py-24"><div className={shell}><Eyebrow>Orders / Wallet authenticated</Eyebrow><PageTitle className="mt-5">Your onchain receipts.</PageTitle><p className="mt-5 max-w-2xl text-lg leading-7 text-[var(--muted-foreground)]">Order summaries are filtered by the connected owner wallet. Shipping details stay out of this view.</p><div className="mt-12"><OrderHistory /></div></div></section><Footer /></main>;
+  return <main className="min-h-dvh pb-24"><Navbar /><section className="py-16 sm:py-24"><div className={shell}><Eyebrow>Orders / Wallet authenticated</Eyebrow><PageTitle className="mt-5">Your onchain receipts.</PageTitle><p className="mt-5 max-w-2xl text-lg leading-7 text-[var(--muted-foreground)]">Order summaries are filtered by the connected owner wallet. Shipping details stay out of this view.</p><div className="mt-12"><WalletAutoConnect /><OrderHistory /></div></div></section><Footer /></main>;
 }

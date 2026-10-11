@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { WalletAutoConnect } from "@/components/auth/WalletAutoConnect";
 import { CheckoutFlow } from "@/components/checkout/CheckoutFlow";
 import { Footer } from "@/components/landing/Footer";
 import { Navbar } from "@/components/landing/Navbar";
@@ -34,7 +35,7 @@ export default function CheckoutPage() {
         <Eyebrow>Stablecoin checkout / Arbitrum Sepolia</Eyebrow>
         <PageTitle className="mt-5">Gear paid onchain. Delivery demonstrated offchain.</PageTitle>
         <p className="mt-5 max-w-3xl text-lg leading-7 text-[var(--muted-foreground)]">A human-facing counterpart to DigiRobotics’ x402 agent payments: the same programmable settlement idea, shaped as a familiar four-step checkout.</p>
-        <div className="mt-12"><CheckoutFlow /></div>
+        <div className="mt-12"><WalletAutoConnect /><CheckoutFlow /></div>
       </div>
     </section>
     <Footer />
