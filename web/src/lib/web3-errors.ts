@@ -5,6 +5,7 @@ export type Web3ErrorCode =
   | "USER_REJECTED_SIGNATURE"
   | "INSUFFICIENT_ASSET_BALANCE"
   | "INSUFFICIENT_GAS"
+  | "GAS_SPONSORSHIP_UNAVAILABLE"
   | "WRONG_NETWORK"
   | "UNSUPPORTED_CHAIN"
   | "UNSUPPORTED_ASSET"
@@ -162,6 +163,19 @@ export function normalizeWeb3Error(
   if (includesAny(codeText, ["insufficient_balance", "insufficient_asset"]) ||
     (includesAny(text, ["insufficient", "exceeds balance"]) && includesAny(text, ["token", "balance", "usdg"]))) {
     return result("INSUFFICIENT_ASSET_BALANCE", `This wallet does not have enough ${asset} for the payment.`, true, error);
+  }
+
+  // ZeroDev's paymaster returns this exact phrase when the project has no gas policy covering
+  // the user operation (wrong/missing chain policy, exhausted spend cap, disabled project) —
+  // distinct from the wallet simply lacking native gas, so it gets its own code and a message
+  // that doesn't send the user chasing a wallet-funding problem that isn't theirs to fix.
+  if (includesAny(text, ["did not match any gas sponsoring", "no gas sponsoring polic", "no active gas policy"])) {
+    return result(
+      "GAS_SPONSORSHIP_UNAVAILABLE",
+      "Sponsored gas is not currently available for this network. This is a configuration issue on our end, not something in your wallet — please try again later.",
+      true,
+      error,
+    );
   }
 
   if (includesAny(text, ["insufficient funds for gas", "insufficient native", "gas sponsorship failed", "paymaster rejected"]) ||

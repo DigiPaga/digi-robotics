@@ -35,6 +35,16 @@ describe("normalizeWeb3Error", () => {
     expect(result.code).toBe("INSUFFICIENT_GAS");
   });
 
+  it("maps a ZeroDev gas-sponsoring-policy rejection distinctly from a wallet gas shortfall", () => {
+    // Exact message ZeroDev's paymaster returns when the project has no gas policy covering the
+    // user operation (verified live against the production ZeroDev project on 2026-10-11).
+    const result = normalizeWeb3Error(
+      new Error('"userOp did not match any gas sponsoring policies or (no ERC20 gas token data present)"'),
+    );
+    expect(result.code).toBe("GAS_SPONSORSHIP_UNAVAILABLE");
+    expect(result.retryable).toBe(true);
+  });
+
   it("maps a wrong-network error and appends the expected network", () => {
     const result = normalizeWeb3Error(new Error("chain mismatch"), { expectedNetwork: "Arbitrum Sepolia" });
     expect(result.code).toBe("WRONG_NETWORK");
