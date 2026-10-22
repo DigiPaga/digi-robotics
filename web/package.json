@@ -15,8 +15,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "validate:robinhood": "npx tsx scripts/validate-robinhood-config.ts",
-    "postinstall": "prisma skills sync || exit 0"
+    "validate:robinhood": "npx tsx scripts/validate-robinhood-config.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1155.0",

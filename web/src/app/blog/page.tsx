@@ -7,18 +7,18 @@ import { Navbar } from "@/components/landing/Navbar";
 import { getAllBlogPostMetadata } from "@/lib/blog";
 
 export const metadata: Metadata = {
-  title: "Field Notes — DigiRobotics",
+  title: "Articles — DigiRobotics",
   description: "Research notes on robotics training data, AI agents, x402, stablecoins, and digital asset licensing.",
   alternates: { canonical: "/blog" },
   openGraph: {
-    title: "Field Notes — DigiRobotics",
+    title: "Articles — DigiRobotics",
     description: "Ideas and implementation notes from the edge of robotics data and agentic commerce.",
     url: "/blog",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Field Notes — DigiRobotics",
+    title: "Articles — DigiRobotics",
     description: "Ideas and implementation notes from the edge of robotics data and agentic commerce.",
   },
 };

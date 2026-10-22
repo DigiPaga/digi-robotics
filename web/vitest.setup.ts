@@ -1,8 +1,9 @@
-import "@testing-library/jest-dom/vitest";
-import { cleanup } from "@testing-library/react";
-import { afterEach } from "vitest";
+// 1. IMPORTANTE: Esto habilita matchers como toBeInTheDocument, toHaveTextContent, etc.
+import '@testing-library/jest-dom/vitest';
 
-afterEach(() => {
-  if (typeof document !== "undefined") cleanup();
-  if (typeof window !== "undefined") window.localStorage.clear();
-});
+// 2. El stub para ResizeObserver que pidió el bot
+global.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
