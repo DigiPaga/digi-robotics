@@ -50,6 +50,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@prisma/client": "^5.22.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.3",
@@ -61,10 +62,10 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.6",
     "jsdom": "^25.0.1",
+    "prisma": "^5.22.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^3.2.7",
-    "wrangler": "4.145.0",
-    "prisma": "8.0.0-rc.24"
+    "wrangler": "4.145.0"
   }
 }

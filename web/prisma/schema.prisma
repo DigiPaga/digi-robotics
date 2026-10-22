@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  wallet    String    @unique @db.VarChar(42)
+  role      String    @default("CREATOR")
+  createdAt DateTime  @default(now())
+  clips     Clip[]
+  payouts   Payout[]
+}
+
+model Campaign {
+  id            String    @id @default(cuid())
+  ownerWallet   String    @db.VarChar(42)
+  title         String
+  description   String
+  instructions  String
+  pricePerClip  BigInt    @db.VarChar(78)
+  maxClips      Int
+  budget        BigInt    @db.VarChar(78)
+  fundedTxHash  String?   @unique @db.VarChar(66)
+  status        String    @default("DRAFT")
+  createdAt     DateTime  @default(now())
+  clips         Clip[]
+}
+
+model Clip {
+  id             String    @id @default(cuid())
+  creatorWallet  String    @db.VarChar(42)
+  campaignId     String?   @db.VarChar(192)
+  storageKey     String
+  mimeType       String
+  sizeBytes      BigInt    @db.VarChar(78)
+  durationSec    Int
+  width          Int
+  height         Int
+  sha256         String    @db.VarChar(64)
+  consentVersion String
+  consentAt      DateTime  @default(now())
+  flags          Json
+  status         String    @default("PENDING")
+  rejectReason   String?
+  tokenId        String?
+  metadataCid    String?
+  createdAt      DateTime  @default(now())
+  
+  campaign       Campaign? @relation(fields: [campaignId], references: [id])
+  creator        User      @relation(fields: [creatorWallet], references: [wallet])
+  payout         Payout?
+}
+
+model Payout {
+  id        String   @id @default(cuid())
+  clipId    String   @unique @db.VarChar(192)
+  toWallet  String   @db.VarChar(42)
+  amount    BigInt   @db.VarChar(78)
+  txHash    String   @db.VarChar(66)
+  createdAt DateTime @default(now())
+  clip      Clip     @relation(fields: [clipId], references: [id])
+}
