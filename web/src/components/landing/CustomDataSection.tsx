@@ -12,7 +12,7 @@ const types = [
 export function CustomDataSection() {
   return <section id="custom-data" className="scroll-mt-24 py-24 sm:py-32 lg:py-40">
     <div className={shell}>
-      <Reveal><Eyebrow>04 / Data on demand</Eyebrow><SectionTitle className="mt-5">Request the data your robot needs.</SectionTitle><p className="mt-6 max-w-2xl text-[19px] leading-[1.5] text-[var(--muted-foreground)] lg:text-[21px]">Define the task, environment, capture method, and acceptance criteria. DigiRobotics will use the request to plan a targeted contributor campaign.</p></Reveal>
+      <Reveal><Eyebrow>04 / Data on demand</Eyebrow><SectionTitle className="mt-5">Request the datasets your robot needs.</SectionTitle><p className="mt-6 max-w-2xl text-[19px] leading-[1.5] text-[var(--muted-foreground)] lg:text-[21px]">Define the task, environment category, capture method, and acceptance criteria. DigiRobotics will use the request to plan a targeted contributor campaign.</p></Reveal>
       <div className="mt-14 grid gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 lg:grid-cols-3">
         {types.map(({ title, copy, icon: Icon }, index) => <a key={title} href="#request-form" className="group min-h-[260px] border border-transparent bg-[var(--surface)] p-7 transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[var(--primary)]/30 hover:bg-white/[.03] sm:p-9">
           <div className="flex items-start justify-between"><span className="font-mono text-[11px] text-[var(--primary)]">0{index + 1}</span><Icon aria-hidden="true" size={32} className="text-white/55 transition group-hover:text-[var(--primary)]" /></div>

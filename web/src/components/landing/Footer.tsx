@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Mail, X } from "lucide-react";
 import { inlineLink, shell } from "@/components/ui/Primitives";
 
 const links = [
@@ -15,6 +16,10 @@ export function Footer() {
       </div>
       <div id="privacy-note" className="mt-10 grid gap-4 border-t border-white/[.08] pt-6 text-[13px] leading-5 text-white/45 sm:grid-cols-[1fr_auto]">
         <p>Privacy and terms notices will be published before campaign enrollment or data collection begins. Contact the team for Phase 1 information.</p><p>© 2026 DigiRobotics</p>
+      </div>
+      <div className="mt-6 flex items-center gap-4 text-white/45">
+        <a href="#" target="_blank" rel="noopener noreferrer" className="text-white/45 hover:text-white transition-colors"><X size={18} aria-hidden="true" /></a>
+        <a href="#" target="_blank" rel="noopener noreferrer" className="text-white/45 hover:text-white transition-colors"><Mail size={18} aria-hidden="true" /></a>
       </div>
       <p className="mt-5 font-mono text-[10px] uppercase tracking-[.12em] text-white/35">Agent-compatible payment workflows powered by stablecoins and x402. Phase 1 infrastructure.</p>
     </div>
