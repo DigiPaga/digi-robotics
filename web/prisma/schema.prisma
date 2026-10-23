@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -22,9 +23,9 @@ model Campaign {
   title         String
   description   String
   instructions  String
-  pricePerClip  BigInt    @db.VarChar(78)
+  pricePerClip  BigInt
   maxClips      Int
-  budget        BigInt    @db.VarChar(78)
+  budget        BigInt
   fundedTxHash  String?   @unique @db.VarChar(66)
   status        String    @default("DRAFT")
   createdAt     DateTime  @default(now())
@@ -32,36 +33,38 @@ model Campaign {
 }
 
 model Clip {
-  id             String    @id @default(cuid())
-  creatorWallet  String    @db.VarChar(42)
-  campaignId     String?   @db.VarChar(192)
+  id             String     @id @default(cuid())
+  creatorWallet  String     @db.VarChar(42)
+  campaignId     String?    
   storageKey     String
   mimeType       String
-  sizeBytes      BigInt    @db.VarChar(78)
+  sizeBytes      BigInt
   durationSec    Int
   width          Int
   height         Int
-  sha256         String    @db.VarChar(64)
+  sha256         String     @db.VarChar(64)
   consentVersion String
-  consentAt      DateTime  @default(now())
+  consentAt      DateTime   @default(now())
   flags          Json
-  status         String    @default("PENDING")
+  status         String     @default("PENDING")
   rejectReason   String?
   tokenId        String?
   metadataCid    String?
-  createdAt      DateTime  @default(now())
+  createdAt      DateTime   @default(now())
   
-  campaign       Campaign? @relation(fields: [campaignId], references: [id])
-  creator        User      @relation(fields: [creatorWallet], references: [wallet])
+  campaign       Campaign?  @relation(fields: [campaignId], references: [id])
+  creator        User       @relation(fields: [creatorWallet], references: [wallet])
   payout         Payout?
 }
 
 model Payout {
   id        String   @id @default(cuid())
-  clipId    String   @unique @db.VarChar(192)
+  clipId    String   @unique
   toWallet  String   @db.VarChar(42)
-  amount    BigInt   @db.VarChar(78)
+  amount    BigInt
   txHash    String   @db.VarChar(66)
   createdAt DateTime @default(now())
+  
   clip      Clip     @relation(fields: [clipId], references: [id])
+  creator   User     @relation(fields: [toWallet], references: [wallet])
 }
