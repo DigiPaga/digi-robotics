@@ -39,10 +39,10 @@ model Clip {
   storageKey     String
   mimeType       String
   sizeBytes      BigInt
-  durationSec    Int
-  width          Int
-  height         Int
-  sha256         String     @db.VarChar(64)
+  durationSec    Int?       
+  width          Int?       
+  height         Int?       
+  sha256         String?    @db.VarChar(64) 
   consentVersion String
   consentAt      DateTime   @default(now())
   flags          Json
