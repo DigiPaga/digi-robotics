@@ -22,12 +22,18 @@ function renderNavbar() {
 describe("Navbar", () => {
   it("links to the agent demo from the desktop nav", () => {
     renderNavbar();
-    expect(screen.getByRole("link", { name: "Agent demo" })).toHaveAttribute("href", "/agent-demo");
+    expect(screen.getByRole("link", { name: "Agent demo" })).toHaveAttribute(
+      "href",
+      "/agent-demo",
+    );
   });
 
   it("exposes orders on the desktop nav, not just the mobile drawer", () => {
     renderNavbar();
-    expect(screen.getByRole("link", { name: "Your orders" })).toHaveAttribute("href", "/orders");
+    expect(screen.getByRole("link", { name: "Your orders" })).toHaveAttribute(
+      "href",
+      "/orders",
+    );
   });
 
   it("opens the mobile drawer as an accessible dialog with a scrollable container", async () => {
@@ -39,6 +45,8 @@ describe("Navbar", () => {
     expect(dialog.className).toMatch(/overflow-y-auto/);
     expect(dialog.className).not.toMatch(/min-h-dvh/);
 
-    expect(within(dialog).getByRole("link", { name: /Agent demo/ })).toHaveAttribute("href", "/agent-demo");
+    expect(
+      within(dialog).getByRole("link", { name: /Agent demo/ }),
+    ).toHaveAttribute("href", "/agent-demo");
   });
 });

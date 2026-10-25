@@ -1,10 +1,10 @@
-import logger from '../utils/logger';
-import { X402Agent, AgentToAgentMessage } from './types';
+import logger from "../utils/logger";
+import { X402Agent, AgentToAgentMessage } from "./types";
 
 /**
  * B2B Outreach Agent
  * Purpose: Contact robotics companies and generate demand for egocentric datasets
- * 
+ *
  * How it works:
  * 1. Identifies robotics companies (humanoid, mechatronics, automation)
  * 2. Analyzes their needs based on public info/research papers
@@ -21,32 +21,32 @@ export interface RoboticsCompany {
 }
 
 export class B2BOutreachAgent {
-  private identity: X402Agent['identity'];
+  private identity: X402Agent["identity"];
   private targetCompanies: RoboticsCompany[];
 
   constructor(agentAddress: string) {
     this.identity = {
       address: agentAddress,
-      agentType: 'outreach',
-      capabilities: ['b2b_sales', 'bounty_creation', 'negotiation'],
-      metadataURI: 'ipfs://QmB2BOutreachAgentMetadata',
+      agentType: "outreach",
+      capabilities: ["b2b_sales", "bounty_creation", "negotiation"],
+      metadataURI: "ipfs://QmB2BOutreachAgentMetadata",
     };
 
     this.targetCompanies = [
       {
-        name: 'Boston Dynamics',
-        website: 'bostondynamics.com',
-        focus: ['humanoid', 'mobility', 'manipulation'],
+        name: "Boston Dynamics",
+        website: "bostondynamics.com",
+        focus: ["humanoid", "mobility", "manipulation"],
       },
       {
-        name: 'Tesla Optimus',
-        website: 'tesla.com/ai',
-        focus: ['humanoid', 'general-purpose', 'manufacturing'],
+        name: "Tesla Optimus",
+        website: "tesla.com/ai",
+        focus: ["humanoid", "general-purpose", "manufacturing"],
       },
       {
-        name: 'Figure AI',
-        website: 'figure.ai',
-        focus: ['humanoid', 'warehouse', 'logistics'],
+        name: "Figure AI",
+        website: "figure.ai",
+        focus: ["humanoid", "warehouse", "logistics"],
       },
     ];
   }
@@ -54,25 +54,33 @@ export class B2BOutreachAgent {
   async analyzeCompanyNeeds(company: RoboticsCompany): Promise<string[]> {
     // DEMO: Simulated analysis
     // PRODUCTION: Scrape website, analyze research papers, check GitHub repos
-    logger.info(`Analyzing needs for ${company.name}...`, { focus: company.focus });
-    
-    const inferredNeeds = company.focus.map(f => `${f}-training-data`);
+    logger.info(`Analyzing needs for ${company.name}...`, {
+      focus: company.focus,
+    });
+
+    const inferredNeeds = company.focus.map((f) => `${f}-training-data`);
     return inferredNeeds;
   }
 
-  async createCustomBounty(company: RoboticsCompany, needs: string[]): Promise<void> {
+  async createCustomBounty(
+    company: RoboticsCompany,
+    needs: string[],
+  ): Promise<void> {
     const bountyPayload = {
       requesterName: company.name,
-      title: `Egocentric ${needs.join(' + ')} Dataset`,
+      title: `Egocentric ${needs.join(" + ")} Dataset`,
       description: `Autonomously generated bounty for ${company.name}. Looking for high-quality first-person video data.`,
       requiredTags: needs,
       minQualityScore: 90,
-      bountyAmount: '10.00', // USDC - can be negotiated via MPP
+      bountyAmount: "10.00", // USDC - can be negotiated via MPP
       autoFulfill: true,
     };
 
-    logger.info('Creating custom bounty for company', { company: company.name, bounty: bountyPayload });
-    
+    logger.info("Creating custom bounty for company", {
+      company: company.name,
+      bounty: bountyPayload,
+    });
+
     // DEMO: Log the bounty
     // PRODUCTION: POST to /api/bounties endpoint or call smart contract directly
   }
@@ -85,11 +93,11 @@ Hello ${company.name} Team,
 
 I'm an autonomous agent representing DigiRobotics Marketplace.
 
-We noticed your work in ${company.focus.join(', ')} and believe our platform can accelerate your development.
+We noticed your work in ${company.focus.join(", ")} and believe our platform can accelerate your development.
 
 **What we offer:**
 - Verified egocentric datasets (quality score 85+)
-- Specialized in: ${company.focus.join(', ')}
+- Specialized in: ${company.focus.join(", ")}
 - Instant delivery via x402 protocol
 - Competitive pricing: $0.50 - $5.00 per dataset
 
@@ -104,24 +112,27 @@ Best regards,
 DigiRobotics B2B Agent
     `;
 
-    logger.info('Sending outreach email', { to: company.name, template: emailTemplate.substring(0, 100) });
-    
+    logger.info("Sending outreach email", {
+      to: company.name,
+      template: emailTemplate.substring(0, 100),
+    });
+
     // DEMO: Simulate email send
     // PRODUCTION: Integrate with Resend/SendGrid API
     return true;
   }
 
   async runB2BCampaign(): Promise<void> {
-    logger.info('Starting B2B outreach campaign...');
-    
+    logger.info("Starting B2B outreach campaign...");
+
     for (const company of this.targetCompanies) {
       const needs = await this.analyzeCompanyNeeds(company);
       await this.createCustomBounty(company, needs);
       await this.sendOutreachEmail(company);
-      
+
       logger.success(`Outreach completed for ${company.name}`);
     }
   }
 }
 
-export const b2bAgent = new B2BOutreachAgent('0xB2BAgent...456');
+export const b2bAgent = new B2BOutreachAgent("0xB2BAgent...456");

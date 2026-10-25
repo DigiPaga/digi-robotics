@@ -28,7 +28,10 @@ export function parseAllowlist(raw: string | undefined): ReadonlySet<string> {
   return new Set(entries);
 }
 
-export function isAllowedEmail(email: string, allowlist: ReadonlySet<string>): boolean {
+export function isAllowedEmail(
+  email: string,
+  allowlist: ReadonlySet<string>,
+): boolean {
   if (allowlist.size === 0) return false;
   const canonical = canonicalizeEmail(email);
   return canonical !== "" && allowlist.has(canonical);

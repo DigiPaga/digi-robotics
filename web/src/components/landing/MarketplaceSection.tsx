@@ -3,7 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { ChevronDown } from "lucide-react";
-import { Eyebrow, PrimaryLink, SectionTitle, shell } from "@/components/ui/Primitives";
+import {
+  Eyebrow,
+  PrimaryLink,
+  SectionTitle,
+  shell,
+} from "@/components/ui/Primitives";
 import { Reveal } from "@/components/ui/Reveal";
 
 const CTA_LABEL = "REQUEST ACCESS";
@@ -144,7 +149,9 @@ function CategoryTabs({
       const width = container.offsetWidth;
       const moreEl = measure.querySelector<HTMLElement>("[data-tab-more]");
       const moreW = moreEl ? moreEl.offsetWidth + 8 : 0;
-      const tabs = Array.from(measure.querySelectorAll<HTMLElement>("[data-tab-measure]"));
+      const tabs = Array.from(
+        measure.querySelectorAll<HTMLElement>("[data-tab-measure]"),
+      );
       let used = 0;
       let fit = tabs.length;
       for (let i = 0; i < tabs.length; i++) {
@@ -214,7 +221,12 @@ function CategoryTabs({
       <div className="relative mt-10 hidden md:flex">
         <div ref={containerRef} className="flex items-center gap-2">
           {visible.map((category) => (
-            <CategoryTab key={category} category={category} selected={selected} onSelect={onSelect} />
+            <CategoryTab
+              key={category}
+              category={category}
+              selected={selected}
+              onSelect={onSelect}
+            />
           ))}
           {hasOverflow && (
             <button
@@ -233,7 +245,12 @@ function CategoryTabs({
         {hasOverflow && moreOpen && (
           <div className="absolute left-0 top-[calc(100%+10px)] w-auto min-w-[160px] rounded-xl border border-white/10 bg-[#171d29] p-3 shadow-2xl z-50 flex flex-col gap-2">
             {overflow.map((category) => (
-              <CategoryTab key={category} category={category} selected={selected} onSelect={onSelect} />
+              <CategoryTab
+                key={category}
+                category={category}
+                selected={selected}
+                onSelect={onSelect}
+              />
             ))}
           </div>
         )}
@@ -241,7 +258,12 @@ function CategoryTabs({
 
       <div className="mt-10 flex flex-nowrap gap-2 overflow-x-auto md:hidden pb-2">
         {categories.map((category) => (
-          <CategoryTab key={category} category={category} selected={selected} onSelect={onSelect} />
+          <CategoryTab
+            key={category}
+            category={category}
+            selected={selected}
+            onSelect={onSelect}
+          />
         ))}
       </div>
     </>
@@ -251,72 +273,98 @@ function CategoryTabs({
 export function MarketplaceSection() {
   const [selected, setSelected] = useState<MarketplaceCategory>("All");
   const filtered = useMemo(
-    () => (selected === "All" ? datasets : datasets.filter((d) => d.category === selected)),
-    [selected]
+    () =>
+      selected === "All"
+        ? datasets
+        : datasets.filter((d) => d.category === selected),
+    [selected],
   );
   const isEmpty = filtered.length === 0 && selected !== "All";
-  return <section id="marketplace" className="scroll-mt-24 py-24 sm:py-32 lg:py-40">
-    <div className={shell}>
-      <Reveal>
-        <Eyebrow>02 / Training data marketplace</Eyebrow>
-        <SectionTitle className="mt-5">5.4 Billion Smartphones. One New Way to Earn.</SectionTitle>
-        <p className="mt-6 max-w-3xl text-[19px] leading-[1.5] text-[var(--muted-foreground)] lg:text-[21px]">
-          Embodied AI needs enormous amounts of audio-visual data to make robots useful. This marketplace gives both creators and robotics builders access to the quality egocentric data embodied AI requires.
-        </p>
-        <p className="mt-6 max-w-3xl text-[19px] leading-[1.5] text-[var(--muted-foreground)] lg:text-[21px]">
-          Enter the marketplace and let our AI agent secure stablecoin payments while it supervises the preview of first-person task data — built for perception, planning, manipulation, and embodied AI research.
-        </p>
-      </Reveal>
+  return (
+    <section id="marketplace" className="scroll-mt-24 py-24 sm:py-32 lg:py-40">
+      <div className={shell}>
+        <Reveal>
+          <Eyebrow>02 / Training data marketplace</Eyebrow>
+          <SectionTitle className="mt-5">
+            5.4 Billion Smartphones. One New Way to Earn.
+          </SectionTitle>
+          <p className="mt-6 max-w-3xl text-[19px] leading-[1.5] text-[var(--muted-foreground)] lg:text-[21px]">
+            Embodied AI needs enormous amounts of audio-visual data to make
+            robots useful. This marketplace gives both creators and robotics
+            builders access to the quality egocentric data embodied AI requires.
+          </p>
+          <p className="mt-6 max-w-3xl text-[19px] leading-[1.5] text-[var(--muted-foreground)] lg:text-[21px]">
+            Enter the marketplace and let our AI agent secure stablecoin
+            payments while it supervises the preview of first-person task data —
+            built for perception, planning, manipulation, and embodied AI
+            research.
+          </p>
+        </Reveal>
 
-      <CategoryTabs
-        categories={MARKETPLACE_CATEGORIES}
-        selected={selected}
-        onSelect={setSelected}
-      />
+        <CategoryTabs
+          categories={MARKETPLACE_CATEGORIES}
+          selected={selected}
+          onSelect={setSelected}
+        />
 
-      {isEmpty ? (
-        <div className="mt-10 grid min-h-72 place-items-center rounded-2xl border border-dashed border-white/10 bg-white/[.015] text-center">
-          <div className="max-w-xs px-6">
-            <p className="font-mono text-[13px] leading-6 text-[var(--muted-foreground)]">
-              No campaigns yet in this category —{" "}
-              <a
-                href="#custom-data"
-                className="relative text-[var(--primary)] after:absolute after:inset-x-0 after:bottom-[1px] after:h-[1px] after:bg-[var(--primary)] after:scale-x-0 after:origin-left after:transition-transform after:duration-300 hover:after:scale-x-100"
-              >
-                request custom data
-              </a>
-            </p>
-          </div>
-        </div>
-      ) : (
-        <div className="mt-14 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map(({ title, category, copy, image, alt }, index) => (
-            <article key={title} className="group overflow-hidden rounded-2xl border border-white/[.09] bg-[var(--surface)] transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[var(--primary)]/30 focus-within:border-[var(--primary)]/30">
-              <div className="relative h-48 w-full overflow-hidden rounded-t-lg bg-[#161c29]">
-                <Image
-                  src={image}
-                  alt={alt}
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
-                  className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
-                />
-                <span className="absolute left-4 top-3 rounded-full bg-[#0e1118]/80 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[.14em] text-[var(--primary)]">
-                  POV / {String(index + 1).padStart(2, "0")}
-                </span>
-              </div>
-              <div className="p-6">
-                <p className="font-mono text-[11px] uppercase tracking-[.15em] text-[var(--primary)]">{category}</p>
-                <h3 className="mt-3 font-heading text-2xl leading-[1.05] transition-colors duration-300 ease-out group-hover:text-[var(--primary)]">{title}</h3>
-                <p className="mt-4 text-[17px] leading-6 text-[var(--muted-foreground)]">{copy}</p>
-                <a href="#custom-data" className="relative mt-6 inline-flex min-h-11 items-center text-[13px] font-semibold tracking-[.08em] text-white transition-colors duration-300 ease-out after:absolute after:inset-x-0 after:bottom-2 after:h-px after:origin-left after:scale-x-0 after:bg-[var(--primary)] after:transition-transform after:duration-300 after:ease-out hover:text-[var(--primary)] hover:after:scale-x-100">
-                  {CTA_LABEL} →
+        {isEmpty ? (
+          <div className="mt-10 grid min-h-72 place-items-center rounded-2xl border border-dashed border-white/10 bg-white/[.015] text-center">
+            <div className="max-w-xs px-6">
+              <p className="font-mono text-[13px] leading-6 text-[var(--muted-foreground)]">
+                No campaigns yet in this category —{" "}
+                <a
+                  href="#custom-data"
+                  className="relative text-[var(--primary)] after:absolute after:inset-x-0 after:bottom-[1px] after:h-[1px] after:bg-[var(--primary)] after:scale-x-0 after:origin-left after:transition-transform after:duration-300 hover:after:scale-x-100"
+                >
+                  request custom data
                 </a>
-              </div>
-            </article>
-          ))}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-14 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {filtered.map(({ title, category, copy, image, alt }, index) => (
+              <article
+                key={title}
+                className="group overflow-hidden rounded-2xl border border-white/[.09] bg-[var(--surface)] transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[var(--primary)]/30 focus-within:border-[var(--primary)]/30"
+              >
+                <div className="relative h-48 w-full overflow-hidden rounded-t-lg bg-[#161c29]">
+                  <Image
+                    src={image}
+                    alt={alt}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
+                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+                  />
+                  <span className="absolute left-4 top-3 rounded-full bg-[#0e1118]/80 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[.14em] text-[var(--primary)]">
+                    POV / {String(index + 1).padStart(2, "0")}
+                  </span>
+                </div>
+                <div className="p-6">
+                  <p className="font-mono text-[11px] uppercase tracking-[.15em] text-[var(--primary)]">
+                    {category}
+                  </p>
+                  <h3 className="mt-3 font-heading text-2xl leading-[1.05] transition-colors duration-300 ease-out group-hover:text-[var(--primary)]">
+                    {title}
+                  </h3>
+                  <p className="mt-4 text-[17px] leading-6 text-[var(--muted-foreground)]">
+                    {copy}
+                  </p>
+                  <a
+                    href="#custom-data"
+                    className="relative mt-6 inline-flex min-h-11 items-center text-[13px] font-semibold tracking-[.08em] text-white transition-colors duration-300 ease-out after:absolute after:inset-x-0 after:bottom-2 after:h-px after:origin-left after:scale-x-0 after:bg-[var(--primary)] after:transition-transform after:duration-300 after:ease-out hover:text-[var(--primary)] hover:after:scale-x-100"
+                  >
+                    {CTA_LABEL} →
+                  </a>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+        <div className="mt-12">
+          <PrimaryLink href="#join">Enter the marketplace</PrimaryLink>
         </div>
-      )}
-      <div className="mt-12"><PrimaryLink href="#join">Enter the marketplace</PrimaryLink></div>
-    </div>
-  </section>;
+      </div>
+    </section>
+  );
 }

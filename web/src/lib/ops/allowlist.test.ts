@@ -3,9 +3,15 @@ import { canonicalizeEmail, isAllowedEmail, parseAllowlist } from "./allowlist";
 
 describe("ops allowlist", () => {
   it("canonicalizes case, whitespace and gmail dots", () => {
-    expect(canonicalizeEmail("  OttoDevs@Gmail.com ")).toBe("ottodevs@gmail.com");
-    expect(canonicalizeEmail("otto.devs@googlemail.com")).toBe("ottodevs@gmail.com");
-    expect(canonicalizeEmail("first.last@example.com")).toBe("first.last@example.com");
+    expect(canonicalizeEmail("  OttoDevs@Gmail.com ")).toBe(
+      "ottodevs@gmail.com",
+    );
+    expect(canonicalizeEmail("otto.devs@googlemail.com")).toBe(
+      "ottodevs@gmail.com",
+    );
+    expect(canonicalizeEmail("first.last@example.com")).toBe(
+      "first.last@example.com",
+    );
     expect(canonicalizeEmail("me+ops@gmail.com")).toBe("me+ops@gmail.com");
     expect(canonicalizeEmail("not-an-email")).toBe("");
     expect(canonicalizeEmail("@gmail.com")).toBe("");
@@ -24,9 +30,13 @@ describe("ops allowlist", () => {
       "ottodevs@gmail.com\nx",
     ]) {
       expect(canonicalizeEmail(email)).toBe("");
-      expect(isAllowedEmail(email, parseAllowlist("ottodevs@gmail.com"))).toBe(false);
+      expect(isAllowedEmail(email, parseAllowlist("ottodevs@gmail.com"))).toBe(
+        false,
+      );
     }
-    expect(parseAllowlist("\u043ettodevs@gmail.com, oscar@digipaga.xyz").size).toBe(1);
+    expect(
+      parseAllowlist("\u043ettodevs@gmail.com, oscar@digipaga.xyz").size,
+    ).toBe(1);
   });
 
   it("parses a comma list and matches canonical forms", () => {

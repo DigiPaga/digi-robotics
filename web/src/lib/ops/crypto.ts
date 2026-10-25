@@ -36,7 +36,10 @@ export function randomToken(bytes = 32): string {
 
 /** RFC 7636 S256 code challenge for a PKCE verifier. */
 export async function pkceChallenge(verifier: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", encoder.encode(verifier));
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    encoder.encode(verifier),
+  );
   return b64url(new Uint8Array(digest));
 }
 
@@ -48,11 +51,16 @@ async function hmac(secret: string, data: string): Promise<Uint8Array> {
     false,
     ["sign"],
   );
-  return new Uint8Array(await crypto.subtle.sign("HMAC", key, encoder.encode(data)));
+  return new Uint8Array(
+    await crypto.subtle.sign("HMAC", key, encoder.encode(data)),
+  );
 }
 
 /** Constant-time string comparison (compares SHA-256 digests, so lengths never leak). */
-export async function sameSecret(provided: string, expected: string): Promise<boolean> {
+export async function sameSecret(
+  provided: string,
+  expected: string,
+): Promise<boolean> {
   const [a, b] = await Promise.all([
     crypto.subtle.digest("SHA-256", encoder.encode(provided)),
     crypto.subtle.digest("SHA-256", encoder.encode(expected)),
@@ -71,14 +79,22 @@ export type SealPurpose = "session" | "oauth";
  * `base64url(json).base64url(hmac)`. Integrity only: the payload is readable,
  * never put secrets in it. The purpose is signed into the payload as `typ`.
  */
-export async function seal(secret: string, typ: SealPurpose, data: Record<string, unknown>): Promise<string> {
+export async function seal(
+  secret: string,
+  typ: SealPurpose,
+  data: Record<string, unknown>,
+): Promise<string> {
   const payload = b64url(encoder.encode(JSON.stringify({ ...data, typ })));
   const mac = b64url(await hmac(secret, payload));
   return `${payload}.${mac}`;
 }
 
 /** Null unless the signature holds and the payload was sealed for this same purpose. */
-export async function unseal<T>(secret: string, typ: SealPurpose, raw: string | undefined | null): Promise<Partial<T> | null> {
+export async function unseal<T>(
+  secret: string,
+  typ: SealPurpose,
+  raw: string | undefined | null,
+): Promise<Partial<T> | null> {
   if (!raw) return null;
   const dot = raw.indexOf(".");
   if (dot < 1) return null;

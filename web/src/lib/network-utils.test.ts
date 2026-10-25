@@ -13,7 +13,9 @@ describe("getSupportedChain", () => {
   });
 
   it("resolves an eip155 CAIP-2 network string", () => {
-    expect(getSupportedChain("eip155:46630")?.name).toBe("Robinhood Chain Testnet");
+    expect(getSupportedChain("eip155:46630")?.name).toBe(
+      "Robinhood Chain Testnet",
+    );
   });
 
   it("resolves a bare numeric string", () => {
@@ -36,7 +38,9 @@ describe("getNetworkDisplayName", () => {
   });
 
   it("falls back for unsupported networks", () => {
-    expect(getNetworkDisplayName(999999)).toBe("Unsupported configured network");
+    expect(getNetworkDisplayName(999999)).toBe(
+      "Unsupported configured network",
+    );
   });
 });
 
@@ -44,12 +48,16 @@ describe("getTransactionExplorerUrl", () => {
   const validHash = `0x${"a".repeat(64)}`;
 
   it("builds an explorer url for a valid hash on a supported chain", () => {
-    expect(getTransactionExplorerUrl(421614, validHash)).toBe(`https://sepolia.arbiscan.io/tx/${validHash}`);
+    expect(getTransactionExplorerUrl(421614, validHash)).toBe(
+      `https://sepolia.arbiscan.io/tx/${validHash}`,
+    );
   });
 
   it("strips a trailing slash from the explorer base url", () => {
     // Robinhood explorer url has no trailing slash in config; assert the join still has exactly one slash.
-    expect(getTransactionExplorerUrl(46630, validHash)).toBe(`https://explorer.testnet.chain.robinhood.com/tx/${validHash}`);
+    expect(getTransactionExplorerUrl(46630, validHash)).toBe(
+      `https://explorer.testnet.chain.robinhood.com/tx/${validHash}`,
+    );
   });
 
   it("returns undefined for a malformed hash", () => {

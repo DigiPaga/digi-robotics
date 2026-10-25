@@ -101,7 +101,11 @@ export function useDeckController() {
       // valid slide number (e.g. "1" could become 10-12); anything else — a
       // second digit, or a first digit no valid number starts with — commits
       // right away, so single-digit jumps feel instant.
-      const canExtend = digitBuf.current.length === 1 && Array.from({ length: 10 }, (_, x) => Number(digitBuf.current + x)).some((n) => n >= 1 && n <= TOTAL);
+      const canExtend =
+        digitBuf.current.length === 1 &&
+        Array.from({ length: 10 }, (_, x) => Number(digitBuf.current + x)).some(
+          (n) => n >= 1 && n <= TOTAL,
+        );
       if (canExtend) digitTimer.current = setTimeout(commit, 600);
       else commit();
     },
@@ -126,7 +130,8 @@ export function useDeckController() {
   // Keep the hash in sync so a reload (or a share) returns to the same slide.
   useEffect(() => {
     const hash = `#${pos.index + 1}`;
-    if (window.location.hash !== hash) window.history.replaceState(null, "", hash);
+    if (window.location.hash !== hash)
+      window.history.replaceState(null, "", hash);
   }, [pos.index]);
 
   useEffect(() => {
@@ -170,7 +175,11 @@ export function useDeckController() {
         case "PageDown":
         case " ":
         case "Enter":
-          if (k === "Enter" && (e.target as HTMLElement | null)?.closest("a,button")) return;
+          if (
+            k === "Enter" &&
+            (e.target as HTMLElement | null)?.closest("a,button")
+          )
+            return;
           e.preventDefault();
           next();
           break;
@@ -213,7 +222,16 @@ export function useDeckController() {
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [next, prev, first, last, handleDigit, toggleFullscreen, toggleTimer, toggleHelp]);
+  }, [
+    next,
+    prev,
+    first,
+    last,
+    handleDigit,
+    toggleFullscreen,
+    toggleTimer,
+    toggleHelp,
+  ]);
 
   return {
     index: pos.index,

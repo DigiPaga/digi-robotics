@@ -20,7 +20,9 @@ const NODE_PORT = 8402;
 let listening: Promise<void> | undefined;
 
 function stringBindings(bindings: object): Record<string, string> {
-  const entries = Object.entries(bindings).filter((entry): entry is [string, string] => typeof entry[1] === "string");
+  const entries = Object.entries(bindings).filter(
+    (entry): entry is [string, string] => typeof entry[1] === "string",
+  );
   return Object.fromEntries(entries);
 }
 
@@ -36,14 +38,18 @@ function listen(bindings: object): Promise<void> {
     // rather than through a public round trip from the Worker to its own hostname.
     const buyerFetch: typeof fetch = (input, init) => {
       const request = new Request(input, init);
-      return new URL(request.url).origin === origin ? handleAsNodeRequest(NODE_PORT, request) : fetch(request);
+      return new URL(request.url).origin === origin
+        ? handleAsNodeRequest(NODE_PORT, request)
+        : fetch(request);
     };
     const app = createApp(env, { buyerFetch });
     // The Worker below replaces X-Forwarded-For with the address Cloudflare saw.
     app.set("trust proxy", true);
-    await new Promise<void>(resolve => app.listen(NODE_PORT, resolve));
+    await new Promise<void>((resolve) => app.listen(NODE_PORT, resolve));
   })();
-  listening.catch(() => { listening = undefined; });
+  listening.catch(() => {
+    listening = undefined;
+  });
   return listening;
 }
 
@@ -53,9 +59,19 @@ export class X402Server extends DurableObject<Env> {
       await listen(this.env);
     } catch (error) {
       // loadEnv errors name the variable at fault and never include its value.
-      const message = error instanceof Error ? error.message : "The server could not start.";
-      console.error(JSON.stringify({ level: "error", event: "x402_server_start_failed", message }));
-      return Response.json({ error: "SERVER_NOT_CONFIGURED", message }, { status: 503 });
+      const message =
+        error instanceof Error ? error.message : "The server could not start.";
+      console.error(
+        JSON.stringify({
+          level: "error",
+          event: "x402_server_start_failed",
+          message,
+        }),
+      );
+      return Response.json(
+        { error: "SERVER_NOT_CONFIGURED", message },
+        { status: 503 },
+      );
     }
     return handleAsNodeRequest(NODE_PORT, request);
   }
@@ -67,6 +83,8 @@ export default {
     const clientIp = request.headers.get("cf-connecting-ip");
     if (clientIp) headers.set("x-forwarded-for", clientIp);
     else headers.delete("x-forwarded-for");
-    return env.X402_SERVER.getByName("x402-server").fetch(new Request(request, { headers }));
+    return env.X402_SERVER.getByName("x402-server").fetch(
+      new Request(request, { headers }),
+    );
   },
 } satisfies ExportedHandler<Env>;

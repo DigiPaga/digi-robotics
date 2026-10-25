@@ -84,12 +84,19 @@ const lastGood = new Map<string, { runs: CiRun[]; fetchedAt: string }>();
 
 export function readGithubRepo(env: Env = process.env): string {
   const raw = env.OPS_GITHUB_REPO?.trim();
-  return raw && /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})\/[A-Za-z0-9._-]{1,100}$/.test(raw) ? raw : DEFAULT_GITHUB_REPO;
+  return raw &&
+    /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})\/[A-Za-z0-9._-]{1,100}$/.test(raw)
+    ? raw
+    : DEFAULT_GITHUB_REPO;
 }
 
 function severity(run: CiRun): number {
   if (run.status !== "completed") return 1;
-  return run.conclusion === "success" || run.conclusion === "skipped" || run.conclusion === "neutral" ? 0 : 2;
+  return run.conclusion === "success" ||
+    run.conclusion === "skipped" ||
+    run.conclusion === "neutral"
+    ? 0
+    : 2;
 }
 
 /**
@@ -100,7 +107,12 @@ function severity(run: CiRun): number {
 export function pickLatest(runs: readonly CiRun[]): CiRun | null {
   const head = runs[0];
   if (!head) return null;
-  return runs.filter((run) => run.sha === head.sha).reduce((worst, run) => (severity(run) > severity(worst) ? run : worst), head);
+  return runs
+    .filter((run) => run.sha === head.sha)
+    .reduce(
+      (worst, run) => (severity(run) > severity(worst) ? run : worst),
+      head,
+    );
 }
 
 /** Pure: GitHub's `actions/runs` body to our rows. Anything that does not parse is dropped. */
@@ -112,7 +124,9 @@ export function parseWorkflowRuns(body: unknown, repo: string): CiRun[] | null {
     const run = runSchema.safeParse(item);
     if (!run.success) continue;
     // Only link to the repository we asked about, whatever the body says.
-    const url = run.data.html_url.startsWith(`https://github.com/${repo}/`) ? run.data.html_url : `https://github.com/${repo}/actions`;
+    const url = run.data.html_url.startsWith(`https://github.com/${repo}/`)
+      ? run.data.html_url
+      : `https://github.com/${repo}/actions`;
     runs.push({
       id: run.data.id,
       workflow: (run.data.name ?? "workflow").slice(0, 80),
@@ -133,35 +147,65 @@ export function parseWorkflowRuns(body: unknown, repo: string): CiRun[] | null {
 
 function isRateLimited(response: Response): boolean {
   if (response.status === 429) return true;
-  return response.status === 403 && response.headers.get("x-ratelimit-remaining") === "0";
+  return (
+    response.status === 403 &&
+    response.headers.get("x-ratelimit-remaining") === "0"
+  );
 }
 
 function resetTime(response: Response): string | null {
   const seconds = Number(response.headers.get("x-ratelimit-reset"));
-  return Number.isFinite(seconds) && seconds > 0 ? new Date(seconds * 1000).toISOString() : null;
+  return Number.isFinite(seconds) && seconds > 0
+    ? new Date(seconds * 1000).toISOString()
+    : null;
 }
 
 async function load(repo: string, options: GithubOptions): Promise<CiStatus> {
   const now = options.now ?? Date.now;
   const base = { repo, branch: BRANCH };
-  const fallback = (state: "rate_limited" | "unavailable", rateLimitResetAt: string | null): CiStatus => {
+  const fallback = (
+    state: "rate_limited" | "unavailable",
+    rateLimitResetAt: string | null,
+  ): CiStatus => {
     const good = lastGood.get(repo);
     return good
-      ? { ...base, state: "stale", runs: good.runs, latest: pickLatest(good.runs), fetchedAt: good.fetchedAt, rateLimitResetAt }
-      : { ...base, state, runs: [], latest: null, fetchedAt: null, rateLimitResetAt };
+      ? {
+          ...base,
+          state: "stale",
+          runs: good.runs,
+          latest: pickLatest(good.runs),
+          fetchedAt: good.fetchedAt,
+          rateLimitResetAt,
+        }
+      : {
+          ...base,
+          state,
+          runs: [],
+          latest: null,
+          fetchedAt: null,
+          rateLimitResetAt,
+        };
   };
   let response: Response;
   try {
-    response = await (options.fetchImpl ?? fetch)(`https://api.github.com/repos/${repo}/actions/runs?branch=${BRANCH}&per_page=${PAGE_SIZE}`, {
-      // No Authorization header: the repository is public and no token is configured.
-      headers: { accept: "application/vnd.github+json", "user-agent": "digirobotics-ops", "x-github-api-version": "2022-11-28" },
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-      cache: "no-store",
-    });
+    response = await (options.fetchImpl ?? fetch)(
+      `https://api.github.com/repos/${repo}/actions/runs?branch=${BRANCH}&per_page=${PAGE_SIZE}`,
+      {
+        // No Authorization header: the repository is public and no token is configured.
+        headers: {
+          accept: "application/vnd.github+json",
+          "user-agent": "digirobotics-ops",
+          "x-github-api-version": "2022-11-28",
+        },
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+        cache: "no-store",
+      },
+    );
   } catch {
     return fallback("unavailable", null);
   }
-  if (isRateLimited(response)) return fallback("rate_limited", resetTime(response));
+  if (isRateLimited(response))
+    return fallback("rate_limited", resetTime(response));
   if (!response.ok) return fallback("unavailable", null);
   let body: unknown;
   try {
@@ -173,13 +217,24 @@ async function load(repo: string, options: GithubOptions): Promise<CiStatus> {
   if (!runs) return fallback("unavailable", null);
   const fetchedAt = new Date(now()).toISOString();
   lastGood.set(repo, { runs, fetchedAt });
-  return { ...base, state: "ok", runs, latest: pickLatest(runs), fetchedAt, rateLimitResetAt: null };
+  return {
+    ...base,
+    state: "ok",
+    runs,
+    latest: pickLatest(runs),
+    fetchedAt,
+    rateLimitResetAt: null,
+  };
 }
 
 /** Latest GitHub Actions runs on main. One request per GITHUB_TTL_MS at most. Never throws. */
-export async function fetchCiStatus(options: GithubOptions = {}): Promise<CiStatus> {
+export async function fetchCiStatus(
+  options: GithubOptions = {},
+): Promise<CiStatus> {
   const repo = readGithubRepo(options.env);
-  return memo(`github:${repo}`, GITHUB_TTL_MS, () => load(repo, options), { now: options.now });
+  return memo(`github:${repo}`, GITHUB_TTL_MS, () => load(repo, options), {
+    now: options.now,
+  });
 }
 
 /** Test hook. */

@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createAgentRun, getAgentRun, getCompatibility, toAgentLifecycleState } from "./agent-demo-client";
+import {
+  createAgentRun,
+  getAgentRun,
+  getCompatibility,
+  toAgentLifecycleState,
+} from "./agent-demo-client";
 
 describe("toAgentLifecycleState", () => {
   it("defaults to idle when no state is given", () => {
@@ -7,7 +12,12 @@ describe("toAgentLifecycleState", () => {
   });
 
   it("groups the discovery states", () => {
-    for (const state of ["queued", "preflight", "searching", "candidates_found"] as const) {
+    for (const state of [
+      "queued",
+      "preflight",
+      "searching",
+      "candidates_found",
+    ] as const) {
       expect(toAgentLifecycleState(state)).toBe("discovering");
     }
   });
@@ -23,7 +33,11 @@ describe("toAgentLifecycleState", () => {
   });
 
   it("groups the authorizing states", () => {
-    for (const state of ["validating_policy", "signing_payment", "retrying_request"] as const) {
+    for (const state of [
+      "validating_policy",
+      "signing_payment",
+      "retrying_request",
+    ] as const) {
       expect(toAgentLifecycleState(state)).toBe("authorizing");
     }
   });
@@ -49,47 +63,78 @@ describe("getCompatibility", () => {
 
   it("returns the parsed body on a successful response", async () => {
     const body = { selectedMode: "BLOCKED" };
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(body),
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(body),
+      }),
+    );
     await expect(getCompatibility()).resolves.toEqual(body);
   });
 
   it("throws a typed error with the server-provided code on failure", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: false,
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 503,
+        json: () =>
+          Promise.resolve({
+            code: "RPC_UNAVAILABLE",
+            message: "backend is down",
+          }),
+      }),
+    );
+    await expect(getCompatibility()).rejects.toMatchObject({
+      code: "RPC_UNAVAILABLE",
       status: 503,
-      json: () => Promise.resolve({ code: "RPC_UNAVAILABLE", message: "backend is down" }),
-    }));
-    await expect(getCompatibility()).rejects.toMatchObject({ code: "RPC_UNAVAILABLE", status: 503, message: "backend is down" });
+      message: "backend is down",
+    });
   });
 
   it("derives a fallback error code from the http status when the body has none", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: false,
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: () => Promise.resolve({}),
+      }),
+    );
+    await expect(getCompatibility()).rejects.toMatchObject({
+      code: "RPC_UNAVAILABLE",
       status: 500,
-      json: () => Promise.resolve({}),
-    }));
-    await expect(getCompatibility()).rejects.toMatchObject({ code: "RPC_UNAVAILABLE", status: 500 });
+    });
   });
 
   it("uses an HTTP_<status> fallback code for non-5xx failures", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: false,
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        json: () => Promise.resolve({}),
+      }),
+    );
+    await expect(getCompatibility()).rejects.toMatchObject({
+      code: "HTTP_404",
       status: 404,
-      json: () => Promise.resolve({}),
-    }));
-    await expect(getCompatibility()).rejects.toMatchObject({ code: "HTTP_404", status: 404 });
+    });
   });
 
   it("tolerates an unparsable error body", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: false,
-      status: 500,
-      json: () => Promise.reject(new Error("not json")),
-    }));
-    await expect(getCompatibility()).rejects.toMatchObject({ code: "RPC_UNAVAILABLE" });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: () => Promise.reject(new Error("not json")),
+      }),
+    );
+    await expect(getCompatibility()).rejects.toMatchObject({
+      code: "RPC_UNAVAILABLE",
+    });
   });
 });
 
@@ -99,7 +144,12 @@ describe("backend selection", () => {
   });
 
   it("calls the backend of the selected chain", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ runId: "run-1", created: true }) });
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ runId: "run-1", created: true }),
+      });
     vi.stubGlobal("fetch", fetchMock);
     await getCompatibility("https://x402-rh.digirobotics.xyz");
     await createAgentRun("idempotency-key", "https://x402-rh.digirobotics.xyz");
@@ -112,9 +162,13 @@ describe("backend selection", () => {
   });
 
   it("defaults to the Arbitrum backend", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({}) });
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: true, json: () => Promise.resolve({}) });
     vi.stubGlobal("fetch", fetchMock);
     await getCompatibility();
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://localhost:3001/agent-demo/compatibility");
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      "http://localhost:3001/agent-demo/compatibility",
+    );
   });
 });

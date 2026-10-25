@@ -19,7 +19,12 @@ describe("memo", () => {
 
   it("shares one load between concurrent callers", async () => {
     let release!: (value: string) => void;
-    const load = vi.fn(() => new Promise<string>((resolve) => { release = resolve; }));
+    const load = vi.fn(
+      () =>
+        new Promise<string>((resolve) => {
+          release = resolve;
+        }),
+    );
     const first = memo("k", 100, load);
     const second = memo("k", 100, load);
     release("v");
@@ -35,7 +40,10 @@ describe("memo", () => {
   });
 
   it("does not cache a rejection", async () => {
-    const load = vi.fn().mockRejectedValueOnce(new Error("boom")).mockResolvedValueOnce("ok");
+    const load = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("boom"))
+      .mockResolvedValueOnce("ok");
     await expect(memo("k", 10_000, load)).rejects.toThrow("boom");
     expect(await memo("k", 10_000, load)).toBe("ok");
   });

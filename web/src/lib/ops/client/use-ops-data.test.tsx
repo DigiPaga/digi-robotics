@@ -1,11 +1,26 @@
-import { act, render, renderHook, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  render,
+  renderHook,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { clearOpsDataCache, prefetchOpsData, revalidateOpsData, setOpsUnauthorizedHandler, useOpsData } from "./use-ops-data";
+import {
+  clearOpsDataCache,
+  prefetchOpsData,
+  revalidateOpsData,
+  setOpsUnauthorizedHandler,
+  useOpsData,
+} from "./use-ops-data";
 
 const URL = "/api/ops/payments";
 
 function respond(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json" },
+  });
 }
 
 let fetchMock: ReturnType<typeof vi.fn>;
@@ -23,7 +38,13 @@ afterEach(() => {
 
 function Probe({ url = URL }: { url?: string }) {
   const { data, loading, validating, error } = useOpsData<{ n: number }>(url);
-  return <p>{loading ? "loading" : `n=${data?.n ?? "none"}`}{validating ? " validating" : ""}{error ? ` error:${error}` : ""}</p>;
+  return (
+    <p>
+      {loading ? "loading" : `n=${data?.n ?? "none"}`}
+      {validating ? " validating" : ""}
+      {error ? ` error:${error}` : ""}
+    </p>
+  );
 }
 
 describe("useOpsData", () => {
@@ -31,7 +52,13 @@ describe("useOpsData", () => {
     render(<Probe />);
     expect(screen.getByText("loading validating")).toBeInTheDocument();
     expect(await screen.findByText("n=1")).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledWith(URL, expect.objectContaining({ cache: "no-store", credentials: "same-origin" }));
+    expect(fetchMock).toHaveBeenCalledWith(
+      URL,
+      expect.objectContaining({
+        cache: "no-store",
+        credentials: "same-origin",
+      }),
+    );
   });
 
   it("paints a revisited section from cache on the first render, with no request while it is fresh", async () => {
@@ -51,7 +78,12 @@ describe("useOpsData", () => {
     first.unmount();
     vi.advanceTimersByTime(5_000);
     let release!: (response: Response) => void;
-    fetchMock.mockImplementationOnce(() => new Promise<Response>((resolve) => { release = resolve; }));
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise<Response>((resolve) => {
+          release = resolve;
+        }),
+    );
     render(<Probe />);
     expect(screen.getByText("n=1 validating")).toBeInTheDocument();
     await act(async () => release(respond({ n: 2 })));
@@ -59,7 +91,12 @@ describe("useOpsData", () => {
   });
 
   it("shares one request between two components on the same endpoint", async () => {
-    render(<><Probe /><Probe /></>);
+    render(
+      <>
+        <Probe />
+        <Probe />
+      </>,
+    );
     expect(await screen.findAllByText("n=1")).toHaveLength(2);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
@@ -67,15 +104,24 @@ describe("useOpsData", () => {
   it("keeps the last data when a reload fails and reports a generic error", async () => {
     const { result } = renderHook(() => useOpsData<{ n: number }>(URL));
     await waitFor(() => expect(result.current.data).toEqual({ n: 1 }));
-    fetchMock.mockResolvedValueOnce(respond({ message: "upstream detail" }, 502));
+    fetchMock.mockResolvedValueOnce(
+      respond({ message: "upstream detail" }, 502),
+    );
     await act(() => result.current.refresh());
-    expect(result.current).toMatchObject({ data: { n: 1 }, error: "Could not load this section.", loading: false, validating: false });
+    expect(result.current).toMatchObject({
+      data: { n: 1 },
+      error: "Could not load this section.",
+      loading: false,
+      validating: false,
+    });
   });
 
   it("reports an error instead of loading forever when the first load fails", async () => {
     fetchMock.mockRejectedValueOnce(new TypeError("fetch failed"));
     const { result } = renderHook(() => useOpsData<{ n: number }>(URL));
-    await waitFor(() => expect(result.current.error).toBe("Could not load this section."));
+    await waitFor(() =>
+      expect(result.current.error).toBe("Could not load this section."),
+    );
     expect(result.current).toMatchObject({ data: undefined, loading: false });
   });
 
@@ -84,7 +130,10 @@ describe("useOpsData", () => {
     await waitFor(() => expect(result.current.data).toBeDefined());
     fetchMock.mockResolvedValueOnce(respond({ n: 5 }));
     await act(() => result.current.refresh());
-    expect(fetchMock).toHaveBeenLastCalledWith(`${URL}?fresh=1`, expect.anything());
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      `${URL}?fresh=1`,
+      expect.anything(),
+    );
     expect(result.current.data).toEqual({ n: 5 });
     expect(result.current.updatedAt).toBeTypeOf("number");
   });
@@ -95,7 +144,9 @@ describe("useOpsData", () => {
     await revalidateOpsData("/api/ops/infra");
     const { result } = renderHook(() => useOpsData<{ n: number }>(URL));
     await waitFor(() => expect(result.current.data).toBeDefined());
-    fetchMock.mockResolvedValueOnce(respond({ message: "Sign in required." }, 401));
+    fetchMock.mockResolvedValueOnce(
+      respond({ message: "Sign in required." }, 401),
+    );
     await act(() => result.current.refresh());
     expect(handler).toHaveBeenCalledTimes(1);
     expect(result.current.data).toBeUndefined();
@@ -105,10 +156,14 @@ describe("useOpsData", () => {
 
   it("revalidates on the given interval while visible", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    const { result } = renderHook(() => useOpsData<{ n: number }>(URL, { refreshInterval: 30_000 }));
+    const { result } = renderHook(() =>
+      useOpsData<{ n: number }>(URL, { refreshInterval: 30_000 }),
+    );
     await waitFor(() => expect(result.current.data).toBeDefined());
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    await act(async () => { vi.advanceTimersByTime(30_000); });
+    await act(async () => {
+      vi.advanceTimersByTime(30_000);
+    });
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
   });
 
@@ -116,10 +171,14 @@ describe("useOpsData", () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const { result } = renderHook(() => useOpsData<{ n: number }>(URL));
     await waitFor(() => expect(result.current.data).toBeDefined());
-    await act(async () => { window.dispatchEvent(new Event("focus")); });
+    await act(async () => {
+      window.dispatchEvent(new Event("focus"));
+    });
     expect(fetchMock).toHaveBeenCalledTimes(1);
     vi.advanceTimersByTime(11_000);
-    await act(async () => { window.dispatchEvent(new Event("focus")); });
+    await act(async () => {
+      window.dispatchEvent(new Event("focus"));
+    });
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
   });
 });

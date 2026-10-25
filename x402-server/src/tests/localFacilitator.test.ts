@@ -2,12 +2,16 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { HTTPFacilitatorClient } from "@x402/core/server";
 import { privateKeyToAccount } from "viem/accounts";
-import { createFacilitatorAccount, createLocalFacilitator } from "../x402/localFacilitator";
+import {
+  createFacilitatorAccount,
+  createLocalFacilitator,
+} from "../x402/localFacilitator";
 import { defaultFacilitator } from "../x402/resourceServer";
 import { testEnv } from "./fixtures";
 
 // Well-known Anvil development key; it holds no value on any public network.
-const FACILITATOR_KEY = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" as const;
+const FACILITATOR_KEY =
+  "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" as const;
 
 const musdgEnv = {
   ...testEnv,
@@ -20,19 +24,33 @@ const musdgEnv = {
 
 test("local facilitator advertises x402 v2 exact on the configured network with its own signer", async () => {
   const supported = await createLocalFacilitator(musdgEnv).getSupported();
-  assert.deepEqual(supported.kinds.map(kind => [kind.x402Version, kind.scheme, kind.network]), [[2, "exact", "eip155:421614"]]);
+  assert.deepEqual(
+    supported.kinds.map((kind) => [
+      kind.x402Version,
+      kind.scheme,
+      kind.network,
+    ]),
+    [[2, "exact", "eip155:421614"]],
+  );
   const signers = Object.values(supported.signers).flat();
   assert.deepEqual(signers, [privateKeyToAccount(FACILITATOR_KEY).address]);
 });
 
 test("local facilitator refuses to start without a facilitator key", () => {
-  assert.throws(() => createLocalFacilitator({ ...musdgEnv, facilitatorPrivateKey: undefined }), /X402_FACILITATOR_PRIVATE_KEY/);
+  assert.throws(
+    () =>
+      createLocalFacilitator({ ...musdgEnv, facilitatorPrivateKey: undefined }),
+    /X402_FACILITATOR_PRIVATE_KEY/,
+  );
 });
 
 test("REAL_MUSDG_X402 uses the in-process facilitator; other modes keep the HTTP facilitator", async () => {
   const local = defaultFacilitator(musdgEnv);
   assert.equal(local instanceof HTTPFacilitatorClient, false);
-  assert.deepEqual((await local.getSupported()).kinds.map(kind => kind.network), ["eip155:421614"]);
+  assert.deepEqual(
+    (await local.getSupported()).kinds.map((kind) => kind.network),
+    ["eip155:421614"],
+  );
 
   const hosted = defaultFacilitator(testEnv);
   assert.ok(hosted instanceof HTTPFacilitatorClient);
@@ -42,5 +60,8 @@ test("REAL_MUSDG_X402 uses the in-process facilitator; other modes keep the HTTP
 test("facilitator account manages its own nonces for concurrent settlements", () => {
   const account = createFacilitatorAccount(musdgEnv);
   assert.equal(account.address, privateKeyToAccount(FACILITATOR_KEY).address);
-  assert.ok(account.nonceManager, "settlement signer must carry a nonce manager");
+  assert.ok(
+    account.nonceManager,
+    "settlement signer must carry a nonce manager",
+  );
 });

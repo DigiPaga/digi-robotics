@@ -42,14 +42,18 @@ describe("DeckPresenter", () => {
     render(<DeckPresenter />);
     expect(document.querySelectorAll(".deck-slide")).toHaveLength(12);
     expect(screen.getByText("01 / 12")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "DigiRobotics" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "DigiRobotics" }),
+    ).toBeInTheDocument();
   });
 
   it("advances slides with the right arrow key and keeps the hash in sync", () => {
     render(<DeckPresenter />);
     fireEvent.keyDown(window, { key: "ArrowRight" });
     expect(screen.getByText("02 / 12")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Problem" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Problem" }),
+    ).toBeInTheDocument();
     expect(window.location.hash).toBe("#2");
   });
 
@@ -81,16 +85,22 @@ describe("DeckPresenter", () => {
 
   it("toggles the notes panel with 'n'", () => {
     render(<DeckPresenter />);
-    expect(screen.getByText(SPEAKER_NOTES[0]).closest(".deck-notes")).not.toHaveClass("is-open");
+    expect(
+      screen.getByText(SPEAKER_NOTES[0]).closest(".deck-notes"),
+    ).not.toHaveClass("is-open");
     fireEvent.keyDown(window, { key: "n" });
-    expect(screen.getByText(SPEAKER_NOTES[0]).closest(".deck-notes")).toHaveClass("is-open");
+    expect(
+      screen.getByText(SPEAKER_NOTES[0]).closest(".deck-notes"),
+    ).toHaveClass("is-open");
   });
 
   it("jumps to a slide by number", () => {
     render(<DeckPresenter />);
     fireEvent.keyDown(window, { key: "5" });
     expect(screen.getByText("05 / 12")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Market Size" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Market Size" }),
+    ).toBeInTheDocument();
   });
 
   it("jumps to slide 12 on a two-digit number", () => {
@@ -98,6 +108,8 @@ describe("DeckPresenter", () => {
     fireEvent.keyDown(window, { key: "1" });
     fireEvent.keyDown(window, { key: "2" });
     expect(screen.getByText("12 / 12")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "The Time Is Now" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "The Time Is Now" }),
+    ).toBeInTheDocument();
   });
 });

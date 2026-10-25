@@ -16,7 +16,11 @@ function kitConfig() {
 async function kitFetch(path: string, apiKey: string, init: RequestInit) {
   const response = await fetch(`https://api.kit.com/v4${path}`, {
     ...init,
-    headers: { "Content-Type": "application/json", "X-Kit-Api-Key": apiKey, ...init.headers },
+    headers: {
+      "Content-Type": "application/json",
+      "X-Kit-Api-Key": apiKey,
+      ...init.headers,
+    },
     cache: "no-store",
   });
   if (!response.ok) throw new Error(`KIT_${response.status}`);
@@ -34,7 +38,12 @@ async function ensureCustomField(label: string, apiKey: string) {
   return key;
 }
 
-export async function subscribeToKit({ email, source, item, notes }: {
+export async function subscribeToKit({
+  email,
+  source,
+  item,
+  notes,
+}: {
   email: string;
   source: "newsletter" | "gear_waitlist" | "data_request";
   item?: string;
@@ -46,8 +55,12 @@ export async function subscribeToKit({ email, source, item, notes }: {
     ...(item ? [{ label: "DigiRobotics Item", value: item }] : []),
     ...(notes ? [{ label: "DigiRobotics Request Notes", value: notes }] : []),
   ];
-  const keys = await Promise.all(requestedFields.map((field) => ensureCustomField(field.label, apiKey)));
-  const fields = Object.fromEntries(keys.map((key, index) => [key, requestedFields[index].value]));
+  const keys = await Promise.all(
+    requestedFields.map((field) => ensureCustomField(field.label, apiKey)),
+  );
+  const fields = Object.fromEntries(
+    keys.map((key, index) => [key, requestedFields[index].value]),
+  );
 
   await kitFetch("/subscribers", apiKey, {
     method: "POST",
@@ -59,6 +72,9 @@ export async function subscribeToKit({ email, source, item, notes }: {
   if (item) referrer.searchParams.set("utm_content", item);
   await kitFetch(`/forms/${encodeURIComponent(formId)}/subscribers`, apiKey, {
     method: "POST",
-    body: JSON.stringify({ email_address: email, referrer: referrer.toString() }),
+    body: JSON.stringify({
+      email_address: email,
+      referrer: referrer.toString(),
+    }),
   });
 }

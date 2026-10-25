@@ -23,12 +23,14 @@ export const metadata: Metadata = {
       "First-person human activity, structured for perception, planning, and embodied AI.",
     url: "https://digirobotics.xyz",
     siteName: "DigiRobotics.xyz",
-    images: [{
-      url: "/digirobotics/hero/pov-thermostat.webp",
-      width: 1586,
-      height: 992,
-      alt: "First-person capture of a person installing a control panel",
-    }],
+    images: [
+      {
+        url: "/digirobotics/hero/pov-thermostat.webp",
+        width: 1586,
+        height: 992,
+        alt: "First-person capture of a person installing a control panel",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -44,7 +46,8 @@ const organizationJsonLd = {
   name: "DigiRobotics",
   url: "https://digirobotics.xyz",
   logo: "https://digirobotics.xyz/digirobotics/brand/digirobotics-logo.png",
-  description: "Egocentric data for robotics training, captured through human eyes.",
+  description:
+    "Egocentric data for robotics training, captured through human eyes.",
 };
 
 const websiteJsonLd = {
@@ -54,7 +57,9 @@ const websiteJsonLd = {
   url: "https://digirobotics.xyz",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en">
       <body>
@@ -62,7 +67,10 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
           Keyboard/screen-reader users otherwise land on the sticky Navbar on every page with
           no way to jump past it. Targets the #main-content wrapper below.
         */}
-        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-[var(--primary)] focus:px-5 focus:py-3 focus:text-[15px] focus:font-semibold focus:text-[var(--page-bg)]">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-[var(--primary)] focus:px-5 focus:py-3 focus:text-[15px] focus:font-semibold focus:text-[var(--page-bg)]"
+        >
           Skip to content
         </a>
         {/*
@@ -73,11 +81,18 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
           visible for no-JS visitors.
         */}
         <noscript>
-          <style>{".reveal { opacity: 1 !important; transform: none !important; }"}</style>
+          <style>
+            {".reveal { opacity: 1 !important; transform: none !important; }"}
+          </style>
         </noscript>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify([organizationJsonLd, websiteJsonLd]).replace(/</g, "\\u003c") }}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([organizationJsonLd, websiteJsonLd]).replace(
+              /</g,
+              "\\u003c",
+            ),
+          }}
         />
         {/*
           Thirdweb used to mount only inside the sign-in modal. Closing that modal

@@ -11,7 +11,12 @@ export const metadata: Metadata = {
     description: DECK_META.description,
     url: "https://digirobotics.xyz/deck",
     type: "website",
-    images: [{ url: DECK_META.ogImage, alt: "DigiRobotics — train robots with your phone, get paid in stablecoins" }],
+    images: [
+      {
+        url: DECK_META.ogImage,
+        alt: "DigiRobotics — train robots with your phone, get paid in stablecoins",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",

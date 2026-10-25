@@ -13,13 +13,37 @@ import {
   slide11,
   slide12,
 } from "./deck-copy";
-import { CountUp, Headline, ImageFrame, Kicker, OrbitalMotif, PartnerLockup, Reveal, RevealStep, RichText, StepNum } from "./primitives";
+import {
+  CountUp,
+  Headline,
+  ImageFrame,
+  Kicker,
+  OrbitalMotif,
+  PartnerLockup,
+  Reveal,
+  RevealStep,
+  RichText,
+  StepNum,
+} from "./primitives";
 
 export type SlideProps = { active: boolean; step: number };
 
-const LEFT_RATIO: Record<"7-5" | "8-4", "5-7" | "4-8"> = { "7-5": "5-7", "8-4": "4-8" };
+const LEFT_RATIO: Record<"7-5" | "8-4", "5-7" | "4-8"> = {
+  "7-5": "5-7",
+  "8-4": "4-8",
+};
 
-function TwoCol({ imageSide = "right", ratio = "7-5", copy, media }: { imageSide?: "left" | "right"; ratio?: "7-5" | "8-4"; copy: ReactNode; media: ReactNode }) {
+function TwoCol({
+  imageSide = "right",
+  ratio = "7-5",
+  copy,
+  media,
+}: {
+  imageSide?: "left" | "right";
+  ratio?: "7-5" | "8-4";
+  copy: ReactNode;
+  media: ReactNode;
+}) {
   const cols = imageSide === "left" ? LEFT_RATIO[ratio] : ratio;
   return (
     <div className={`deck-slide-body deck-slide-body--${cols}`}>
@@ -93,7 +117,11 @@ function Slide03({ step }: SlideProps) {
             <Headline parts={slide03.headline} d={1} />
             <div className="deck-steps">
               {slide03.steps.map((s, i) => (
-                <RevealStep key={s.label} inView={step >= i} className="deck-step">
+                <RevealStep
+                  key={s.label}
+                  inView={step >= i}
+                  className="deck-step"
+                >
                   <StepNum>{s.label}</StepNum>
                   <p>
                     <strong>{s.strong}</strong> {s.body}
@@ -152,7 +180,13 @@ function Slide05({ active }: SlideProps) {
               <div key={s.tag} className="deck-stat-card">
                 <p className="deck-stat-card-tag">{s.tag}</p>
                 <p className="deck-stat-card-value">
-                  <CountUp active={active} to={s.countTo} prefix={s.prefix} suffix={s.suffix} decimals={s.decimals} />
+                  <CountUp
+                    active={active}
+                    to={s.countTo}
+                    prefix={s.prefix}
+                    suffix={s.suffix}
+                    decimals={s.decimals}
+                  />
                 </p>
                 <p className="deck-stat-card-caption">{s.caption}</p>
               </div>
@@ -160,7 +194,10 @@ function Slide05({ active }: SlideProps) {
           </div>
         </Reveal>
         <Reveal d={3} style={{ textAlign: "center", margin: "0 auto" }}>
-          <RichText parts={slide05.closingParts} className="deck-closing deck-closing--lg" />
+          <RichText
+            parts={slide05.closingParts}
+            className="deck-closing deck-closing--lg"
+          />
         </Reveal>
       </div>
     </>
@@ -184,8 +221,14 @@ function Slide06() {
                 </Reveal>
               ))}
             </div>
-            <Reveal d={6} as="p" className="deck-mono deck-mono--lg" style={{ marginTop: "auto" }}>
-              <span className="deck-lime">{slide06.closingLead}</span> {slide06.closing}
+            <Reveal
+              d={6}
+              as="p"
+              className="deck-mono deck-mono--lg"
+              style={{ marginTop: "auto" }}
+            >
+              <span className="deck-lime">{slide06.closingLead}</span>{" "}
+              {slide06.closing}
             </Reveal>
           </>
         }
@@ -219,7 +262,16 @@ function Slide07() {
                 </div>
               ))}
             </Reveal>
-            <Reveal d={3} as="p" className="deck-body" style={{ fontWeight: 600, color: "var(--deck-ink)", fontSize: 34 }}>
+            <Reveal
+              d={3}
+              as="p"
+              className="deck-body"
+              style={{
+                fontWeight: 600,
+                color: "var(--deck-ink)",
+                fontSize: 34,
+              }}
+            >
               {slide07.tagline}
             </Reveal>
           </>
@@ -246,15 +298,28 @@ function Slide08({ step }: SlideProps) {
             </Reveal>
             <div className="deck-ledger">
               {slide08.ledger.map((row, i) => (
-                <RevealStep key={row.label} inView={step >= i} className="deck-ledger-row">
+                <RevealStep
+                  key={row.label}
+                  inView={step >= i}
+                  className="deck-ledger-row"
+                >
                   <span className="deck-ledger-label">{row.label}</span>
                   <span className="deck-ledger-items">{row.items}</span>
                 </RevealStep>
               ))}
             </div>
-            <Reveal d={6} className="deck-cta-row" style={{ alignItems: "center" }}>
-              <span className="deck-cta deck-cta--static">{slide08.ctaLabel}</span>
-              <p className="deck-body" style={{ maxWidth: "40ch", fontSize: 26 }}>
+            <Reveal
+              d={6}
+              className="deck-cta-row"
+              style={{ alignItems: "center" }}
+            >
+              <span className="deck-cta deck-cta--static">
+                {slide08.ctaLabel}
+              </span>
+              <p
+                className="deck-body"
+                style={{ maxWidth: "40ch", fontSize: 26 }}
+              >
                 {slide08.ctaNote}
               </p>
             </Reveal>
@@ -308,17 +373,25 @@ function Slide10() {
                   <p>
                     {r.name}{" "}
                     {r.note ? (
-                      <span className="deck-mono" style={{ display: "inline", fontSize: 18 }}>
+                      <span
+                        className="deck-mono"
+                        style={{ display: "inline", fontSize: 18 }}
+                      >
                         {r.note}
                       </span>
                     ) : null}
                   </p>
-                  <span className={`deck-team-handle ${r.lime ? "deck-team-handle--lime" : ""}`}>{r.handle}</span>
+                  <span
+                    className={`deck-team-handle ${r.lime ? "deck-team-handle--lime" : ""}`}
+                  >
+                    {r.handle}
+                  </span>
                 </div>
               ))}
             </Reveal>
             <Reveal d={3} as="p" className="deck-mono">
-              {slide10.hostedAt} <span className="deck-lime">{slide10.hostedLink}</span>
+              {slide10.hostedAt}{" "}
+              <span className="deck-lime">{slide10.hostedLink}</span>
             </Reveal>
             <Reveal d={4}>
               <RichText parts={slide10.taglineParts} className="deck-body" />
@@ -354,7 +427,12 @@ function Slide11({ step }: SlideProps) {
             </div>
           ))}
         </RevealStep>
-        <Reveal d={2} as="p" className="deck-mono" style={{ marginTop: "auto" }}>
+        <Reveal
+          d={2}
+          as="p"
+          className="deck-mono"
+          style={{ marginTop: "auto" }}
+        >
           {slide11.footnote}
         </Reveal>
       </div>
@@ -367,8 +445,21 @@ function Slide12() {
     <>
       <OrbitalMotif motif={slide12.motif} />
       <Kicker lines={slide12.kicker} />
-      <div className="deck-slide-body deck-slide-body--wide" style={{ padding: "150px 80px 56px" }}>
-        <Reveal d={1} as="p" className="deck-body" style={{ fontFamily: "Ubuntu, sans-serif", fontSize: 36, color: "#fff", maxWidth: "70ch" }}>
+      <div
+        className="deck-slide-body deck-slide-body--wide"
+        style={{ padding: "150px 80px 56px" }}
+      >
+        <Reveal
+          d={1}
+          as="p"
+          className="deck-body"
+          style={{
+            fontFamily: "Ubuntu, sans-serif",
+            fontSize: 36,
+            color: "#fff",
+            maxWidth: "70ch",
+          }}
+        >
           {slide12.subheadline}
         </Reveal>
         <Reveal d={2} className="deck-ledger">
@@ -392,7 +483,13 @@ function Slide12() {
           {/* All three open in a new tab, same as the static deck's `<base target="_blank">` —
               a presenter clicking through live should never navigate the deck tab away. */}
           {slide12.ctas.map((cta) => (
-            <a key={cta.label} href={cta.href} className="deck-cta deck-cta--lg" target="_blank" rel="noopener noreferrer">
+            <a
+              key={cta.label}
+              href={cta.href}
+              className="deck-cta deck-cta--lg"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               {cta.label}
             </a>
           ))}
@@ -402,4 +499,17 @@ function Slide12() {
   );
 }
 
-export const SLIDE_COMPONENTS: ComponentType<SlideProps>[] = [Slide01, Slide02, Slide03, Slide04, Slide05, Slide06, Slide07, Slide08, Slide09, Slide10, Slide11, Slide12];
+export const SLIDE_COMPONENTS: ComponentType<SlideProps>[] = [
+  Slide01,
+  Slide02,
+  Slide03,
+  Slide04,
+  Slide05,
+  Slide06,
+  Slide07,
+  Slide08,
+  Slide09,
+  Slide10,
+  Slide11,
+  Slide12,
+];

@@ -2,7 +2,12 @@ import { cookieSecure, readOpsConfig, redirectUri } from "@/lib/ops/config";
 import { pkceChallenge } from "@/lib/ops/crypto";
 import { authorizeUrl } from "@/lib/ops/google";
 import { opsRedirect, requestHost, withOpsHeaders } from "@/lib/ops/http";
-import { newOauthState, oauthCookieName, oauthCookieOptions, sealOauthState } from "@/lib/ops/session";
+import {
+  newOauthState,
+  oauthCookieName,
+  oauthCookieOptions,
+  sealOauthState,
+} from "@/lib/ops/session";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +28,10 @@ export async function GET(request: Request) {
   });
   const secure = cookieSecure(config, request.url, host);
   const response = withOpsHeaders(NextResponse.redirect(location, 302));
-  response.cookies.set(oauthCookieName(secure), await sealOauthState(config.sessionSecret, oauth), oauthCookieOptions(secure));
+  response.cookies.set(
+    oauthCookieName(secure),
+    await sealOauthState(config.sessionSecret, oauth),
+    oauthCookieOptions(secure),
+  );
   return response;
 }

@@ -34,7 +34,9 @@ export const DEFAULT_OPS_WALLETS: readonly OpsWallet[] = [
 
 const walletSchema = z.object({
   label: z.string().trim().min(1).max(60),
-  address: z.string().refine((value) => isAddress(value, { strict: false }), "invalid address"),
+  address: z
+    .string()
+    .refine((value) => isAddress(value, { strict: false }), "invalid address"),
   role: z.string().trim().max(120).default(""),
   minEth: z.coerce.number().finite().min(0).max(100).default(0),
 });
@@ -53,13 +55,19 @@ export function parseOpsWallets(raw: string | undefined): ParsedWallets {
   try {
     json = JSON.parse(raw);
   } catch {
-    return { wallets: [...DEFAULT_OPS_WALLETS], warning: "OPS_WALLETS is not valid JSON. Showing the default wallets." };
+    return {
+      wallets: [...DEFAULT_OPS_WALLETS],
+      warning: "OPS_WALLETS is not valid JSON. Showing the default wallets.",
+    };
   }
   const parsed = z.array(walletSchema).min(1).max(20).safeParse(json);
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
     const where = issue?.path.length ? ` at ${issue.path.join(".")}` : "";
-    return { wallets: [...DEFAULT_OPS_WALLETS], warning: `OPS_WALLETS is invalid${where}: ${issue?.message ?? "unknown error"}. Showing the default wallets.` };
+    return {
+      wallets: [...DEFAULT_OPS_WALLETS],
+      warning: `OPS_WALLETS is invalid${where}: ${issue?.message ?? "unknown error"}. Showing the default wallets.`,
+    };
   }
   const seen = new Set<string>();
   const wallets: OpsWallet[] = [];
@@ -67,7 +75,12 @@ export function parseOpsWallets(raw: string | undefined): ParsedWallets {
     const address = getAddress(item.address);
     if (seen.has(address)) continue;
     seen.add(address);
-    wallets.push({ label: item.label, address, role: item.role, minEth: item.minEth });
+    wallets.push({
+      label: item.label,
+      address,
+      role: item.role,
+      minEth: item.minEth,
+    });
   }
   return { wallets, warning: null };
 }
@@ -86,17 +99,30 @@ function envAddress(value: string | undefined): Address | null {
 export function readOpsWallets(env: Env = process.env): ParsedWallets {
   const result = parseOpsWallets(env.OPS_WALLETS);
   const treasury = envAddress(env.X402_PAY_TO);
-  if (treasury && !result.wallets.some((wallet) => wallet.address === treasury)) {
-    result.wallets.push({ label: "Treasury", address: treasury, role: "x402 payTo (receives mUSDG)", minEth: 0 });
+  if (
+    treasury &&
+    !result.wallets.some((wallet) => wallet.address === treasury)
+  ) {
+    result.wallets.push({
+      label: "Treasury",
+      address: treasury,
+      role: "x402 payTo (receives mUSDG)",
+      minEth: 0,
+    });
   }
   return result;
 }
 
 /** mUSDG token per chain, using the same env names as the checkout. Missing means "not shown". */
-export function readMusdgTokens(env: Env = process.env): Record<number, Address | null> {
+export function readMusdgTokens(
+  env: Env = process.env,
+): Record<number, Address | null> {
   return {
     [opsArbitrumSepolia.id]:
-      envAddress(env.NEXT_PUBLIC_MOCK_USDG_ADDRESS_ARBITRUM_SEPOLIA) ?? envAddress(env.NEXT_PUBLIC_MOCK_USDG_ADDRESS),
-    [opsRobinhoodTestnet.id]: envAddress(env.NEXT_PUBLIC_MOCK_USDG_ADDRESS_ROBINHOOD),
+      envAddress(env.NEXT_PUBLIC_MOCK_USDG_ADDRESS_ARBITRUM_SEPOLIA) ??
+      envAddress(env.NEXT_PUBLIC_MOCK_USDG_ADDRESS),
+    [opsRobinhoodTestnet.id]: envAddress(
+      env.NEXT_PUBLIC_MOCK_USDG_ADDRESS_ROBINHOOD,
+    ),
   };
 }

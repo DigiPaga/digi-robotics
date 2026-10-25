@@ -11,13 +11,23 @@ vi.mock("fs/promises", () => ({
 }));
 
 import { readdir, readFile } from "fs/promises";
-import { getAllBlogPostMetadata, getAllBlogPosts, getBlogPost, isValidBlogSlug } from "./blog";
+import {
+  getAllBlogPostMetadata,
+  getAllBlogPosts,
+  getBlogPost,
+  isValidBlogSlug,
+} from "./blog";
 
 const readdirMock = vi.mocked(readdir);
 const readFileMock = vi.mocked(readFile);
 
-function markdownFile(frontmatter: Record<string, unknown>, body = "Some body content."): string {
-  const lines = Object.entries(frontmatter).map(([key, value]) => `${key}: ${JSON.stringify(value)}`);
+function markdownFile(
+  frontmatter: Record<string, unknown>,
+  body = "Some body content.",
+): string {
+  const lines = Object.entries(frontmatter).map(
+    ([key, value]) => `${key}: ${JSON.stringify(value)}`,
+  );
   return `---\n${lines.join("\n")}\n---\n${body}\n`;
 }
 
@@ -26,7 +36,9 @@ function mockDirectory(files: Record<string, string>) {
     Object.keys(files).map((name) => ({ name, isFile: () => true })) as never,
   );
   readFileMock.mockImplementation((async (filePath: string) => {
-    const name = Object.keys(files).find((candidate) => filePath.toString().endsWith(candidate));
+    const name = Object.keys(files).find((candidate) =>
+      filePath.toString().endsWith(candidate),
+    );
     if (name) return files[name];
     const error = new Error("ENOENT") as NodeJS.ErrnoException;
     error.code = "ENOENT";
@@ -68,28 +80,51 @@ describe("getAllBlogPosts", () => {
 
   it("parses a well-formed post and strips frontmatter from the body", async () => {
     mockDirectory({
-      "hello-world.md": markdownFile({
-        slug: "hello-world",
-        title: "Hello World",
-        excerpt: "An excerpt.",
-        category: "Robotics",
-        publishedAt: "2026-01-15",
-        author: "DigiRobotics",
-        readingTime: "3 min",
-      }, "# Hello\nBody text."),
+      "hello-world.md": markdownFile(
+        {
+          slug: "hello-world",
+          title: "Hello World",
+          excerpt: "An excerpt.",
+          category: "Robotics",
+          publishedAt: "2026-01-15",
+          author: "DigiRobotics",
+          readingTime: "3 min",
+        },
+        "# Hello\nBody text.",
+      ),
     });
 
     const posts = await getAllBlogPosts();
     expect(posts).toHaveLength(1);
-    expect(posts[0]).toMatchObject({ slug: "hello-world", title: "Hello World", category: "Robotics" });
+    expect(posts[0]).toMatchObject({
+      slug: "hello-world",
+      title: "Hello World",
+      category: "Robotics",
+    });
     expect(posts[0].content).toContain("Body text.");
     expect(posts[0].content).not.toContain("slug:");
   });
 
   it("sorts posts by publishedAt descending", async () => {
     mockDirectory({
-      "older.md": markdownFile({ slug: "older", title: "Older", excerpt: "e", category: "x402", publishedAt: "2026-01-01", author: "a", readingTime: "1 min" }),
-      "newer.md": markdownFile({ slug: "newer", title: "Newer", excerpt: "e", category: "x402", publishedAt: "2026-06-01", author: "a", readingTime: "1 min" }),
+      "older.md": markdownFile({
+        slug: "older",
+        title: "Older",
+        excerpt: "e",
+        category: "x402",
+        publishedAt: "2026-01-01",
+        author: "a",
+        readingTime: "1 min",
+      }),
+      "newer.md": markdownFile({
+        slug: "newer",
+        title: "Newer",
+        excerpt: "e",
+        category: "x402",
+        publishedAt: "2026-06-01",
+        author: "a",
+        readingTime: "1 min",
+      }),
     });
 
     const posts = await getAllBlogPosts();
@@ -98,21 +133,47 @@ describe("getAllBlogPosts", () => {
 
   it("rejects a post whose frontmatter slug does not match its filename", async () => {
     mockDirectory({
-      "mismatch.md": markdownFile({ slug: "not-mismatch", title: "T", excerpt: "e", category: "RWA", publishedAt: "2026-01-01", author: "a", readingTime: "1 min" }),
+      "mismatch.md": markdownFile({
+        slug: "not-mismatch",
+        title: "T",
+        excerpt: "e",
+        category: "RWA",
+        publishedAt: "2026-01-01",
+        author: "a",
+        readingTime: "1 min",
+      }),
     });
-    await expect(getAllBlogPosts()).rejects.toThrow(/must match the filename slug/);
+    await expect(getAllBlogPosts()).rejects.toThrow(
+      /must match the filename slug/,
+    );
   });
 
   it("rejects an unknown category", async () => {
     mockDirectory({
-      "bad-category.md": markdownFile({ slug: "bad-category", title: "T", excerpt: "e", category: "Crypto", publishedAt: "2026-01-01", author: "a", readingTime: "1 min" }),
+      "bad-category.md": markdownFile({
+        slug: "bad-category",
+        title: "T",
+        excerpt: "e",
+        category: "Crypto",
+        publishedAt: "2026-01-01",
+        author: "a",
+        readingTime: "1 min",
+      }),
     });
     await expect(getAllBlogPosts()).rejects.toThrow(/category/);
   });
 
   it("rejects a non-ISO publishedAt date", async () => {
     mockDirectory({
-      "bad-date.md": markdownFile({ slug: "bad-date", title: "T", excerpt: "e", category: "AI Agents", publishedAt: "01/15/2026", author: "a", readingTime: "1 min" }),
+      "bad-date.md": markdownFile({
+        slug: "bad-date",
+        title: "T",
+        excerpt: "e",
+        category: "AI Agents",
+        publishedAt: "01/15/2026",
+        author: "a",
+        readingTime: "1 min",
+      }),
     });
     await expect(getAllBlogPosts()).rejects.toThrow(/YYYY-MM-DD/);
   });
@@ -120,8 +181,14 @@ describe("getAllBlogPosts", () => {
   it("rejects an updatedAt that predates publishedAt", async () => {
     mockDirectory({
       "bad-update.md": markdownFile({
-        slug: "bad-update", title: "T", excerpt: "e", category: "Stablecoins",
-        publishedAt: "2026-06-01", updatedAt: "2026-01-01", author: "a", readingTime: "1 min",
+        slug: "bad-update",
+        title: "T",
+        excerpt: "e",
+        category: "Stablecoins",
+        publishedAt: "2026-06-01",
+        updatedAt: "2026-01-01",
+        author: "a",
+        readingTime: "1 min",
       }),
     });
     await expect(getAllBlogPosts()).rejects.toThrow(/cannot predate/);
@@ -129,15 +196,30 @@ describe("getAllBlogPosts", () => {
 
   it("rejects an empty markdown body", async () => {
     mockDirectory({
-      "empty.md": markdownFile({ slug: "empty", title: "T", excerpt: "e", category: "RWA", publishedAt: "2026-01-01", author: "a", readingTime: "1 min" }, "   "),
+      "empty.md": markdownFile(
+        {
+          slug: "empty",
+          title: "T",
+          excerpt: "e",
+          category: "RWA",
+          publishedAt: "2026-01-01",
+          author: "a",
+          readingTime: "1 min",
+        },
+        "   ",
+      ),
     });
     await expect(getAllBlogPosts()).rejects.toThrow(/cannot be empty/);
   });
 
   it("rejects a resolved path that escapes the blog content directory", async () => {
-    readdirMock.mockResolvedValue([{ name: "../../evil.md", isFile: () => true }] as never);
+    readdirMock.mockResolvedValue([
+      { name: "../../evil.md", isFile: () => true },
+    ] as never);
     readFileMock.mockResolvedValue("should never be read" as never);
-    await expect(getAllBlogPosts()).rejects.toThrow(/outside the blog content directory/);
+    await expect(getAllBlogPosts()).rejects.toThrow(
+      /outside the blog content directory/,
+    );
     expect(readFileMock).not.toHaveBeenCalled();
   });
 });
@@ -145,7 +227,15 @@ describe("getAllBlogPosts", () => {
 describe("getAllBlogPostMetadata", () => {
   it("strips the content field", async () => {
     mockDirectory({
-      "hello-world.md": markdownFile({ slug: "hello-world", title: "Hello", excerpt: "e", category: "Robotics", publishedAt: "2026-01-01", author: "a", readingTime: "1 min" }),
+      "hello-world.md": markdownFile({
+        slug: "hello-world",
+        title: "Hello",
+        excerpt: "e",
+        category: "Robotics",
+        publishedAt: "2026-01-01",
+        author: "a",
+        readingTime: "1 min",
+      }),
     });
     const metadata = await getAllBlogPostMetadata();
     expect(metadata[0]).not.toHaveProperty("content");
@@ -167,7 +257,15 @@ describe("getBlogPost", () => {
 
   it("returns the full post for a valid, existing slug", async () => {
     mockDirectory({
-      "hello-world.md": markdownFile({ slug: "hello-world", title: "Hello", excerpt: "e", category: "Robotics", publishedAt: "2026-01-01", author: "a", readingTime: "1 min" }),
+      "hello-world.md": markdownFile({
+        slug: "hello-world",
+        title: "Hello",
+        excerpt: "e",
+        category: "Robotics",
+        publishedAt: "2026-01-01",
+        author: "a",
+        readingTime: "1 min",
+      }),
     });
     const post = await getBlogPost("hello-world");
     expect(post?.title).toBe("Hello");

@@ -1,7 +1,8 @@
 import type { AgentDemoEnv } from "../config/env";
 
 export const TEST_BUYER = "0xB282276c54c6Cc9912A37c538fdD60a98a4EF5f1" as const;
-export const TEST_SELLER = "0x7Fdf0074C6e40c5B4ABDaBcE8397DaE284194331" as const;
+export const TEST_SELLER =
+  "0x7Fdf0074C6e40c5B4ABDaBcE8397DaE284194331" as const;
 export const TEST_ASSET = "0x036CbD53842c5426634e7929541eC2318f3dCF7e" as const;
 
 export const testEnv: AgentDemoEnv = {

@@ -19,13 +19,17 @@ describe("subscribeToKit", () => {
     const fetchSpy = vi.fn();
     vi.stubGlobal("fetch", fetchSpy);
 
-    await expect(subscribeToKit({ email: "a@example.com", source: "newsletter" })).rejects.toThrow("KIT_NOT_CONFIGURED");
+    await expect(
+      subscribeToKit({ email: "a@example.com", source: "newsletter" }),
+    ).rejects.toThrow("KIT_NOT_CONFIGURED");
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
   it("rejects with KIT_NOT_CONFIGURED when only one of the two vars is set", async () => {
     vi.stubEnv("KIT_API_KEY", "key_123");
     vi.stubEnv("KIT_FORM_ID", "");
-    await expect(subscribeToKit({ email: "a@example.com", source: "gear_waitlist" })).rejects.toThrow("KIT_NOT_CONFIGURED");
+    await expect(
+      subscribeToKit({ email: "a@example.com", source: "gear_waitlist" }),
+    ).rejects.toThrow("KIT_NOT_CONFIGURED");
   });
 });

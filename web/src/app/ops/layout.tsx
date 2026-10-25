@@ -3,7 +3,12 @@ import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
   title: { default: "Ops | DigiRobotics", template: "%s | Ops | DigiRobotics" },
-  robots: { index: false, follow: false, nocache: true, googleBot: { index: false, follow: false } },
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: { index: false, follow: false },
+  },
 };
 
 export default function OpsLayout({ children }: { children: ReactNode }) {

@@ -29,12 +29,22 @@ export function DeckChrome({ deck }: { deck: DeckController }) {
 
   return (
     <>
-      <div className={`deck-notes ${deck.notesOpen ? "is-open" : ""}`} aria-hidden={!deck.notesOpen}>
+      <div
+        className={`deck-notes ${deck.notesOpen ? "is-open" : ""}`}
+        aria-hidden={!deck.notesOpen}
+      >
         <p>{SPEAKER_NOTES[deck.index]}</p>
-        <span className="deck-notes-timer">{deck.timerRunning || deck.timerSeconds > 0 ? formatTimer(deck.timerSeconds) : "T · start timer"}</span>
+        <span className="deck-notes-timer">
+          {deck.timerRunning || deck.timerSeconds > 0
+            ? formatTimer(deck.timerSeconds)
+            : "T · start timer"}
+        </span>
       </div>
 
-      <div className={`deck-legend ${deck.helpOpen ? "is-open" : ""}`} aria-hidden={!deck.helpOpen}>
+      <div
+        className={`deck-legend ${deck.helpOpen ? "is-open" : ""}`}
+        aria-hidden={!deck.helpOpen}
+      >
         {LEGEND.map(([key, label]) => (
           <span key={key}>
             <kbd>{key}</kbd>

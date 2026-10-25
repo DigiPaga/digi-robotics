@@ -40,9 +40,12 @@ export function CopyButton({
   const [copied, setCopied] = useState(false);
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => () => {
-    if (resetTimer.current) clearTimeout(resetTimer.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (resetTimer.current) clearTimeout(resetTimer.current);
+    },
+    [],
+  );
 
   async function handleCopy() {
     try {
@@ -65,8 +68,14 @@ export function CopyButton({
       title={`${label}: ${value}`}
       className={`inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-white/15 font-mono text-white/60 transition hover:border-[#84cc16]/55 hover:text-[#84cc16] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#84cc16] ${compact ? "min-w-11 px-3 text-[10px]" : "px-4 text-[11px]"} ${className}`}
     >
-      {copied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
-      {!compact ? <span>{copied ? "Copied" : displayValue ?? "Copy"}</span> : null}
+      {copied ? (
+        <Check size={14} aria-hidden="true" />
+      ) : (
+        <Copy size={14} aria-hidden="true" />
+      )}
+      {!compact ? (
+        <span>{copied ? "Copied" : (displayValue ?? "Copy")}</span>
+      ) : null}
     </button>
   );
 }

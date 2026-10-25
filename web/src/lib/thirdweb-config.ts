@@ -11,4 +11,4 @@ export const client = createThirdwebClient({
 });
 
 export const supportedChains = [arbitrumSepolia, robinhoodTestnet] as const;
-export type SupportedChain = typeof supportedChains[number];
+export type SupportedChain = (typeof supportedChains)[number];

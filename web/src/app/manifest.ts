@@ -7,13 +7,12 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "DigiRobotics — Egocentric Data for Robotics",
     short_name: "DigiRobotics",
-    description: "Capture real-world skills from your point of view. Build the training data robotics teams need.",
+    description:
+      "Capture real-world skills from your point of view. Build the training data robotics teams need.",
     start_url: "/",
     display: "standalone",
     background_color: "#171b25",
     theme_color: "#171b25",
-    icons: [
-      { src: "/favicon.ico", sizes: "any", type: "image/x-icon" },
-    ],
+    icons: [{ src: "/favicon.ico", sizes: "any", type: "image/x-icon" }],
   };
 }

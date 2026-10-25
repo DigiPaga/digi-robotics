@@ -53,7 +53,10 @@ export function getX402Chain(network: string): X402Chain | undefined {
   return X402_CHAINS[network];
 }
 
-export function explorerTxUrl(network: string, hash: string): string | undefined {
+export function explorerTxUrl(
+  network: string,
+  hash: string,
+): string | undefined {
   const chain = getX402Chain(network);
   return chain ? `${chain.explorerUrl}/tx/${hash}` : undefined;
 }

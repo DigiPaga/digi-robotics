@@ -5,7 +5,9 @@ import { OPS_CHAINS } from "./chains";
  * wallet, receipt polling), derived from the ops chains so they cannot drift.
  */
 export const OPS_RPC_ORIGINS: readonly string[] = [
-  ...new Set(OPS_CHAINS.map((chain) => new URL(chain.rpcUrls.default.http[0]).origin)),
+  ...new Set(
+    OPS_CHAINS.map((chain) => new URL(chain.rpcUrls.default.http[0]).origin),
+  ),
 ];
 
 /**
@@ -33,7 +35,10 @@ export function createCspNonce(): string {
  *   (style-src 'self').
  * - connect-src is same-origin plus the RPCs the top-up panel calls.
  */
-export function buildOpsContentSecurityPolicy(nonce: string, { isDev = false }: { isDev?: boolean } = {}): string {
+export function buildOpsContentSecurityPolicy(
+  nonce: string,
+  { isDev = false }: { isDev?: boolean } = {},
+): string {
   return [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}`,

@@ -30,7 +30,9 @@ function renderHero() {
 describe("HeroSection", () => {
   it("states the testnet disclosure as plain text, not a link", () => {
     renderHero();
-    const disclosure = screen.getByText(/Arbitrum Sepolia \+ Robinhood Chain Testnet/);
+    const disclosure = screen.getByText(
+      /Arbitrum Sepolia \+ Robinhood Chain Testnet/,
+    );
     expect(disclosure.tagName).toBe("P");
     expect(disclosure.closest("a")).toBeNull();
   });
@@ -44,8 +46,14 @@ describe("HeroSection", () => {
 
   it("keeps the two primary hero CTAs intact alongside the agent demo link", () => {
     renderHero();
-    expect(screen.getByRole("button", { name: /Become a contributor/ })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Request custom data/ })).toHaveAttribute("href", "#custom-data");
-    expect(screen.getByRole("link", { name: /Watch the agent demo/ })).toHaveAttribute("href", "/agent-demo");
+    expect(
+      screen.getByRole("button", { name: /Become a contributor/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Request custom data/ }),
+    ).toHaveAttribute("href", "#custom-data");
+    expect(
+      screen.getByRole("link", { name: /Watch the agent demo/ }),
+    ).toHaveAttribute("href", "/agent-demo");
   });
 });

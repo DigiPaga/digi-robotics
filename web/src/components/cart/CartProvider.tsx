@@ -1,8 +1,22 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 
-export type CartItem = { id: string; name: string; price: string; quantity: number };
+export type CartItem = {
+  id: string;
+  name: string;
+  price: string;
+  quantity: number;
+};
 
 type CartValue = {
   items: CartItem[];
@@ -23,9 +37,13 @@ function loadCart(): CartItem[] {
   try {
     const value = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "[]");
     if (!Array.isArray(value)) return [];
-    return value.filter((item): item is CartItem =>
-      typeof item?.id === "string" && typeof item?.name === "string" &&
-      /^\d+\.\d{2}$/.test(item?.price) && Number.isInteger(item?.quantity) && item.quantity > 0,
+    return value.filter(
+      (item): item is CartItem =>
+        typeof item?.id === "string" &&
+        typeof item?.name === "string" &&
+        /^\d+\.\d{2}$/.test(item?.price) &&
+        Number.isInteger(item?.quantity) &&
+        item.quantity > 0,
     );
   } catch {
     return [];
@@ -46,34 +64,59 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return () => window.cancelAnimationFrame(frame);
   }, []);
   useEffect(() => {
-    if (hydrated.current) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    if (hydrated.current)
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, [items]);
 
   const addItem = useCallback((item: Omit<CartItem, "quantity">) => {
     setItems((current) => {
       const existing = current.find((entry) => entry.id === item.id);
       return existing
-        ? current.map((entry) => entry.id === item.id ? { ...entry, quantity: Math.min(99, entry.quantity + 1) } : entry)
+        ? current.map((entry) =>
+            entry.id === item.id
+              ? { ...entry, quantity: Math.min(99, entry.quantity + 1) }
+              : entry,
+          )
         : [...current, { ...item, quantity: 1 }];
     });
   }, []);
   const updateQuantity = useCallback((id: string, quantity: number) => {
-    if (quantity <= 0) return setItems((current) => current.filter((item) => item.id !== id));
-    setItems((current) => current.map((item) => item.id === id ? { ...item, quantity: Math.min(99, Math.floor(quantity)) } : item));
+    if (quantity <= 0)
+      return setItems((current) => current.filter((item) => item.id !== id));
+    setItems((current) =>
+      current.map((item) =>
+        item.id === id
+          ? { ...item, quantity: Math.min(99, Math.floor(quantity)) }
+          : item,
+      ),
+    );
   }, []);
-  const removeItem = useCallback((id: string) => setItems((current) => current.filter((item) => item.id !== id)), []);
+  const removeItem = useCallback(
+    (id: string) =>
+      setItems((current) => current.filter((item) => item.id !== id)),
+    [],
+  );
   const clearCart = useCallback(() => setItems([]), []);
 
-  const value = useMemo<CartValue>(() => ({
-    items,
-    itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
-    total: (items.reduce((sum, item) => sum + Math.round(Number(item.price) * 1_000_000) * item.quantity, 0) / 1_000_000).toFixed(2),
-    isHydrated,
-    addItem,
-    updateQuantity,
-    removeItem,
-    clearCart,
-  }), [items, isHydrated, addItem, updateQuantity, removeItem, clearCart]);
+  const value = useMemo<CartValue>(
+    () => ({
+      items,
+      itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
+      total: (
+        items.reduce(
+          (sum, item) =>
+            sum + Math.round(Number(item.price) * 1_000_000) * item.quantity,
+          0,
+        ) / 1_000_000
+      ).toFixed(2),
+      isHydrated,
+      addItem,
+      updateQuantity,
+      removeItem,
+      clearCart,
+    }),
+    [items, isHydrated, addItem, updateQuantity, removeItem, clearCart],
+  );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

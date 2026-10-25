@@ -1,6 +1,6 @@
-import { createPublicClient, http, parseGwei } from 'viem';
-import { arbitrumSepolia } from 'viem/chains';
-import logger from './logger';
+import { createPublicClient, http, parseGwei } from "viem";
+import { arbitrumSepolia } from "viem/chains";
+import logger from "./logger";
 
 /**
  * Arbitrum L2 Gas Estimator
@@ -10,13 +10,16 @@ import logger from './logger';
 
 const publicClient = createPublicClient({
   chain: arbitrumSepolia,
-  transport: http(process.env.ARBITRUM_SEPOLIA_RPC || 'https://sepolia-rollup.arbitrum.io/rpc'),
+  transport: http(
+    process.env.ARBITRUM_SEPOLIA_RPC ||
+      "https://sepolia-rollup.arbitrum.io/rpc",
+  ),
 });
 
 export const estimateArbitrumGas = async (
   account: `0x${string}`,
   to: `0x${string}`,
-  data: `0x${string}`
+  data: `0x${string}`,
 ): Promise<bigint> => {
   try {
     // 1. Estimate L2 execution gas
@@ -28,21 +31,21 @@ export const estimateArbitrumGas = async (
 
     // 2. Get current L2 base fee
     const feeData = await publicClient.estimateFeesPerGas();
-    const maxFeePerGas = feeData.maxFeePerGas || parseGwei('0.1');
+    const maxFeePerGas = feeData.maxFeePerGas || parseGwei("0.1");
 
     // 3. Add 20% buffer for L1 data fee fluctuations (Arbitrum specific)
     const bufferedGas = (l2Gas * 120n) / 100n;
     const estimatedCostWei = bufferedGas * maxFeePerGas;
 
-    logger.info('Arbitrum L2 gas estimated', { 
-      l2Gas: l2Gas.toString(), 
+    logger.info("Arbitrum L2 gas estimated", {
+      l2Gas: l2Gas.toString(),
       bufferedGas: bufferedGas.toString(),
-      estimatedCostWei: estimatedCostWei.toString() 
+      estimatedCostWei: estimatedCostWei.toString(),
     });
 
     return estimatedCostWei;
   } catch (error) {
-    logger.error('Failed to estimate Arbitrum gas', error);
-    throw new Error('Gas estimation failed');
+    logger.error("Failed to estimate Arbitrum gas", error);
+    throw new Error("Gas estimation failed");
   }
 };

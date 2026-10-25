@@ -1,8 +1,18 @@
 import type { Address, Hash } from "viem";
 import { arbitrumSepolia } from "@/lib/chains";
 
-export type OrderItem = { id: string; name: string; price: string; quantity: number };
-export type ShippingDetails = { name: string; address: string; phone: string; notes?: string };
+export type OrderItem = {
+  id: string;
+  name: string;
+  price: string;
+  quantity: number;
+};
+export type ShippingDetails = {
+  name: string;
+  address: string;
+  phone: string;
+  notes?: string;
+};
 
 export type StoredOrder = {
   id: string;

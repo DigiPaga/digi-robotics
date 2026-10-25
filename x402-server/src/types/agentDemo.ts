@@ -1,6 +1,7 @@
 import type { PaymentRequirements } from "@x402/core/types";
 
-export type AgentDemoMode = "REAL_MUSDG_X402" | "REAL_X402_TEST_ASSET" | "BLOCKED";
+export type AgentDemoMode =
+  "REAL_MUSDG_X402" | "REAL_X402_TEST_ASSET" | "BLOCKED";
 export type RunState =
   | "queued"
   | "preflight"

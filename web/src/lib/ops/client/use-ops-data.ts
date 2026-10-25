@@ -37,7 +37,12 @@ export const DEDUPE_MS = 2_000;
 /** Returning to the tab revalidates data older than this. */
 export const FOCUS_STALE_MS = 10_000;
 
-const EMPTY: OpsDataState<never> = { data: undefined, error: null, updatedAt: null, validating: false };
+const EMPTY: OpsDataState<never> = {
+  data: undefined,
+  error: null,
+  updatedAt: null,
+  validating: false,
+};
 
 const states = new Map<string, OpsDataState<unknown>>();
 const listeners = new Map<string, Set<() => void>>();
@@ -58,7 +63,9 @@ function subscribe(url: string, listener: () => void): () => void {
   let set = listeners.get(url);
   if (!set) listeners.set(url, (set = new Set()));
   set.add(listener);
-  return () => { set.delete(listener); };
+  return () => {
+    set.delete(listener);
+  };
 }
 
 /** The shell registers what a 401 should do (re-render the server layout, which shows sign-in). */
@@ -79,14 +86,21 @@ export function clearOpsDataCache(): void {
  * Loads `url` into the cache. Concurrent callers share one request.
  * `fresh` adds ?fresh=1 so the server skips its own short cache.
  */
-export function revalidateOpsData(url: string, options: { fresh?: boolean } = {}): Promise<void> {
+export function revalidateOpsData(
+  url: string,
+  options: { fresh?: boolean } = {},
+): Promise<void> {
   const pending = inflight.get(url);
   if (pending && !options.fresh) return pending;
   const startedIn = generation;
   write(url, { validating: true });
   const run = async (): Promise<void> => {
     try {
-      const response = await fetch(options.fresh ? `${url}?fresh=1` : url, { cache: "no-store", credentials: "same-origin", headers: { accept: "application/json" } });
+      const response = await fetch(options.fresh ? `${url}?fresh=1` : url, {
+        cache: "no-store",
+        credentials: "same-origin",
+        headers: { accept: "application/json" },
+      });
       if (startedIn !== generation) return;
       if (response.status === 401) {
         clearOpsDataCache();
@@ -96,7 +110,12 @@ export function revalidateOpsData(url: string, options: { fresh?: boolean } = {}
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data: unknown = await response.json();
       if (startedIn !== generation) return;
-      write(url, { data, error: null, updatedAt: Date.now(), validating: false });
+      write(url, {
+        data,
+        error: null,
+        updatedAt: Date.now(),
+        validating: false,
+      });
     } catch {
       if (startedIn !== generation) return;
       write(url, { error: "Could not load this section.", validating: false });
@@ -111,7 +130,8 @@ export function revalidateOpsData(url: string, options: { fresh?: boolean } = {}
 
 /** Warms the cache for a section the operator has not opened yet. No-op when data is already there. */
 export function prefetchOpsData(url: string): Promise<void> {
-  if (read(url).data !== undefined || inflight.has(url)) return inflight.get(url) ?? Promise.resolve();
+  if (read(url).data !== undefined || inflight.has(url))
+    return inflight.get(url) ?? Promise.resolve();
   return revalidateOpsData(url);
 }
 
@@ -120,7 +140,10 @@ function age(url: string): number {
   return updatedAt === null ? Number.POSITIVE_INFINITY : Date.now() - updatedAt;
 }
 
-export function useOpsData<T>(url: string, options: UseOpsDataOptions = {}): OpsDataResult<T> {
+export function useOpsData<T>(
+  url: string,
+  options: UseOpsDataOptions = {},
+): OpsDataResult<T> {
   const state = useSyncExternalStore(
     useCallback((listener: () => void) => subscribe(url, listener), [url]),
     () => read<T>(url),
@@ -131,12 +154,16 @@ export function useOpsData<T>(url: string, options: UseOpsDataOptions = {}): Ops
   useEffect(() => {
     if (age(url) > DEDUPE_MS) void revalidateOpsData(url);
     const onVisible = () => {
-      if (document.visibilityState === "visible" && age(url) > FOCUS_STALE_MS) void revalidateOpsData(url);
+      if (document.visibilityState === "visible" && age(url) > FOCUS_STALE_MS)
+        void revalidateOpsData(url);
     };
     document.addEventListener("visibilitychange", onVisible);
     window.addEventListener("focus", onVisible);
     const timer = refreshInterval
-      ? window.setInterval(() => { if (document.visibilityState === "visible") void revalidateOpsData(url); }, refreshInterval)
+      ? window.setInterval(() => {
+          if (document.visibilityState === "visible")
+            void revalidateOpsData(url);
+        }, refreshInterval)
       : null;
     return () => {
       document.removeEventListener("visibilitychange", onVisible);
@@ -145,6 +172,13 @@ export function useOpsData<T>(url: string, options: UseOpsDataOptions = {}): Ops
     };
   }, [url, refreshInterval]);
 
-  const refresh = useCallback(() => revalidateOpsData(url, { fresh: true }), [url]);
-  return { ...state, loading: state.data === undefined && state.error === null, refresh };
+  const refresh = useCallback(
+    () => revalidateOpsData(url, { fresh: true }),
+    [url],
+  );
+  return {
+    ...state,
+    loading: state.data === undefined && state.error === null,
+    refresh,
+  };
 }

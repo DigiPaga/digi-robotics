@@ -17,7 +17,11 @@ import { arbitrumSepolia } from "@/lib/chains";
 import { getStablecoinConfig } from "@/lib/stablecoinConfig";
 import { isUsdGCompatibleSymbol } from "@/lib/network-utils";
 import { getOrderStore } from "@/lib/order-store";
-import { orderHistoryMessage, recordOrderMessage, type StoredOrder } from "@/lib/orders";
+import {
+  orderHistoryMessage,
+  recordOrderMessage,
+  type StoredOrder,
+} from "@/lib/orders";
 import { gearItems } from "@/data/gear";
 
 export const runtime = "nodejs";
@@ -51,44 +55,79 @@ async function verifyPayment(input: z.infer<typeof createOrderSchema>) {
   if (!isUsdGCompatibleSymbol(checkoutAsset.symbol)) {
     throw new Error("A USDG-compatible asset is not configured for checkout.");
   }
-  const client = createPublicClient({ chain: arbitrumSepolia, transport: http(arbitrumSepolia.rpcUrls.default.http[0]) });
-  const receipt = await client.getTransactionReceipt({ hash: input.txHash as Hash });
-  if (receipt.status !== "success") throw new Error("The payment transaction did not succeed.");
+  const client = createPublicClient({
+    chain: arbitrumSepolia,
+    transport: http(arbitrumSepolia.rpcUrls.default.http[0]),
+  });
+  const receipt = await client.getTransactionReceipt({
+    hash: input.txHash as Hash,
+  });
+  if (receipt.status !== "success")
+    throw new Error("The payment transaction did not succeed.");
   const token = getAddress(checkoutAsset.address);
   const storeValue = process.env.NEXT_PUBLIC_STORE_WALLET_ADDRESS?.trim();
-  if (!storeValue) throw new Error("The checkout store address is not configured.");
+  if (!storeValue)
+    throw new Error("The checkout store address is not configured.");
   const store = getAddress(storeValue);
   const payer = getAddress(input.paymentAddress);
   const expectedAmount = parseUnits(input.total, checkoutAsset.decimals);
   const paid = receipt.logs.some((log) => {
     if (!isAddressEqual(log.address, token)) return false;
     try {
-      const event = decodeEventLog({ abi: erc20Abi, eventName: "Transfer", data: log.data, topics: log.topics });
-      return isAddressEqual(event.args.from, payer) && isAddressEqual(event.args.to, store) && event.args.value === expectedAmount;
+      const event = decodeEventLog({
+        abi: erc20Abi,
+        eventName: "Transfer",
+        data: log.data,
+        topics: log.topics,
+      });
+      return (
+        isAddressEqual(event.args.from, payer) &&
+        isAddressEqual(event.args.to, store) &&
+        event.args.value === expectedAmount
+      );
     } catch {
       return false;
     }
   });
-  if (!paid) throw new Error("The transaction does not contain the expected configured asset transfer to the store.");
+  if (!paid)
+    throw new Error(
+      "The transaction does not contain the expected configured asset transfer to the store.",
+    );
 }
 
 export async function GET(request: Request) {
   const wallet = request.headers.get("x-wallet-address");
   const signature = request.headers.get("x-wallet-signature");
-  if (!wallet || !signature) return NextResponse.json({ message: "Wallet authentication is required." }, { status: 401 });
+  if (!wallet || !signature)
+    return NextResponse.json(
+      { message: "Wallet authentication is required." },
+      { status: 401 },
+    );
   try {
     const address = getAddress(wallet);
-    const authenticated = await verifyMessage({ address, message: orderHistoryMessage(address), signature: signature as Hash });
-    if (!authenticated) return NextResponse.json({ message: "Wallet signature is invalid." }, { status: 401 });
-    const orders = (await getOrderStore().listByWallet(address))
-      .map((order) => {
+    const authenticated = await verifyMessage({
+      address,
+      message: orderHistoryMessage(address),
+      signature: signature as Hash,
+    });
+    if (!authenticated)
+      return NextResponse.json(
+        { message: "Wallet signature is invalid." },
+        { status: 401 },
+      );
+    const orders = (await getOrderStore().listByWallet(address)).map(
+      (order) => {
         const { shipping, ...summary } = order;
         void shipping;
         return summary;
-      });
+      },
+    );
     return NextResponse.json({ orders });
   } catch {
-    return NextResponse.json({ message: "Unable to authenticate or load orders." }, { status: 400 });
+    return NextResponse.json(
+      { message: "Unable to authenticate or load orders." },
+      { status: 400 },
+    );
   }
 }
 
@@ -101,16 +140,31 @@ export async function POST(request: Request) {
       message: recordOrderMessage(walletAddress, input.txHash),
       signature: input.signature as Hash,
     });
-    if (!signatureValid) return NextResponse.json({ message: "Wallet signature is invalid." }, { status: 401 });
+    if (!signatureValid)
+      return NextResponse.json(
+        { message: "Wallet signature is invalid." },
+        { status: 401 },
+      );
     const unitScale = 10 ** checkoutAsset.decimals;
-    const expectedTotal = input.items.reduce((sum, item) => sum + Math.round(Number(item.price) * unitScale) * item.quantity, 0);
+    const expectedTotal = input.items.reduce(
+      (sum, item) =>
+        sum + Math.round(Number(item.price) * unitScale) * item.quantity,
+      0,
+    );
     const catalogMatches = input.items.every((item) => {
       const product = gearItems.find((candidate) => candidate.id === item.id);
       return product?.price === item.price && product.name === item.name;
     });
-    if (!catalogMatches) return NextResponse.json({ message: "One or more cart items do not match the store catalog." }, { status: 400 });
+    if (!catalogMatches)
+      return NextResponse.json(
+        { message: "One or more cart items do not match the store catalog." },
+        { status: 400 },
+      );
     if ((expectedTotal / unitScale).toFixed(2) !== input.total) {
-      return NextResponse.json({ message: "Order total does not match the cart." }, { status: 400 });
+      return NextResponse.json(
+        { message: "Order total does not match the cart." },
+        { status: 400 },
+      );
     }
     await verifyPayment(input);
     const order: StoredOrder = {
@@ -125,11 +179,15 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString(),
     };
     const stored = await getOrderStore().append(order);
-    return NextResponse.json({ order: { ...stored.order, shipping: undefined } }, { status: stored.created ? 201 : 200 });
+    return NextResponse.json(
+      { order: { ...stored.order, shipping: undefined } },
+      { status: stored.created ? 201 : 200 },
+    );
   } catch (error) {
-    const message = error instanceof z.ZodError
-      ? error.issues[0]?.message ?? "Invalid order data."
-      : "The order could not be verified or recorded.";
+    const message =
+      error instanceof z.ZodError
+        ? (error.issues[0]?.message ?? "Invalid order data.")
+        : "The order could not be verified or recorded.";
     return NextResponse.json({ message }, { status: 400 });
   }
 }

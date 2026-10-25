@@ -19,8 +19,13 @@ vi.mock("thirdweb/react", () => ({
 }));
 
 vi.mock("@/components/auth/AuthButton", () => ({
-  AuthButton: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
-    <button type="button" {...props}>{children}</button>
+  AuthButton: ({
+    children,
+    ...props
+  }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
+    <button type="button" {...props}>
+      {children}
+    </button>
   ),
 }));
 
@@ -40,18 +45,26 @@ vi.mock("@/lib/toasts", () => ({
   showTransactionSubmitted: vi.fn(),
 }));
 
-function seedCart(items: Array<{ id: string; name: string; price: string; quantity: number }>) {
+function seedCart(
+  items: Array<{ id: string; name: string; price: string; quantity: number }>,
+) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
 }
 
 function renderCheckout() {
-  return render(<CartProvider><CheckoutFlow /></CartProvider>);
+  return render(
+    <CartProvider>
+      <CheckoutFlow />
+    </CartProvider>,
+  );
 }
 
 async function waitForHydrated() {
   // CheckoutFlow shows CheckoutLoadingState (role="status", "Loading cart") until
   // CartProvider finishes its requestAnimationFrame hydration.
-  await waitFor(() => expect(screen.queryByLabelText("Loading cart")).not.toBeInTheDocument());
+  await waitFor(() =>
+    expect(screen.queryByLabelText("Loading cart")).not.toBeInTheDocument(),
+  );
 }
 
 afterEach(() => {
@@ -69,7 +82,8 @@ describe("CheckoutFlow without a Thirdweb client id", () => {
       const thirdweb = await import("@/lib/thirdweb");
       expect(thirdweb.isThirdwebConfigured).toBe(false);
     } finally {
-      if (original === undefined) delete process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID;
+      if (original === undefined)
+        delete process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID;
       else process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID = original;
       vi.resetModules();
     }
@@ -80,12 +94,18 @@ describe("CheckoutFlow", () => {
   it("renders the empty-cart state when there are no items", async () => {
     renderCheckout();
     await waitForHydrated();
-    expect(screen.getByText("Start with the gear catalog.")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Browse gear" })).toBeInTheDocument();
+    expect(
+      screen.getByText("Start with the gear catalog."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Browse gear" }),
+    ).toBeInTheDocument();
   });
 
   it("renders cart items in step 1 and wires quantity controls to the cart", async () => {
-    seedCart([{ id: "rover-1", name: "Scout Rover", price: "19.99", quantity: 1 }]);
+    seedCart([
+      { id: "rover-1", name: "Scout Rover", price: "19.99", quantity: 1 },
+    ]);
     const user = userEvent.setup();
     renderCheckout();
     await waitForHydrated();
@@ -97,11 +117,15 @@ describe("CheckoutFlow", () => {
     expect(screen.getByText("2")).toBeInTheDocument();
 
     await user.click(screen.getByLabelText("Remove Scout Rover"));
-    expect(screen.getByText("Start with the gear catalog.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Start with the gear catalog."),
+    ).toBeInTheDocument();
   });
 
   it("shows zod validation errors on an empty shipping form and blocks advancing", async () => {
-    seedCart([{ id: "rover-1", name: "Scout Rover", price: "19.99", quantity: 1 }]);
+    seedCart([
+      { id: "rover-1", name: "Scout Rover", price: "19.99", quantity: 1 },
+    ]);
     const user = userEvent.setup();
     renderCheckout();
     await waitForHydrated();
@@ -110,8 +134,12 @@ describe("CheckoutFlow", () => {
     expect(screen.getByText("Where would this order go?")).toBeInTheDocument();
 
     await user.click(screen.getByText("Continue to wallet"));
-    expect(screen.getByText("Enter the recipient’s full name.")).toBeInTheDocument();
-    expect(screen.getByText("Enter a complete delivery address.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Enter the recipient’s full name."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Enter a complete delivery address."),
+    ).toBeInTheDocument();
     expect(screen.getByText("Enter a valid phone number.")).toBeInTheDocument();
     // Still on step 2.
     expect(screen.getByText("Where would this order go?")).toBeInTheDocument();
@@ -120,23 +148,40 @@ describe("CheckoutFlow", () => {
   it("advances to step 3 on valid shipping input with mUSDG ready and payment gated on a wallet", async () => {
     // Arbitrum Sepolia is configured with MockUSDG, so step 3 is not paused; with no
     // connected wallet the pay button stays disabled.
-    seedCart([{ id: "rover-1", name: "Scout Rover", price: "19.99", quantity: 1 }]);
+    seedCart([
+      { id: "rover-1", name: "Scout Rover", price: "19.99", quantity: 1 },
+    ]);
     const user = userEvent.setup();
     renderCheckout();
     await waitForHydrated();
 
     await user.click(screen.getByText("Continue to shipping"));
-    await user.type(screen.getByPlaceholderText("Ada Lovelace"), "Ada Lovelace");
-    await user.type(screen.getByPlaceholderText("Street, city, postal code, country"), "1 Robotics Way, Singapore");
-    await user.type(screen.getByPlaceholderText("+65 5555 0100"), "+65 5555 0100");
+    await user.type(
+      screen.getByPlaceholderText("Ada Lovelace"),
+      "Ada Lovelace",
+    );
+    await user.type(
+      screen.getByPlaceholderText("Street, city, postal code, country"),
+      "1 Robotics Way, Singapore",
+    );
+    await user.type(
+      screen.getByPlaceholderText("+65 5555 0100"),
+      "+65 5555 0100",
+    );
     await user.click(screen.getByText("Continue to wallet"));
 
     expect(screen.getByText("Pay with mUSDG")).toBeInTheDocument();
-    expect(screen.queryByText(/Checkout is safely paused/)).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Pay 19.99 mUSDG" })).toBeDisabled();
+    expect(
+      screen.queryByText(/Checkout is safely paused/),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Pay 19.99 mUSDG" }),
+    ).toBeDisabled();
 
     const stepper = screen.getByLabelText("Checkout progress");
-    const walletStep = within(stepper).getAllByRole("listitem").find((item) => item.textContent?.includes("Wallet"));
+    const walletStep = within(stepper)
+      .getAllByRole("listitem")
+      .find((item) => item.textContent?.includes("Wallet"));
     expect(walletStep).toHaveAttribute("aria-current", "step");
   });
 });

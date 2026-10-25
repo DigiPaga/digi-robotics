@@ -1,6 +1,15 @@
 import "server-only";
 
-import { createPublicClient, erc20Abi, formatEther, formatUnits, http, parseEther, type Address, type Chain } from "viem";
+import {
+  createPublicClient,
+  erc20Abi,
+  formatEther,
+  formatUnits,
+  http,
+  parseEther,
+  type Address,
+  type Chain,
+} from "viem";
 import { memo } from "./cache";
 import { OPS_CHAINS } from "./chains";
 import { readMusdgTokens, readOpsWallets, type OpsWallet } from "./wallets";
@@ -48,7 +57,11 @@ export const MAX_OPS_WALLETS = 10;
 function clientFor(chain: Chain) {
   return createPublicClient({
     chain,
-    transport: http(chain.rpcUrls.default.http[0], { batch: true, timeout: RPC_TIMEOUT_MS, retryCount: 1 }),
+    transport: http(chain.rpcUrls.default.http[0], {
+      batch: true,
+      timeout: RPC_TIMEOUT_MS,
+      retryCount: 1,
+    }),
   });
 }
 
@@ -69,11 +82,23 @@ async function readCell(
   const [eth, musdg, tokenDecimals] = await Promise.allSettled([
     client.getBalance({ address: wallet.address }),
     token
-      ? client.readContract({ address: token, abi: erc20Abi, functionName: "balanceOf", args: [wallet.address] })
+      ? client.readContract({
+          address: token,
+          abi: erc20Abi,
+          functionName: "balanceOf",
+          args: [wallet.address],
+        })
       : Promise.resolve(null),
     decimals,
   ]);
-  const cell: BalanceCell = { chainId, ethWei: null, eth: null, low: false, musdg: null, error: null };
+  const cell: BalanceCell = {
+    chainId,
+    ethWei: null,
+    eth: null,
+    low: false,
+    musdg: null,
+    error: null,
+  };
   if (eth.status === "fulfilled") {
     cell.ethWei = eth.value.toString();
     cell.eth = formatEther(eth.value);
@@ -82,7 +107,8 @@ async function readCell(
     cell.error = "RPC unavailable";
   }
   if (token) {
-    const unit = tokenDecimals.status === "fulfilled" ? tokenDecimals.value : null;
+    const unit =
+      tokenDecimals.status === "fulfilled" ? tokenDecimals.value : null;
     if (musdg.status === "fulfilled" && musdg.value !== null && unit !== null) {
       cell.musdg = formatUnits(musdg.value, unit);
     } else {
@@ -93,26 +119,50 @@ async function readCell(
 }
 
 /** All cells of one chain. Everything here is issued in the same tick, so it is one batch. */
-function readChain(chain: Chain, wallets: readonly OpsWallet[], token: Address | null): Promise<BalanceCell[]> {
+function readChain(
+  chain: Chain,
+  wallets: readonly OpsWallet[],
+  token: Address | null,
+): Promise<BalanceCell[]> {
   const client = clientFor(chain);
   // Decimals are a property of the token, not of the wallet: read once per chain.
   const decimals: Promise<number | null> = token
-    ? client.readContract({ address: token, abi: erc20Abi, functionName: "decimals" }).catch(() => null)
+    ? client
+        .readContract({
+          address: token,
+          abi: erc20Abi,
+          functionName: "decimals",
+        })
+        .catch(() => null)
     : Promise.resolve(null);
-  return Promise.all(wallets.map((wallet) => readCell(client, chain.id, wallet, token, decimals)));
+  return Promise.all(
+    wallets.map((wallet) =>
+      readCell(client, chain.id, wallet, token, decimals),
+    ),
+  );
 }
 
 /** Server-side balance snapshot for the configured wallets (first MAX_OPS_WALLETS) on every ops chain. */
-export async function fetchOpsBalances(env: Record<string, string | undefined> = process.env): Promise<OpsBalancesSnapshot> {
+export async function fetchOpsBalances(
+  env: Record<string, string | undefined> = process.env,
+): Promise<OpsBalancesSnapshot> {
   const { wallets: configured, warning: configWarning } = readOpsWallets(env);
   const wallets = configured.slice(0, MAX_OPS_WALLETS);
-  const capWarning = configured.length > wallets.length
-    ? `Showing the first ${wallets.length} of ${configured.length} configured wallets.`
-    : null;
+  const capWarning =
+    configured.length > wallets.length
+      ? `Showing the first ${wallets.length} of ${configured.length} configured wallets.`
+      : null;
   const warning = [configWarning, capWarning].filter(Boolean).join(" ") || null;
   const tokens = readMusdgTokens(env);
-  const byChain = await Promise.all(OPS_CHAINS.map((chain) => readChain(chain, wallets, tokens[chain.id] ?? null)));
-  const rows = wallets.map((wallet, index) => ({ wallet, cells: byChain.map((cells) => cells[index]) }));
+  const byChain = await Promise.all(
+    OPS_CHAINS.map((chain) =>
+      readChain(chain, wallets, tokens[chain.id] ?? null),
+    ),
+  );
+  const rows = wallets.map((wallet, index) => ({
+    wallet,
+    cells: byChain.map((cells) => cells[index]),
+  }));
   return {
     refreshedAt: new Date().toISOString(),
     chains: OPS_CHAINS.map((chain) => ({
@@ -133,6 +183,8 @@ const BALANCES_TTL_MS = 10_000;
  * wallets section share one read. `fresh` (the Refresh button, a confirmed
  * top-up) always goes to the chain.
  */
-export function fetchOpsBalancesCached(options: { fresh?: boolean } = {}): Promise<OpsBalancesSnapshot> {
+export function fetchOpsBalancesCached(
+  options: { fresh?: boolean } = {},
+): Promise<OpsBalancesSnapshot> {
   return memo("balances", BALANCES_TTL_MS, () => fetchOpsBalances(), options);
 }

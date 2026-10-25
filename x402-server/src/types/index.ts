@@ -4,7 +4,7 @@ export interface Asset {
   description: string;
   price: string;
   currency: string;
-  type: 'pdf' | 'video' | 'dataset' | 'cad' | 'json' | 'csv';
+  type: "pdf" | "video" | "dataset" | "cad" | "json" | "csv";
   category: string;
   ipfsHash: string;
   seller: string;
@@ -44,7 +44,7 @@ export interface PaymentDetails {
 export interface AgentIdentity {
   address: string;
   owner: string;
-  agentType: 'vps' | 'robot' | 'mobile' | 'desktop';
+  agentType: "vps" | "robot" | "mobile" | "desktop";
   metadataURI: string;
   isActive: boolean;
   registeredAt: number;

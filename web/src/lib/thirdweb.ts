@@ -9,7 +9,9 @@ const clientId = process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID?.trim() ?? "";
 // module always loads; callers must check isThirdwebConfigured before relying on
 // any wallet/auth feature.
 export const isThirdwebConfigured = Boolean(clientId);
-export const thirdwebClient = createThirdwebClient({ clientId: isThirdwebConfigured ? clientId : "unconfigured" });
+export const thirdwebClient = createThirdwebClient({
+  clientId: isThirdwebConfigured ? clientId : "unconfigured",
+});
 export const arbitrumSepolia = defineChain(421614);
 export const embeddedWallets = [
   inAppWallet({ auth: { options: ["google", "email"] } }),

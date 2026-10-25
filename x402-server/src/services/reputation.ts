@@ -1,4 +1,4 @@
-import logger from '../utils/logger';
+import logger from "../utils/logger";
 
 /**
  * Agent Reputation Service
@@ -44,12 +44,14 @@ export const reputationService = {
       current.trustScore = Math.max(0, current.trustScore - 15);
     }
     current.lastUpdated = Date.now();
-    
+
     mockReputationDB.set(addr, current);
-    logger.info(`Reputation updated for ${addr}`, { score: current.trustScore });
+    logger.info(`Reputation updated for ${addr}`, {
+      score: current.trustScore,
+    });
   },
 
   isTrusted: (address: string, minScore: number = 70): boolean => {
     return this.getScore(address) >= minScore;
-  }
+  },
 };

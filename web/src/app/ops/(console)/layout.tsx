@@ -13,11 +13,23 @@ export const dynamic = "force-dynamic";
  * generic not-configured screen. Every section page and every /api/ops route
  * repeats the check, because a client-side navigation only re-renders the page.
  */
-export default async function OpsConsoleLayout({ children }: { children: ReactNode }) {
+export default async function OpsConsoleLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const state = await getOpsPageState();
   if (state.kind === "unconfigured") return <OpsNotConfigured />;
   if (state.kind === "signed-out") {
-    return <Suspense fallback={<OpsSignIn />}><OpsSignInGate /></Suspense>;
+    return (
+      <Suspense fallback={<OpsSignIn />}>
+        <OpsSignInGate />
+      </Suspense>
+    );
   }
-  return <ConsoleShell email={state.session.email} csrf={state.session.csrf}>{children}</ConsoleShell>;
+  return (
+    <ConsoleShell email={state.session.email} csrf={state.session.csrf}>
+      {children}
+    </ConsoleShell>
+  );
 }

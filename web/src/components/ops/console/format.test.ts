@@ -1,10 +1,24 @@
 import { describe, expect, it } from "vitest";
-import { absoluteTime, formatAmount, formatDuration, formatInteger, relativeTime, shortAddress, shortHash } from "./format";
+import {
+  absoluteTime,
+  formatAmount,
+  formatDuration,
+  formatInteger,
+  relativeTime,
+  shortAddress,
+  shortHash,
+} from "./format";
 
 describe("ops formatting", () => {
   it("shortens addresses and hashes", () => {
-    expect(shortAddress("0xd98aC3064B36dFb19b62558d48cB16f00105F473")).toBe("0xd98a…F473");
-    expect(shortHash("0xd2d5a3851db8723f65c1c441d3fa83f468443f6860b1a1ab82efe002dd521d89")).toBe("0xd2d5a385…521d89");
+    expect(shortAddress("0xd98aC3064B36dFb19b62558d48cB16f00105F473")).toBe(
+      "0xd98a…F473",
+    );
+    expect(
+      shortHash(
+        "0xd2d5a3851db8723f65c1c441d3fa83f468443f6860b1a1ab82efe002dd521d89",
+      ),
+    ).toBe("0xd2d5a385…521d89");
     expect(shortAddress("0x12")).toBe("0x12");
   });
 
@@ -33,7 +47,9 @@ describe("ops formatting", () => {
     expect(formatDuration(125)).toBe("2m 5s");
     expect(formatDuration(7_500)).toBe("2h 5m");
     expect(formatDuration(null)).toBe("n/a");
-    expect(absoluteTime("2026-10-01T12:00:00.000Z")).toBe("2026-10-01 12:00:00 UTC");
+    expect(absoluteTime("2026-10-01T12:00:00.000Z")).toBe(
+      "2026-10-01 12:00:00 UTC",
+    );
     expect(absoluteTime("nope")).toBe("");
   });
 });

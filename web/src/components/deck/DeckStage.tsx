@@ -23,7 +23,9 @@ export function DeckStage({ deck }: { deck: DeckController }) {
 
   useEffect(() => {
     function measure() {
-      setScale(Math.min(window.innerWidth / CANVAS_W, window.innerHeight / CANVAS_H));
+      setScale(
+        Math.min(window.innerWidth / CANVAS_W, window.innerHeight / CANVAS_H),
+      );
     }
     measure();
     window.addEventListener("resize", measure);
@@ -74,33 +76,70 @@ export function DeckStage({ deck }: { deck: DeckController }) {
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      <div ref={canvasRef} className="deck-canvas" style={{ transform: `scale(${scale})` }}>
+      <div
+        ref={canvasRef}
+        className="deck-canvas"
+        style={{ transform: `scale(${scale})` }}
+      >
         {SLIDE_COMPONENTS.map((SlideComponent, i) => {
-          const pos = i === deck.index ? "active" : i < deck.index ? "before" : "after";
+          const pos =
+            i === deck.index ? "active" : i < deck.index ? "before" : "after";
           return (
-            <div key={i} className="deck-slide" data-pos={pos} aria-hidden={pos !== "active"} inert={pos !== "active" ? true : undefined}>
-              <SlideComponent active={pos === "active"} step={pos === "active" ? deck.step : 0} />
+            <div
+              key={i}
+              className="deck-slide"
+              data-pos={pos}
+              aria-hidden={pos !== "active"}
+              inert={pos !== "active" ? true : undefined}
+            >
+              <SlideComponent
+                active={pos === "active"}
+                step={pos === "active" ? deck.step : 0}
+              />
             </div>
           );
         })}
 
         <div className="deck-logo">
-          <Image src="/digirobotics/brand/digirobotics-logo.png" alt="DigiRobotics" fill sizes="160px" className="object-contain object-right" priority />
+          <Image
+            src="/digirobotics/brand/digirobotics-logo.png"
+            alt="DigiRobotics"
+            fill
+            sizes="160px"
+            className="object-contain object-right"
+            priority
+          />
         </div>
         {!deck.cleanMode && (
           <span className="deck-page-num">
-            {String(deck.index + 1).padStart(2, "0")} / {String(deck.total).padStart(2, "0")}
+            {String(deck.index + 1).padStart(2, "0")} /{" "}
+            {String(deck.total).padStart(2, "0")}
           </span>
         )}
 
         <div className="deck-progress-wrap">
-          <div className="deck-progress" style={{ width: `${((deck.index + 1) / deck.total) * 100}%` }} />
+          <div
+            className="deck-progress"
+            style={{ width: `${((deck.index + 1) / deck.total) * 100}%` }}
+          />
         </div>
 
-        <button type="button" className="deck-arrow deck-arrow--prev" aria-label="Previous slide" onClick={deck.prev} disabled={deck.atStart}>
+        <button
+          type="button"
+          className="deck-arrow deck-arrow--prev"
+          aria-label="Previous slide"
+          onClick={deck.prev}
+          disabled={deck.atStart}
+        >
           &#8592;
         </button>
-        <button type="button" className="deck-arrow deck-arrow--next" aria-label="Next slide" onClick={deck.next} disabled={deck.atEnd}>
+        <button
+          type="button"
+          className="deck-arrow deck-arrow--next"
+          aria-label="Next slide"
+          onClick={deck.next}
+          disabled={deck.atEnd}
+        >
           &#8594;
         </button>
 

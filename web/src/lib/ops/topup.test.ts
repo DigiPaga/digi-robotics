@@ -1,29 +1,48 @@
 import { describe, expect, it, vi } from "vitest";
 import { parseEther } from "viem";
-import { addChainParams, assertTopUpChain, opsRobinhoodTestnet } from "./chains";
-import { describeTopUpError, ensureTopUpChain, parseTopUpAmount, type Eip1193Provider } from "./topup";
+import {
+  addChainParams,
+  assertTopUpChain,
+  opsRobinhoodTestnet,
+} from "./chains";
+import {
+  describeTopUpError,
+  ensureTopUpChain,
+  parseTopUpAmount,
+  type Eip1193Provider,
+} from "./topup";
 
-function mockProvider(initialChain: number, opts: { knows?: number[]; switchError?: unknown } = {}) {
+function mockProvider(
+  initialChain: number,
+  opts: { knows?: number[]; switchError?: unknown } = {},
+) {
   let chainId = initialChain;
   const known = new Set(opts.knows ?? [initialChain]);
-  const request = vi.fn(async ({ method, params }: { method: string; params?: unknown }) => {
-    const arg = Array.isArray(params) ? (params[0] as { chainId: string }) : undefined;
-    if (method === "eth_chainId") return `0x${chainId.toString(16)}`;
-    if (method === "wallet_switchEthereumChain") {
-      if (opts.switchError) throw opts.switchError;
-      const next = Number.parseInt(arg!.chainId, 16);
-      if (!known.has(next)) throw Object.assign(new Error("Unrecognized chain ID"), { code: 4902 });
-      chainId = next;
-      return null;
-    }
-    if (method === "wallet_addEthereumChain") {
-      const next = Number.parseInt(arg!.chainId, 16);
-      known.add(next);
-      chainId = next;
-      return null;
-    }
-    throw new Error(`unexpected ${method}`);
-  });
+  const request = vi.fn(
+    async ({ method, params }: { method: string; params?: unknown }) => {
+      const arg = Array.isArray(params)
+        ? (params[0] as { chainId: string })
+        : undefined;
+      if (method === "eth_chainId") return `0x${chainId.toString(16)}`;
+      if (method === "wallet_switchEthereumChain") {
+        if (opts.switchError) throw opts.switchError;
+        const next = Number.parseInt(arg!.chainId, 16);
+        if (!known.has(next))
+          throw Object.assign(new Error("Unrecognized chain ID"), {
+            code: 4902,
+          });
+        chainId = next;
+        return null;
+      }
+      if (method === "wallet_addEthereumChain") {
+        const next = Number.parseInt(arg!.chainId, 16);
+        known.add(next);
+        chainId = next;
+        return null;
+      }
+      throw new Error(`unexpected ${method}`);
+    },
+  );
   return { provider: { request } as Eip1193Provider, request };
 }
 
@@ -31,7 +50,10 @@ describe("top-up chain guard", () => {
   it("allows only Arbitrum Sepolia and Robinhood Chain Testnet", () => {
     expect(assertTopUpChain(421614).id).toBe(421614);
     expect(assertTopUpChain(46630).id).toBe(46630);
-    for (const id of [1, 42161, 8453, 84532, 11155111, 0]) expect(() => assertTopUpChain(id)).toThrow(/not an allowed top-up network/);
+    for (const id of [1, 42161, 8453, 84532, 11155111, 0])
+      expect(() => assertTopUpChain(id)).toThrow(
+        /not an allowed top-up network/,
+      );
   });
 
   it("builds full Robinhood wallet_addEthereumChain params", () => {
@@ -46,14 +68,21 @@ describe("top-up chain guard", () => {
 
   it("does nothing when the wallet is already on the target chain", async () => {
     const { provider, request } = mockProvider(421614);
-    await expect(ensureTopUpChain(provider, 421614)).resolves.toMatchObject({ id: 421614 });
-    expect(request.mock.calls.map(([call]) => call.method)).toEqual(["eth_chainId", "eth_chainId"]);
+    await expect(ensureTopUpChain(provider, 421614)).resolves.toMatchObject({
+      id: 421614,
+    });
+    expect(request.mock.calls.map(([call]) => call.method)).toEqual([
+      "eth_chainId",
+      "eth_chainId",
+    ]);
   });
 
   it("switches, and adds the chain on 4902", async () => {
     const { provider, request } = mockProvider(1, { knows: [1, 421614] });
     await ensureTopUpChain(provider, 421614);
-    expect(request.mock.calls.map(([call]) => call.method)).toContain("wallet_switchEthereumChain");
+    expect(request.mock.calls.map(([call]) => call.method)).toContain(
+      "wallet_switchEthereumChain",
+    );
     const robinhood = mockProvider(421614);
     await ensureTopUpChain(robinhood.provider, 46630);
     const methods = robinhood.request.mock.calls.map(([call]) => call.method);
@@ -62,7 +91,9 @@ describe("top-up chain guard", () => {
 
   it("refuses disallowed chains before talking to the wallet", async () => {
     const { provider, request } = mockProvider(1);
-    await expect(ensureTopUpChain(provider, 1)).rejects.toThrow(/not an allowed/);
+    await expect(ensureTopUpChain(provider, 1)).rejects.toThrow(
+      /not an allowed/,
+    );
     expect(request).not.toHaveBeenCalled();
   });
 
@@ -70,12 +101,20 @@ describe("top-up chain guard", () => {
     const stubborn: Eip1193Provider = {
       request: async ({ method }) => (method === "eth_chainId" ? "0x1" : null),
     };
-    await expect(ensureTopUpChain(stubborn, 421614)).rejects.toThrow(/Wrong network/);
+    await expect(ensureTopUpChain(stubborn, 421614)).rejects.toThrow(
+      /Wrong network/,
+    );
   });
 
   it("propagates a user rejection of the switch", async () => {
-    const { provider } = mockProvider(1, { switchError: Object.assign(new Error("User rejected the request."), { code: 4001 }) });
-    await expect(ensureTopUpChain(provider, 421614)).rejects.toMatchObject({ code: 4001 });
+    const { provider } = mockProvider(1, {
+      switchError: Object.assign(new Error("User rejected the request."), {
+        code: 4001,
+      }),
+    });
+    await expect(ensureTopUpChain(provider, 421614)).rejects.toMatchObject({
+      code: 4001,
+    });
   });
 });
 
@@ -93,10 +132,22 @@ describe("top-up amount and errors", () => {
   });
 
   it("maps wallet errors to clear messages", () => {
-    expect(describeTopUpError(Object.assign(new Error("x"), { code: 4001 }))).toMatch(/rejected/);
-    expect(describeTopUpError({ shortMessage: "x", cause: { code: 4001 } })).toMatch(/rejected/);
-    expect(describeTopUpError(new Error("insufficient funds for gas * price + value"))).toMatch(/enough ETH/);
-    expect(describeTopUpError(new Error("Wrong network: wallet is on chain 1"))).toMatch(/wrong network/);
-    expect(describeTopUpError(Object.assign(new Error("x"), { code: 4902 }))).toMatch(/does not know this network/);
+    expect(
+      describeTopUpError(Object.assign(new Error("x"), { code: 4001 })),
+    ).toMatch(/rejected/);
+    expect(
+      describeTopUpError({ shortMessage: "x", cause: { code: 4001 } }),
+    ).toMatch(/rejected/);
+    expect(
+      describeTopUpError(
+        new Error("insufficient funds for gas * price + value"),
+      ),
+    ).toMatch(/enough ETH/);
+    expect(
+      describeTopUpError(new Error("Wrong network: wallet is on chain 1")),
+    ).toMatch(/wrong network/);
+    expect(
+      describeTopUpError(Object.assign(new Error("x"), { code: 4902 })),
+    ).toMatch(/does not know this network/);
   });
 });

@@ -4,11 +4,11 @@ export interface DataSubmission {
   uploaderAddress: string;
   title: string;
   description: string;
-  category: 'industrial' | 'household' | 'medical' | 'logistics';
+  category: "industrial" | "household" | "medical" | "logistics";
   tags: string[];
   durationSeconds: number;
   qualityScore: number; // 0-100, evaluado por IA
-  status: 'pending' | 'verified' | 'rejected' | 'sold';
+  status: "pending" | "verified" | "rejected" | "sold";
   ipfsCid: string;
   encryptionKeyHash: string;
   createdAt: number;
@@ -23,6 +23,6 @@ export interface DataRequest {
   requiredTags: string[];
   minQualityScore: number;
   bountyAmount: string; // En USDC
-  status: 'open' | 'fulfilled' | 'expired';
+  status: "open" | "fulfilled" | "expired";
   createdAt: number;
 }

@@ -39,8 +39,18 @@ function normalizeUrl(value: string | undefined): string | undefined {
 
 export function getAgentDemoChains(env: AgentDemoBackendEnv): AgentDemoChain[] {
   return [
-    { id: "arbitrum-sepolia", name: arbitrumSepolia.name, chainId: arbitrumSepolia.id, backendUrl: normalizeUrl(env.arbitrum) ?? LOCAL_BACKEND_URL },
-    { id: "robinhood-testnet", name: robinhoodTestnet.name, chainId: robinhoodTestnet.id, backendUrl: normalizeUrl(env.robinhood) },
+    {
+      id: "arbitrum-sepolia",
+      name: arbitrumSepolia.name,
+      chainId: arbitrumSepolia.id,
+      backendUrl: normalizeUrl(env.arbitrum) ?? LOCAL_BACKEND_URL,
+    },
+    {
+      id: "robinhood-testnet",
+      name: robinhoodTestnet.name,
+      chainId: robinhoodTestnet.id,
+      backendUrl: normalizeUrl(env.robinhood),
+    },
   ];
 }
 
@@ -50,7 +60,9 @@ export const agentDemoChains = getAgentDemoChains({
   robinhood: process.env.NEXT_PUBLIC_X402_BACKEND_URL_ROBINHOOD,
 });
 
-export function isAgentDemoChainAvailable(chain: AgentDemoChain): chain is AgentDemoChain & { backendUrl: string } {
+export function isAgentDemoChainAvailable(
+  chain: AgentDemoChain,
+): chain is AgentDemoChain & { backendUrl: string } {
   return Boolean(chain.backendUrl);
 }
 
@@ -58,11 +70,15 @@ export function isAgentDemoChainAvailable(chain: AgentDemoChain): chain is Agent
  * The chain to show for a requested id (from the URL, say): that chain when it is known and
  * configured, otherwise the default chain, otherwise the first configured one.
  */
-export function resolveAgentDemoChain(chains: readonly AgentDemoChain[], requested?: string | null): AgentDemoChain & { backendUrl: string } {
+export function resolveAgentDemoChain(
+  chains: readonly AgentDemoChain[],
+  requested?: string | null,
+): AgentDemoChain & { backendUrl: string } {
   const available = chains.filter(isAgentDemoChainAvailable);
-  const chain = available.find((item) => item.id === requested)
-    ?? available.find((item) => item.id === DEFAULT_AGENT_DEMO_CHAIN)
-    ?? available[0];
+  const chain =
+    available.find((item) => item.id === requested) ??
+    available.find((item) => item.id === DEFAULT_AGENT_DEMO_CHAIN) ??
+    available[0];
   if (!chain) throw new Error("No agent demo backend is configured");
   return chain;
 }
@@ -71,7 +87,11 @@ export function resolveAgentDemoChain(chains: readonly AgentDemoChain[], request
  * Explorer link for a settlement. The network the backend reported wins, since that is where the
  * transaction landed; the selected chain is the fallback when a payload omits it.
  */
-export function getAgentDemoTransactionUrl(chain: AgentDemoChain, transactionHash: string | undefined, network?: string): string | undefined {
+export function getAgentDemoTransactionUrl(
+  chain: AgentDemoChain,
+  transactionHash: string | undefined,
+  network?: string,
+): string | undefined {
   return getTransactionExplorerUrl(network ?? chain.chainId, transactionHash);
 }
 

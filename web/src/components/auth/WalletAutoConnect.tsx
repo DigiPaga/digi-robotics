@@ -1,7 +1,11 @@
 "use client";
 
 import { AutoConnect } from "thirdweb/react";
-import { embeddedWallets, isThirdwebConfigured, thirdwebClient } from "@/lib/thirdweb";
+import {
+  embeddedWallets,
+  isThirdwebConfigured,
+  thirdwebClient,
+} from "@/lib/thirdweb";
 
 /**
  * Resolves the wallet connection status on pages that depend on it. thirdweb only leaves the
@@ -11,5 +15,11 @@ import { embeddedWallets, isThirdwebConfigured, thirdwebClient } from "@/lib/thi
  */
 export function WalletAutoConnect() {
   if (!isThirdwebConfigured) return null;
-  return <AutoConnect client={thirdwebClient} wallets={embeddedWallets} timeout={15000} />;
+  return (
+    <AutoConnect
+      client={thirdwebClient}
+      wallets={embeddedWallets}
+      timeout={15000}
+    />
+  );
 }

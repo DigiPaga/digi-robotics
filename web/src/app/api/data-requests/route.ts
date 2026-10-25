@@ -16,11 +16,29 @@ function validString(value: unknown, minimum = 1): value is string {
 
 export async function POST(request: Request) {
   let body: Partial<DataRequest>;
-  try { body = (await request.json()) as Partial<DataRequest>; }
-  catch { return NextResponse.json({ message: "The request body was not valid JSON." }, { status: 400 }); }
+  try {
+    body = (await request.json()) as Partial<DataRequest>;
+  } catch {
+    return NextResponse.json(
+      { message: "The request body was not valid JSON." },
+      { status: 400 },
+    );
+  }
 
-  if (!validString(body.workEmail) || !/^\S+@\S+\.\S+$/.test(body.workEmail) || !validString(body.company) || !validString(body.dataType) || !validString(body.scenario, 20) || !validString(body.captureEstimate)) {
-    return NextResponse.json({ message: "Please complete every required field with valid information." }, { status: 400 });
+  if (
+    !validString(body.workEmail) ||
+    !/^\S+@\S+\.\S+$/.test(body.workEmail) ||
+    !validString(body.company) ||
+    !validString(body.dataType) ||
+    !validString(body.scenario, 20) ||
+    !validString(body.captureEstimate)
+  ) {
+    return NextResponse.json(
+      {
+        message: "Please complete every required field with valid information.",
+      },
+      { status: 400 },
+    );
   }
 
   try {
@@ -30,11 +48,30 @@ export async function POST(request: Request) {
       `Estimated captures: ${body.captureEstimate!.trim()}`,
       `Task/scenario: ${body.scenario!.trim()}`,
       `Additional requirements: ${body.requirements?.trim() || "None provided"}`,
-    ].join("\n").slice(0, 5000);
-    await subscribeToKit({ email: body.workEmail!.trim().toLowerCase(), source: "data_request", notes });
+    ]
+      .join("\n")
+      .slice(0, 5000);
+    await subscribeToKit({
+      email: body.workEmail!.trim().toLowerCase(),
+      source: "data_request",
+      notes,
+    });
     return NextResponse.json({ accepted: true }, { status: 201 });
   } catch (error) {
-    if (error instanceof Error && error.message === "KIT_NOT_CONFIGURED") return NextResponse.json({ message: "Data-request intake is not configured yet. Please try again later." }, { status: 503 });
-    return NextResponse.json({ message: "The request service is temporarily unavailable. Please try again later." }, { status: 502 });
+    if (error instanceof Error && error.message === "KIT_NOT_CONFIGURED")
+      return NextResponse.json(
+        {
+          message:
+            "Data-request intake is not configured yet. Please try again later.",
+        },
+        { status: 503 },
+      );
+    return NextResponse.json(
+      {
+        message:
+          "The request service is temporarily unavailable. Please try again later.",
+      },
+      { status: 502 },
+    );
   }
 }

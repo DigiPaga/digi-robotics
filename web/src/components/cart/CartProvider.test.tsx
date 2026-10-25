@@ -14,14 +14,34 @@ function Harness() {
       <p data-testid="total">{cart.total}</p>
       <ul>
         {cart.items.map((item) => (
-          <li key={item.id} data-testid={`item-${item.id}`}>{item.name} x{item.quantity}</li>
+          <li key={item.id} data-testid={`item-${item.id}`}>
+            {item.name} x{item.quantity}
+          </li>
         ))}
       </ul>
-      <button onClick={() => cart.addItem({ id: "rover-1", name: "Rover", price: "19.99" })}>add-rover</button>
-      <button onClick={() => cart.addItem({ id: "arm-1", name: "Arm", price: "5.00" })}>add-arm</button>
-      <button onClick={() => cart.updateQuantity("rover-1", 3)}>set-rover-3</button>
-      <button onClick={() => cart.updateQuantity("rover-1", 0)}>zero-rover</button>
-      <button onClick={() => cart.updateQuantity("rover-1", 999)}>overflow-rover</button>
+      <button
+        onClick={() =>
+          cart.addItem({ id: "rover-1", name: "Rover", price: "19.99" })
+        }
+      >
+        add-rover
+      </button>
+      <button
+        onClick={() =>
+          cart.addItem({ id: "arm-1", name: "Arm", price: "5.00" })
+        }
+      >
+        add-arm
+      </button>
+      <button onClick={() => cart.updateQuantity("rover-1", 3)}>
+        set-rover-3
+      </button>
+      <button onClick={() => cart.updateQuantity("rover-1", 0)}>
+        zero-rover
+      </button>
+      <button onClick={() => cart.updateQuantity("rover-1", 999)}>
+        overflow-rover
+      </button>
       <button onClick={() => cart.removeItem("arm-1")}>remove-arm</button>
       <button onClick={() => cart.clearCart()}>clear</button>
     </div>
@@ -29,11 +49,17 @@ function Harness() {
 }
 
 function renderCart() {
-  return render(<CartProvider><Harness /></CartProvider>);
+  return render(
+    <CartProvider>
+      <Harness />
+    </CartProvider>,
+  );
 }
 
 async function waitForHydration() {
-  await waitFor(() => expect(screen.getByTestId("hydrated")).toHaveTextContent("true"));
+  await waitFor(() =>
+    expect(screen.getByTestId("hydrated")).toHaveTextContent("true"),
+  );
 }
 
 afterEach(() => {
@@ -123,18 +149,25 @@ describe("CartProvider", () => {
 
     await user.click(screen.getByText("add-rover"));
     await waitFor(() => {
-      const stored = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "[]") as CartItem[];
-      expect(stored).toEqual([{ id: "rover-1", name: "Rover", price: "19.99", quantity: 1 }]);
+      const stored = JSON.parse(
+        window.localStorage.getItem(STORAGE_KEY) ?? "[]",
+      ) as CartItem[];
+      expect(stored).toEqual([
+        { id: "rover-1", name: "Rover", price: "19.99", quantity: 1 },
+      ]);
     });
   });
 
   it("hydrates existing valid items from localStorage and drops malformed ones", async () => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify([
-      { id: "ok-1", name: "Valid", price: "9.50", quantity: 2 },
-      { id: "bad-1", name: "Bad price", price: "9.5", quantity: 1 },
-      { id: "bad-2", name: "Bad quantity", price: "9.50", quantity: 0 },
-      { notAnItem: true },
-    ]));
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify([
+        { id: "ok-1", name: "Valid", price: "9.50", quantity: 2 },
+        { id: "bad-1", name: "Bad price", price: "9.5", quantity: 1 },
+        { id: "bad-2", name: "Bad quantity", price: "9.50", quantity: 0 },
+        { notAnItem: true },
+      ]),
+    );
 
     renderCart();
     await waitForHydration();
@@ -153,7 +186,9 @@ describe("CartProvider", () => {
   it("throws when useCart is used outside a CartProvider", () => {
     const originalError = console.error;
     console.error = () => {};
-    expect(() => render(<Harness />)).toThrow("useCart must be used inside CartProvider");
+    expect(() => render(<Harness />)).toThrow(
+      "useCart must be used inside CartProvider",
+    );
     console.error = originalError;
   });
 });

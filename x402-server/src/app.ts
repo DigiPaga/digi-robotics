@@ -22,14 +22,50 @@ export function createApp(env: AgentDemoEnv, options: AppOptions = {}) {
   // the usual CSRF-via-CORS concern that `credentials: true` + a reflected origin would create does
   // not apply (this app never sets `credentials: true`). Any agent or browser, on any origin, is a
   // legitimate caller of this API by design.
-  app.use(cors({ origin: true, methods: ["GET", "POST", "OPTIONS"], allowedHeaders: ["Content-Type", "Idempotency-Key", "Last-Event-ID", "PAYMENT-SIGNATURE", "X-PAYMENT"] }));
+  app.use(
+    cors({
+      origin: true,
+      methods: ["GET", "POST", "OPTIONS"],
+      allowedHeaders: [
+        "Content-Type",
+        "Idempotency-Key",
+        "Last-Event-ID",
+        "PAYMENT-SIGNATURE",
+        "X-PAYMENT",
+      ],
+    }),
+  );
   app.use(express.json({ limit: "64kb" }));
-  app.get("/", (_req, res) => res.json({ message: "DigiRobotics x402 v2 server", status: "healthy", mode: env.mode }));
-  app.get("/health", (_req, res) => res.json({ status: "ok", mode: env.mode, timestamp: new Date().toISOString() }));
+  app.get("/", (_req, res) =>
+    res.json({
+      message: "DigiRobotics x402 v2 server",
+      status: "healthy",
+      mode: env.mode,
+    }),
+  );
+  app.get("/health", (_req, res) =>
+    res.json({
+      status: "ok",
+      mode: env.mode,
+      timestamp: new Date().toISOString(),
+    }),
+  );
   app.use(createAgentDemoRouter(env, undefined, options.buyerFetch));
-  app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-    console.error(`[agent-demo] ${safeErrorMessage(error)}`);
-    res.status(500).json({ error: "INTERNAL_SERVER_ERROR", message: "The server could not complete the request." });
-  });
+  app.use(
+    (
+      error: unknown,
+      _req: express.Request,
+      res: express.Response,
+      _next: express.NextFunction,
+    ) => {
+      console.error(`[agent-demo] ${safeErrorMessage(error)}`);
+      res
+        .status(500)
+        .json({
+          error: "INTERNAL_SERVER_ERROR",
+          message: "The server could not complete the request.",
+        });
+    },
+  );
   return app;
 }

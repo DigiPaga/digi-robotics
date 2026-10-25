@@ -1,7 +1,29 @@
-import type { FacilitatorContext, Network, PaymentPayload, PaymentRequirements, SchemeNetworkFacilitator, SettleResponse, VerifyResponse } from "@x402/core/types";
-import { isEIP3009Payload, type ExactEvmPayloadV2, type FacilitatorEvmSigner } from "@x402/evm";
+import type {
+  FacilitatorContext,
+  Network,
+  PaymentPayload,
+  PaymentRequirements,
+  SchemeNetworkFacilitator,
+  SettleResponse,
+  VerifyResponse,
+} from "@x402/core/types";
+import {
+  isEIP3009Payload,
+  type ExactEvmPayloadV2,
+  type FacilitatorEvmSigner,
+} from "@x402/evm";
 import { ExactEvmScheme } from "@x402/evm/exact/facilitator";
-import { getAddress, isAddressEqual, keccak256, parseAbi, parseErc6492Signature, parseEventLogs, toBytes, type Address, type Hex } from "viem";
+import {
+  getAddress,
+  isAddressEqual,
+  keccak256,
+  parseAbi,
+  parseErc6492Signature,
+  parseEventLogs,
+  toBytes,
+  type Address,
+  type Hex,
+} from "viem";
 
 /** ABI subset of contracts/src/X402Facilitator.sol used by the server. */
 export const x402FacilitatorAbi = parseAbi([
@@ -27,9 +49,13 @@ export function resourceIdFor(resourceUrl: string): Hex {
  * requirements passed to settle are the server's own (matched against the client's echo), so
  * this value cannot be chosen by the payer. payload.resource is client-supplied and is never used.
  */
-export function requiredResourceId(requirements: PaymentRequirements): Hex | undefined {
+export function requiredResourceId(
+  requirements: PaymentRequirements,
+): Hex | undefined {
   const value = requirements.extra?.resourceId;
-  return typeof value === "string" && /^0x[0-9a-fA-F]{64}$/.test(value) ? value as Hex : undefined;
+  return typeof value === "string" && /^0x[0-9a-fA-F]{64}$/.test(value)
+    ? (value as Hex)
+    : undefined;
 }
 
 /**
@@ -52,7 +78,9 @@ export class SettlementContractScheme implements SchemeNetworkFacilitator {
   constructor(
     private readonly signer: FacilitatorEvmSigner,
     contract: string,
-    private readonly inner: SchemeNetworkFacilitator = new ExactEvmScheme(signer),
+    private readonly inner: SchemeNetworkFacilitator = new ExactEvmScheme(
+      signer,
+    ),
   ) {
     this.contract = getAddress(contract);
   }
@@ -65,28 +93,70 @@ export class SettlementContractScheme implements SchemeNetworkFacilitator {
     return this.inner.getSigners(network);
   }
 
-  verify(payload: PaymentPayload, requirements: PaymentRequirements, context?: FacilitatorContext): Promise<VerifyResponse> {
+  verify(
+    payload: PaymentPayload,
+    requirements: PaymentRequirements,
+    context?: FacilitatorContext,
+  ): Promise<VerifyResponse> {
     return this.inner.verify(payload, requirements, context);
   }
 
-  async settle(payload: PaymentPayload, requirements: PaymentRequirements, context?: FacilitatorContext): Promise<SettleResponse> {
+  async settle(
+    payload: PaymentPayload,
+    requirements: PaymentRequirements,
+    context?: FacilitatorContext,
+  ): Promise<SettleResponse> {
     const network = requirements.network;
     const raw = payload.payload as ExactEvmPayloadV2;
     if (!isEIP3009Payload(raw) || !raw.signature) {
-      return { success: false, errorReason: "unsupported_payload", errorMessage: "The settlement contract only accepts EIP-3009 authorizations", transaction: "", network };
+      return {
+        success: false,
+        errorReason: "unsupported_payload",
+        errorMessage:
+          "The settlement contract only accepts EIP-3009 authorizations",
+        transaction: "",
+        network,
+      };
     }
     const payer = getAddress(raw.authorization.from);
     const resourceId = requiredResourceId(requirements);
     if (!resourceId) {
-      return { success: false, errorReason: "settlement_contract_misconfigured", errorMessage: "Payment requirements carry no server-derived extra.resourceId", transaction: "", network, payer };
+      return {
+        success: false,
+        errorReason: "settlement_contract_misconfigured",
+        errorMessage:
+          "Payment requirements carry no server-derived extra.resourceId",
+        transaction: "",
+        network,
+        payer,
+      };
     }
 
     const notReady = await this.checkContract(requirements.asset);
-    if (notReady) return { success: false, errorReason: "settlement_contract_misconfigured", errorMessage: notReady, transaction: "", network, payer };
+    if (notReady)
+      return {
+        success: false,
+        errorReason: "settlement_contract_misconfigured",
+        errorMessage: notReady,
+        transaction: "",
+        network,
+        payer,
+      };
 
-    const verification = await this.inner.verify(payload, requirements, context);
+    const verification = await this.inner.verify(
+      payload,
+      requirements,
+      context,
+    );
     if (!verification.isValid) {
-      return { success: false, errorReason: verification.invalidReason ?? "invalid_payload", errorMessage: verification.invalidMessage, transaction: "", network, payer };
+      return {
+        success: false,
+        errorReason: verification.invalidReason ?? "invalid_payload",
+        errorMessage: verification.invalidMessage,
+        transaction: "",
+        network,
+        payer,
+      };
     }
 
     const auth = raw.authorization;
@@ -111,43 +181,103 @@ export class SettlementContractScheme implements SchemeNetworkFacilitator {
         ],
       });
     } catch (error) {
-      return { success: false, errorReason: "transaction_failed", errorMessage: error instanceof Error ? error.message.split("\n")[0] : "settle() submission failed", transaction: "", network, payer };
+      return {
+        success: false,
+        errorReason: "transaction_failed",
+        errorMessage:
+          error instanceof Error
+            ? error.message.split("\n")[0]
+            : "settle() submission failed",
+        transaction: "",
+        network,
+        payer,
+      };
     }
 
-    let receipt: Awaited<ReturnType<FacilitatorEvmSigner["waitForTransactionReceipt"]>>;
+    let receipt: Awaited<
+      ReturnType<FacilitatorEvmSigner["waitForTransactionReceipt"]>
+    >;
     try {
-      receipt = await this.signer.waitForTransactionReceipt({ hash: transaction });
+      receipt = await this.signer.waitForTransactionReceipt({
+        hash: transaction,
+      });
     } catch {
-      return { success: false, errorReason: "settlement_pending", errorMessage: "Settlement was broadcast but not confirmed in time", transaction, network, payer };
+      return {
+        success: false,
+        errorReason: "settlement_pending",
+        errorMessage: "Settlement was broadcast but not confirmed in time",
+        transaction,
+        network,
+        payer,
+      };
     }
     if (receipt.status !== "success") {
-      return { success: false, errorReason: "transaction_reverted", transaction, network, payer };
+      return {
+        success: false,
+        errorReason: "transaction_reverted",
+        transaction,
+        network,
+        payer,
+      };
     }
-    const settled = parseEventLogs({ abi: x402FacilitatorAbi, eventName: "PaymentSettled", logs: [...(receipt.logs ?? [])] }).some(log =>
-      isAddressEqual(log.address, this.contract)
-      && isAddressEqual(log.args.payer, payer)
-      && isAddressEqual(log.args.payee, getAddress(requirements.payTo))
-      && log.args.amount === BigInt(requirements.amount)
-      && log.args.nonce === auth.nonce,
+    const settled = parseEventLogs({
+      abi: x402FacilitatorAbi,
+      eventName: "PaymentSettled",
+      logs: [...(receipt.logs ?? [])],
+    }).some(
+      (log) =>
+        isAddressEqual(log.address, this.contract) &&
+        isAddressEqual(log.args.payer, payer) &&
+        isAddressEqual(log.args.payee, getAddress(requirements.payTo)) &&
+        log.args.amount === BigInt(requirements.amount) &&
+        log.args.nonce === auth.nonce,
     );
     if (!settled) {
-      return { success: false, errorReason: "settlement_event_missing", errorMessage: "Receipt has no matching PaymentSettled event", transaction, network, payer };
+      return {
+        success: false,
+        errorReason: "settlement_event_missing",
+        errorMessage: "Receipt has no matching PaymentSettled event",
+        transaction,
+        network,
+        payer,
+      };
     }
-    return { success: true, transaction, network, payer, amount: requirements.amount };
+    return {
+      success: true,
+      transaction,
+      network,
+      payer,
+      amount: requirements.amount,
+    };
   }
 
   /** One-time check that the contract settles the advertised asset and accepts this signer. */
   private async checkContract(asset: string): Promise<string | undefined> {
     this.readiness ??= (async () => {
       const [token, ...settlers] = await Promise.all([
-        this.signer.readContract({ address: this.contract, abi: x402FacilitatorAbi, functionName: "token" }) as Promise<Address>,
-        ...this.signer.getAddresses().map(address =>
-          this.signer.readContract({ address: this.contract, abi: x402FacilitatorAbi, functionName: "isSettler", args: [address] }) as Promise<boolean>),
+        this.signer.readContract({
+          address: this.contract,
+          abi: x402FacilitatorAbi,
+          functionName: "token",
+        }) as Promise<Address>,
+        ...this.signer
+          .getAddresses()
+          .map(
+            (address) =>
+              this.signer.readContract({
+                address: this.contract,
+                abi: x402FacilitatorAbi,
+                functionName: "isSettler",
+                args: [address],
+              }) as Promise<boolean>,
+          ),
       ]);
-      if (!isAddressEqual(token, getAddress(asset))) return `X402_SETTLEMENT_CONTRACT settles ${token}, not the advertised asset ${asset}`;
-      if (!settlers.some(Boolean)) return "The facilitator signer is not an approved settler on X402_SETTLEMENT_CONTRACT";
+      if (!isAddressEqual(token, getAddress(asset)))
+        return `X402_SETTLEMENT_CONTRACT settles ${token}, not the advertised asset ${asset}`;
+      if (!settlers.some(Boolean))
+        return "The facilitator signer is not an approved settler on X402_SETTLEMENT_CONTRACT";
       return undefined;
-    })().catch(error => {
+    })().catch((error) => {
       this.readiness = undefined;
       return `Could not read X402_SETTLEMENT_CONTRACT: ${error instanceof Error ? error.message.split("\n")[0] : "unknown error"}`;
     });

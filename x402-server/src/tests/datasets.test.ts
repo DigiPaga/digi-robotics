@@ -6,12 +6,18 @@ import { testEnv } from "./fixtures";
 
 test("public catalog contains three useful datasets without protected fields", () => {
   const datasets = createPublicDatasets(testEnv);
-  assert.deepEqual(datasets.map(item => item.title), ["Engine Assembly POV", "Kitchen Cooking POV", "Warehouse Picking POV"]);
+  assert.deepEqual(
+    datasets.map((item) => item.title),
+    ["Engine Assembly POV", "Kitchen Cooking POV", "Warehouse Picking POV"],
+  );
   for (const dataset of datasets) {
     const keys = Object.keys(dataset);
     assert.equal(keys.includes("cid"), false);
     assert.equal(keys.includes("signedUrl"), false);
     assert.equal(keys.includes("storageRef"), false);
   }
-  assert.deepEqual(protectedRegistryKeysForTest(), datasets.map(item => item.id));
+  assert.deepEqual(
+    protectedRegistryKeysForTest(),
+    datasets.map((item) => item.id),
+  );
 });

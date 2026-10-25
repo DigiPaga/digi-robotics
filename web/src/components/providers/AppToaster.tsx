@@ -25,12 +25,14 @@ export function AppToaster() {
         classNames: {
           toast: "!w-[min(380px,calc(100vw-24px))] !rounded-2xl !px-4 !py-3",
           title: "!font-[var(--font-body)] !text-sm !font-semibold !leading-5",
-          description: "!font-[var(--font-mono)] !text-[11px] !leading-5 !text-[#b8bcc6]",
+          description:
+            "!font-[var(--font-mono)] !text-[11px] !leading-5 !text-[#b8bcc6]",
           success: "!border-l-2 !border-l-[#84cc16]",
           error: "!border-l-2 !border-l-[#ff6b5e]",
           info: "!border-l-2 !border-l-[#8bbcff]",
           loading: "!border-l-2 !border-l-[#84cc16]",
-          closeButton: "!border-white/15 !bg-[#0e1118] !text-white hover:!border-[#84cc16]",
+          closeButton:
+            "!border-white/15 !bg-[#0e1118] !text-white hover:!border-[#84cc16]",
         },
       }}
     />

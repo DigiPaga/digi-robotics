@@ -27,7 +27,10 @@ export const DECK_META = {
 
 export const CTA_LINKS = {
   site: { label: "DigiRobotics.xyz", href: "https://digirobotics.xyz" },
-  github: { label: "GitHub", href: "https://github.com/DigiPaga/digi-robotics" },
+  github: {
+    label: "GitHub",
+    href: "https://github.com/DigiPaga/digi-robotics",
+  },
   demo: { label: "Live agent demo", href: "/agent-demo" },
 } as const;
 
@@ -65,12 +68,25 @@ export const slide01 = {
   body: "DigiRobotics turns first-person task video into verified datasets for robotics teams and AI agents — the first stablecoin-native marketplace for agentic commerce in real-world data collection.",
   partners: [
     { src: "/digirobotics/partners/arbitrum.png", alt: "Arbitrum", height: 30 },
-    { src: "/digirobotics/partners/robinhood-chain.png", alt: "Robinhood Chain", height: 22 },
+    {
+      src: "/digirobotics/partners/robinhood-chain.png",
+      alt: "Robinhood Chain",
+      height: 22,
+    },
     { src: "/digirobotics/partners/zerodev.png", alt: "ZeroDev", height: 23 },
   ],
   footnote: "Built at Arbitrum Open House Singapore",
-  image: { src: "/pitch-deck/slide-01-hero-usdg.jpg", alt: "Autonomous commerce — capturing robotics training data" } satisfies ImageMedia,
-  motif: { x: "right", y: "top", size: 55, opacity: 0.05, rings: 3 } satisfies Motif,
+  image: {
+    src: "/pitch-deck/slide-01-hero-usdg.jpg",
+    alt: "Autonomous commerce — capturing robotics training data",
+  } satisfies ImageMedia,
+  motif: {
+    x: "right",
+    y: "top",
+    size: 55,
+    opacity: 0.05,
+    rings: 3,
+  } satisfies Motif,
 };
 
 export const slide02 = {
@@ -80,10 +96,23 @@ export const slide02 = {
     { text: "Trapped in Doom-Scrolling.", lime: false },
   ],
   body: "Traditional content creation is saturated. Meanwhile, the global labor force holds the exact first-person data that humanoid robots desperately need to learn. They lack embedded wallets, and traditional data marketplaces are too complex, non-agentic, and riddled with fiat friction.",
-  stat: { value: "1.5 Billion", caption: "People in the global gig economy seeking instant, accessible side income." },
-  image: { src: "/pitch-deck/slide-02-problem.png", alt: "Problem — doom-scrolling versus robotics training" } satisfies ImageMedia,
+  stat: {
+    value: "1.5 Billion",
+    caption:
+      "People in the global gig economy seeking instant, accessible side income.",
+  },
+  image: {
+    src: "/pitch-deck/slide-02-problem.png",
+    alt: "Problem — doom-scrolling versus robotics training",
+  } satisfies ImageMedia,
   imageSide: "left" as const,
-  motif: { x: "left", y: "bottom", size: 50, opacity: 0.05, rings: 2 } satisfies Motif,
+  motif: {
+    x: "left",
+    y: "bottom",
+    size: 50,
+    opacity: 0.05,
+    rings: 2,
+  } satisfies Motif,
 };
 
 export const slide03 = {
@@ -93,12 +122,33 @@ export const slide03 = {
     { text: "Through Automated Payments", lime: true },
   ],
   steps: [
-    { label: "01", strong: "Automated checkout for humans and agents.", body: "Embedded wallet via ZeroDev. Social login, no seed phrases, instant onboarding anywhere." },
-    { label: "02", strong: "Agentic commerce.", body: "We funnel requested, custom data into an agent-ready marketplace. AI agents discover, evaluate, purchase, and unlock approved datasets through x402, 24/7." },
-    { label: "03", strong: "Tokenized knowledge.", body: "Dataset licensing and IPFS storage are planned. The current demo uses local JSON records." },
+    {
+      label: "01",
+      strong: "Automated checkout for humans and agents.",
+      body: "Embedded wallet via ZeroDev. Social login, no seed phrases, instant onboarding anywhere.",
+    },
+    {
+      label: "02",
+      strong: "Agentic commerce.",
+      body: "We funnel requested, custom data into an agent-ready marketplace. AI agents discover, evaluate, purchase, and unlock approved datasets through x402, 24/7.",
+    },
+    {
+      label: "03",
+      strong: "Tokenized knowledge.",
+      body: "Dataset licensing and IPFS storage are planned. The current demo uses local JSON records.",
+    },
   ] satisfies StepItem[],
-  image: { src: "/pitch-deck/slide-03-solution.jpg", alt: "Solution — capture approved, USDG sent" } satisfies ImageMedia,
-  motif: { x: "right", y: "bottom", size: 48, opacity: 0.04, rings: 3 } satisfies Motif,
+  image: {
+    src: "/pitch-deck/slide-03-solution.jpg",
+    alt: "Solution — capture approved, USDG sent",
+  } satisfies ImageMedia,
+  motif: {
+    x: "right",
+    y: "bottom",
+    size: 48,
+    opacity: 0.04,
+    rings: 3,
+  } satisfies Motif,
 };
 
 export const slide04 = {
@@ -109,48 +159,122 @@ export const slide04 = {
   ],
   eyebrow: "The Physical AI Inflection Point",
   quotes: [
-    { quote: "Physical AI represents a $40 to $50 trillion market opportunity. This is bigger than the internet itself.", attribution: "— Jensen Huang, Nvidia CEO (2026)" },
-    { quote: "Optimus humanoid robots could make Tesla worth $25 trillion. Humanoid robots will be the biggest product of all time.", attribution: "— Elon Musk, Tesla CEO (2026)" },
+    {
+      quote:
+        "Physical AI represents a $40 to $50 trillion market opportunity. This is bigger than the internet itself.",
+      attribution: "— Jensen Huang, Nvidia CEO (2026)",
+    },
+    {
+      quote:
+        "Optimus humanoid robots could make Tesla worth $25 trillion. Humanoid robots will be the biggest product of all time.",
+      attribution: "— Elon Musk, Tesla CEO (2026)",
+    },
   ],
   closingParts: [
-    { text: "Humanoid funding is at an all-time high. Vision-action models are converging. The missing input is " },
-    { text: "egocentric human data at planetary scale", lime: false, strong: true },
+    {
+      text: "Humanoid funding is at an all-time high. Vision-action models are converging. The missing input is ",
+    },
+    {
+      text: "egocentric human data at planetary scale",
+      lime: false,
+      strong: true,
+    },
     { text: " — that is the bottleneck we unlock." },
   ],
-  image: { src: "/pitch-deck/slide-04-why-now.jpg", alt: "Exponential growth of Physical AI" } satisfies ImageMedia,
+  image: {
+    src: "/pitch-deck/slide-04-why-now.jpg",
+    alt: "Exponential growth of Physical AI",
+  } satisfies ImageMedia,
   imageSide: "left" as const,
-  motif: { x: "left", y: "top", size: 52, opacity: 0.05, rings: 2 } satisfies Motif,
+  motif: {
+    x: "left",
+    y: "top",
+    size: 52,
+    opacity: 0.05,
+    rings: 2,
+  } satisfies Motif,
 };
 
 export const slide05 = {
   kicker: ["Market Size"],
   headline: [{ text: "A Massive, Underserved Market", lime: false }],
   stats: [
-    { tag: "TAM", value: "1.5 Billion", caption: "Global gig economy workers", countTo: 1.5, suffix: " Billion", decimals: 1 },
-    { tag: "SAM", value: "$27+ Billion", caption: "Spent every year on robotics R&D to train robots, and growing exponentially", countTo: 27, prefix: "$", suffix: "+ Billion", decimals: 0 },
-    { tag: "SOM", value: "220 Million", caption: "Active AI users in initial emerging markets", countTo: 220, suffix: " Million", decimals: 0 },
+    {
+      tag: "TAM",
+      value: "1.5 Billion",
+      caption: "Global gig economy workers",
+      countTo: 1.5,
+      suffix: " Billion",
+      decimals: 1,
+    },
+    {
+      tag: "SAM",
+      value: "$27+ Billion",
+      caption:
+        "Spent every year on robotics R&D to train robots, and growing exponentially",
+      countTo: 27,
+      prefix: "$",
+      suffix: "+ Billion",
+      decimals: 0,
+    },
+    {
+      tag: "SOM",
+      value: "220 Million",
+      caption: "Active AI users in initial emerging markets",
+      countTo: 220,
+      suffix: " Million",
+      decimals: 0,
+    },
   ],
   closingParts: [
     { text: "We are not just building a platform. We are unlocking the " },
     { text: "largest untapped data source", lime: true },
     { text: " on the planet." },
   ],
-  motif: { x: "right", y: "top", size: 50, opacity: 0.05, rings: 2 } satisfies Motif,
+  motif: {
+    x: "right",
+    y: "top",
+    size: 50,
+    opacity: 0.05,
+    rings: 2,
+  } satisfies Motif,
 };
 
 export const slide06 = {
   kicker: ["Our Unfair", "Advantage"],
   headline: [{ text: "The Wedge & The Moat", lime: false }],
   rows: [
-    { lead: "The Wedge:", body: "First-mover stablecoin marketplace for robotics training data. Campaign capture, embedded-wallet onboarding, x402 agent-ready buying." },
-    { lead: "The Moat: Autonomous Distribution (DigiAgent).", body: "Our autonomous CRM is built to source robotics builders and manufacturers and match them with human creators in a self-sustaining flywheel." },
-    { lead: "The Moat: Data Network Effects.", body: "Validated footage, contributor quality history, and repeat buyers compound with every campaign." },
-    { lead: "The Moat: Multi-Continent Fiat <> Stablecoin Ramps.", body: "Seamless cash-outs; partner coverage confirmed market by market." },
+    {
+      lead: "The Wedge:",
+      body: "First-mover stablecoin marketplace for robotics training data. Campaign capture, embedded-wallet onboarding, x402 agent-ready buying.",
+    },
+    {
+      lead: "The Moat: Autonomous Distribution (DigiAgent).",
+      body: "Our autonomous CRM is built to source robotics builders and manufacturers and match them with human creators in a self-sustaining flywheel.",
+    },
+    {
+      lead: "The Moat: Data Network Effects.",
+      body: "Validated footage, contributor quality history, and repeat buyers compound with every campaign.",
+    },
+    {
+      lead: "The Moat: Multi-Continent Fiat <> Stablecoin Ramps.",
+      body: "Seamless cash-outs; partner coverage confirmed market by market.",
+    },
   ] satisfies AdvantageRow[],
   closingLead: "DigiRobotics:",
-  closing: "the world's first AI-native marketplace for audio-visual robotics training data, paying creators in stablecoins.",
-  image: { src: "/pitch-deck/slide-06-flywheel.jpg", alt: "The DigiAgent flywheel" } satisfies ImageMedia,
-  motif: { x: "right", y: "top", size: 50, opacity: 0.04, rings: 2 } satisfies Motif,
+  closing:
+    "the world's first AI-native marketplace for audio-visual robotics training data, paying creators in stablecoins.",
+  image: {
+    src: "/pitch-deck/slide-06-flywheel.jpg",
+    alt: "The DigiAgent flywheel",
+  } satisfies ImageMedia,
+  motif: {
+    x: "right",
+    y: "top",
+    size: 50,
+    opacity: 0.04,
+    rings: 2,
+  } satisfies Motif,
 };
 
 export const slide07 = {
@@ -161,12 +285,30 @@ export const slide07 = {
     { text: "Marketplaces.", lime: true },
   ],
   rows: [
-    { tone: "neg" as const, mark: "×", text: "Traditional Data Marketplaces: small scale, manual approval, high fiat friction, no AI agents." },
-    { tone: "pos" as const, mark: "✓", lead: "DigiRobotics:", text: "global scale, instant stablecoin payouts, zero-friction onboarding, native x402 agentic purchasing. For humans and AI agents. Available for everyone." },
+    {
+      tone: "neg" as const,
+      mark: "×",
+      text: "Traditional Data Marketplaces: small scale, manual approval, high fiat friction, no AI agents.",
+    },
+    {
+      tone: "pos" as const,
+      mark: "✓",
+      lead: "DigiRobotics:",
+      text: "global scale, instant stablecoin payouts, zero-friction onboarding, native x402 agentic purchasing. For humans and AI agents. Available for everyone.",
+    },
   ],
   tagline: "Your camera is now a money printer. Literally.",
-  image: { src: "/pitch-deck/slide-07-why-we-win.jpg", alt: "Capture approved — paid in USDG" } satisfies ImageMedia,
-  motif: { x: "right", y: "top", size: 46, opacity: 0.05, rings: 2 } satisfies Motif,
+  image: {
+    src: "/pitch-deck/slide-07-why-we-win.jpg",
+    alt: "Capture approved — paid in USDG",
+  } satisfies ImageMedia,
+  motif: {
+    x: "right",
+    y: "top",
+    size: 46,
+    opacity: 0.05,
+    rings: 2,
+  } satisfies Motif,
 };
 
 export const slide08 = {
@@ -178,15 +320,36 @@ export const slide08 = {
   ],
   body: "Our AI agent doesn't wait for orders. It scouts robotics R&D teams, invites tailored data bounties, onboards them to fund a wallet and budget, and streams requests to our creator community, executing x402 micropayments around the clock. A CRM that never sleeps.",
   ledger: [
-    { label: "People", items: "Social login · Embedded wallet · No seed phrases · Gear checkout (USDG)" },
-    { label: "Agents", items: "x402 challenge · Signed authorization · On-chain settlement and unlock" },
-    { label: "Next", items: "Telegram capture · Quality scoring · IPFS storage · Mainnet payouts" },
+    {
+      label: "People",
+      items:
+        "Social login · Embedded wallet · No seed phrases · Gear checkout (USDG)",
+    },
+    {
+      label: "Agents",
+      items:
+        "x402 challenge · Signed authorization · On-chain settlement and unlock",
+    },
+    {
+      label: "Next",
+      items:
+        "Telegram capture · Quality scoring · IPFS storage · Mainnet payouts",
+    },
   ] satisfies LedgerRow[],
   ctaLabel: "Request Specific Knowledge →",
   ctaNote: "From shoe-sized robots to industrial-grade humanoids. All welcome.",
-  image: { src: "/pitch-deck/slide-07-agents.jpg", alt: "DigiAgent — robotics manufacturer, creator matched, validated capture, USDG sent" } satisfies ImageMedia,
+  image: {
+    src: "/pitch-deck/slide-07-agents.jpg",
+    alt: "DigiAgent — robotics manufacturer, creator matched, validated capture, USDG sent",
+  } satisfies ImageMedia,
   imageSide: "left" as const,
-  motif: { x: "left", y: "top", size: 46, opacity: 0.05, rings: 2 } satisfies Motif,
+  motif: {
+    x: "left",
+    y: "top",
+    size: 46,
+    opacity: 0.05,
+    rings: 2,
+  } satisfies Motif,
 };
 
 export const slide09 = {
@@ -197,12 +360,33 @@ export const slide09 = {
   ],
   steps: [
     // Corrected: the product offers Google/email social login only, no MetaMask option.
-    { label: "01", strong: "Login", body: "continue with Google or email, instant embedded wallet." },
-    { label: "02", strong: "Record", body: "strap phone to chest or head, record a tutorial." },
-    { label: "03", strong: "Post & Earn", body: "upload, wait for a buyer, get paid instantly." },
+    {
+      label: "01",
+      strong: "Login",
+      body: "continue with Google or email, instant embedded wallet.",
+    },
+    {
+      label: "02",
+      strong: "Record",
+      body: "strap phone to chest or head, record a tutorial.",
+    },
+    {
+      label: "03",
+      strong: "Post & Earn",
+      body: "upload, wait for a buyer, get paid instantly.",
+    },
   ] satisfies StepItem[],
-  image: { src: "/pitch-deck/slide-08-how-it-works.jpg", alt: "How it works — login, record, earn" } satisfies ImageMedia,
-  motif: { x: "right", y: "bottom", size: 50, opacity: 0.05, rings: 3 } satisfies Motif,
+  image: {
+    src: "/pitch-deck/slide-08-how-it-works.jpg",
+    alt: "How it works — login, record, earn",
+  } satisfies ImageMedia,
+  motif: {
+    x: "right",
+    y: "bottom",
+    size: 50,
+    opacity: 0.05,
+    rings: 3,
+  } satisfies Motif,
 };
 
 export const slide10 = {
@@ -212,9 +396,22 @@ export const slide10 = {
     { text: "Builders", lime: true },
   ],
   rows: [
-    { name: "Oscar — Product Design & Development", handle: "@ozkite", lime: false },
-    { name: "Otto — Product Deployments & Integrations", handle: "@ottodevs", lime: false },
-    { name: "DigiAgent — Research & Technical Assistance", note: "(autonomous AI team member)", handle: "@digiagent", lime: true },
+    {
+      name: "Oscar — Product Design & Development",
+      handle: "@ozkite",
+      lime: false,
+    },
+    {
+      name: "Otto — Product Deployments & Integrations",
+      handle: "@ottodevs",
+      lime: false,
+    },
+    {
+      name: "DigiAgent — Research & Technical Assistance",
+      note: "(autonomous AI team member)",
+      handle: "@digiagent",
+      lime: true,
+    },
   ],
   hostedAt: "Hosted at",
   hostedLink: "digirobotics.xyz →",
@@ -223,8 +420,17 @@ export const slide10 = {
     { text: "agentic economy", lime: true },
     { text: ", while tokenizing the data robots need to function." },
   ],
-  image: { src: "/pitch-deck/slide-10-team.jpg", alt: "Oscar and Otto — the builders" } satisfies ImageMedia,
-  motif: { x: "right", y: "top", size: 52, opacity: 0.05, rings: 2 } satisfies Motif,
+  image: {
+    src: "/pitch-deck/slide-10-team.jpg",
+    alt: "Oscar and Otto — the builders",
+  } satisfies ImageMedia,
+  motif: {
+    x: "right",
+    y: "top",
+    size: 52,
+    opacity: 0.05,
+    rings: 2,
+  } satisfies Motif,
 };
 
 export const slide11 = {
@@ -241,24 +447,52 @@ export const slide11 = {
   ],
   next: ["Telegram capture ingestion", "First paid campaign"],
   footnote: "Arbitrum Sepolia · Robinhood Chain Testnet · Pre-Revenue",
-  motif: { x: "right", y: "top", size: 50, opacity: 0.04, rings: 2 } satisfies Motif,
+  motif: {
+    x: "right",
+    y: "top",
+    size: 50,
+    opacity: 0.04,
+    rings: 2,
+  } satisfies Motif,
 };
 
 export const slide12 = {
   kicker: ["The Time Is Now"],
   subheadline: "Robotic Training & Education Economy at Scale",
   ledger: [
-    { label: "L2 & Payments", items: [{ text: "Arbitrum · Robinhood Chain · " }, { text: "x402 Protocol", lime: true }, { text: " · USDG-ready (mUSDG on testnet)" }] },
-    { label: "Autonomy & Identity", items: [{ text: "ZeroDev (ERC-4337) · ERC-8004 · EIP-712 / EIP-1271" }] },
-    { label: "Infrastructure", items: [{ text: "Next.js · Solidity · IPFS/Pinata · QuickNode RPC" }] },
+    {
+      label: "L2 & Payments",
+      items: [
+        { text: "Arbitrum · Robinhood Chain · " },
+        { text: "x402 Protocol", lime: true },
+        { text: " · USDG-ready (mUSDG on testnet)" },
+      ],
+    },
+    {
+      label: "Autonomy & Identity",
+      items: [{ text: "ZeroDev (ERC-4337) · ERC-8004 · EIP-712 / EIP-1271" }],
+    },
+    {
+      label: "Infrastructure",
+      items: [{ text: "Next.js · Solidity · IPFS/Pinata · QuickNode RPC" }],
+    },
   ],
-  image: { src: "/pitch-deck/slide-09-tech.jpg", alt: "DigiRobotics — robotic training and education economy at scale" } satisfies ImageMedia,
+  image: {
+    src: "/pitch-deck/slide-09-tech.jpg",
+    alt: "DigiRobotics — robotic training and education economy at scale",
+  } satisfies ImageMedia,
   ctas: [
     { label: "DigiRobotics.xyz →", href: CTA_LINKS.site.href, external: true },
     { label: "GitHub →", href: CTA_LINKS.github.href, external: true },
     { label: "Live agent demo →", href: CTA_LINKS.demo.href, external: true },
   ],
-  motif: { x: "left", y: "top", size: 46, opacity: 0.05, rings: 2 } satisfies Motif,
+  motif: {
+    x: "left",
+    y: "top",
+    size: 46,
+    opacity: 0.05,
+    rings: 2,
+  } satisfies Motif,
 };
 
 export const SLIDES = [

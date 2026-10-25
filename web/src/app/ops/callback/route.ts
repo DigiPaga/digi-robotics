@@ -26,14 +26,22 @@ export async function GET(request: Request) {
 
   const fail = (reason: "failed" | "denied") => {
     const response = opsRedirect(request, config, `/ops?error=${reason}`);
-    response.cookies.set(oauthCookieName(secure), "", oauthCookieOptions(secure, 0));
+    response.cookies.set(
+      oauthCookieName(secure),
+      "",
+      oauthCookieOptions(secure, 0),
+    );
     return response;
   };
 
-  const stored = await openOauthState(config.sessionSecret, readCookie(request.headers.get("cookie"), oauthCookieName(secure)));
+  const stored = await openOauthState(
+    config.sessionSecret,
+    readCookie(request.headers.get("cookie"), oauthCookieName(secure)),
+  );
   const code = url.searchParams.get("code") ?? "";
   const state = url.searchParams.get("state") ?? "";
-  if (!stored || !code || !state || url.searchParams.has("error")) return fail("failed");
+  if (!stored || !code || !state || url.searchParams.has("error"))
+    return fail("failed");
   if (!(await sameSecret(state, stored.state))) return fail("failed");
 
   const idToken = await exchangeCode({
@@ -49,7 +57,15 @@ export async function GET(request: Request) {
   if (!isAllowedEmail(email, config.allowlist)) return fail("denied");
 
   const response = opsRedirect(request, config, "/ops");
-  response.cookies.set(oauthCookieName(secure), "", oauthCookieOptions(secure, 0));
-  response.cookies.set(sessionCookieName(secure), await sealSession(config.sessionSecret, email), sessionCookieOptions(secure));
+  response.cookies.set(
+    oauthCookieName(secure),
+    "",
+    oauthCookieOptions(secure, 0),
+  );
+  response.cookies.set(
+    sessionCookieName(secure),
+    await sealSession(config.sessionSecret, email),
+    sessionCookieOptions(secure),
+  );
   return response;
 }

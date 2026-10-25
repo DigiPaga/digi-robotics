@@ -1,8 +1,18 @@
 import "server-only";
 
 import { NextResponse } from "next/server";
-import { cookieSecure, devRequestOrigin, readOpsConfig, type OpsConfig } from "./config";
-import { readCookie, sessionCookieName, sessionFromCookieValue, type OpsSession } from "./session";
+import {
+  cookieSecure,
+  devRequestOrigin,
+  readOpsConfig,
+  type OpsConfig,
+} from "./config";
+import {
+  readCookie,
+  sessionCookieName,
+  sessionFromCookieValue,
+  type OpsSession,
+} from "./session";
 
 /** Applied to every /ops and /api/ops response. */
 export const OPS_RESPONSE_HEADERS: Readonly<Record<string, string>> = {
@@ -14,7 +24,8 @@ export const OPS_RESPONSE_HEADERS: Readonly<Record<string, string>> = {
 };
 
 export function withOpsHeaders<T extends Response>(response: T): T {
-  for (const [name, value] of Object.entries(OPS_RESPONSE_HEADERS)) response.headers.set(name, value);
+  for (const [name, value] of Object.entries(OPS_RESPONSE_HEADERS))
+    response.headers.set(name, value);
   return response;
 }
 
@@ -30,16 +41,27 @@ export function requestHost(request: Request): string | null {
  * OPS_BASE_URL when set. Otherwise the request origin, outside production
  * only: production never trusts the Host header and gets null.
  */
-export function opsOrigin(request: Request, config: OpsConfig | null): string | null {
+export function opsOrigin(
+  request: Request,
+  config: OpsConfig | null,
+): string | null {
   return config?.baseUrl ?? devRequestOrigin(request.url, requestHost(request));
 }
 
 /** `path` is always one of our own absolute paths, never request input. */
-export function opsRedirect(request: Request, config: OpsConfig | null, path: string, status = 303): NextResponse {
+export function opsRedirect(
+  request: Request,
+  config: OpsConfig | null,
+  path: string,
+  status = 303,
+): NextResponse {
   const origin = opsOrigin(request, config);
   // No trusted origin (production, not configured): a relative Location keeps
   // the browser on the origin it actually used instead of echoing the Host header.
-  if (!origin) return withOpsHeaders(new NextResponse(null, { status, headers: { Location: path } }));
+  if (!origin)
+    return withOpsHeaders(
+      new NextResponse(null, { status, headers: { Location: path } }),
+    );
   return withOpsHeaders(NextResponse.redirect(new URL(path, origin), status));
 }
 
@@ -65,11 +87,22 @@ export type RequestAuth =
   | { status: "authenticated"; config: OpsConfig; session: OpsSession };
 
 /** Server-side session check for route handlers. */
-export async function authenticateRequest(request: Request, env: Record<string, string | undefined> = process.env): Promise<RequestAuth> {
+export async function authenticateRequest(
+  request: Request,
+  env: Record<string, string | undefined> = process.env,
+): Promise<RequestAuth> {
   const result = readOpsConfig(env);
   if (!result.ok) return { status: "unconfigured" };
-  const secure = cookieSecure(result.config, request.url, requestHost(request), env);
-  const raw = readCookie(request.headers.get("cookie"), sessionCookieName(secure));
+  const secure = cookieSecure(
+    result.config,
+    request.url,
+    requestHost(request),
+    env,
+  );
+  const raw = readCookie(
+    request.headers.get("cookie"),
+    sessionCookieName(secure),
+  );
   const session = await sessionFromCookieValue(result.config, raw);
   return session
     ? { status: "authenticated", config: result.config, session }
@@ -82,16 +115,23 @@ export async function authenticateRequest(request: Request, env: Record<string, 
  * short per-isolate cache. A loader error becomes a generic 502; the cause
  * goes to the server log only.
  */
-export function opsDataRoute<T>(name: string, load: (options: { fresh: boolean }) => Promise<T>) {
+export function opsDataRoute<T>(
+  name: string,
+  load: (options: { fresh: boolean }) => Promise<T>,
+) {
   return async function GET(request: Request): Promise<NextResponse> {
     const auth = await authenticateRequest(request);
-    if (auth.status === "unconfigured") return opsJson({ message: "Ops is not configured." }, 503);
-    if (auth.status !== "authenticated") return opsJson({ message: "Sign in required." }, 401);
+    if (auth.status === "unconfigured")
+      return opsJson({ message: "Ops is not configured." }, 503);
+    if (auth.status !== "authenticated")
+      return opsJson({ message: "Sign in required." }, 401);
     try {
       const fresh = new URL(request.url).searchParams.get("fresh") === "1";
       return opsJson(await load({ fresh }));
     } catch (error) {
-      console.error(`[ops] ${name} failed: ${error instanceof Error ? error.name : "error"}`);
+      console.error(
+        `[ops] ${name} failed: ${error instanceof Error ? error.name : "error"}`,
+      );
       return opsJson({ message: "Data could not be loaded." }, 502);
     }
   };

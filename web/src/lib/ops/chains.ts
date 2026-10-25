@@ -9,7 +9,9 @@ export const opsArbitrumSepolia = defineChain({
   name: "Arbitrum Sepolia",
   nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
   rpcUrls: { default: { http: ["https://sepolia-rollup.arbitrum.io/rpc"] } },
-  blockExplorers: { default: { name: "Arbiscan", url: "https://sepolia.arbiscan.io" } },
+  blockExplorers: {
+    default: { name: "Arbiscan", url: "https://sepolia.arbiscan.io" },
+  },
   testnet: true,
 });
 
@@ -18,7 +20,12 @@ export const opsRobinhoodTestnet = defineChain({
   name: "Robinhood Chain Testnet",
   nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
   rpcUrls: { default: { http: ["https://rpc.testnet.chain.robinhood.com"] } },
-  blockExplorers: { default: { name: "Robinhood Explorer", url: "https://explorer.testnet.chain.robinhood.com" } },
+  blockExplorers: {
+    default: {
+      name: "Robinhood Explorer",
+      url: "https://explorer.testnet.chain.robinhood.com",
+    },
+  },
   testnet: true,
 });
 
@@ -33,7 +40,9 @@ export function getOpsChain(chainId: number): Chain | null {
 export function assertTopUpChain(chainId: number): Chain {
   const chain = getOpsChain(chainId);
   if (!chain || chain.testnet !== true) {
-    throw new Error(`Chain ${chainId} is not an allowed top-up network. Only Arbitrum Sepolia and Robinhood Chain Testnet are allowed.`);
+    throw new Error(
+      `Chain ${chainId} is not an allowed top-up network. Only Arbitrum Sepolia and Robinhood Chain Testnet are allowed.`,
+    );
   }
   return chain;
 }
@@ -49,7 +58,9 @@ export function addChainParams(chain: Chain) {
     chainName: chain.name,
     nativeCurrency: chain.nativeCurrency,
     rpcUrls: [...chain.rpcUrls.default.http],
-    blockExplorerUrls: chain.blockExplorers ? [chain.blockExplorers.default.url] : [],
+    blockExplorerUrls: chain.blockExplorers
+      ? [chain.blockExplorers.default.url]
+      : [],
   };
 }
 

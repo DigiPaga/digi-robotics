@@ -52,7 +52,8 @@ export const MAX_DATASETS = 50;
  * already uses. http(s) only, and any embedded credentials make it invalid.
  */
 export function readX402ServerUrl(env: Env = process.env): URL | null {
-  const raw = env.X402_SERVER_URL?.trim() || env.NEXT_PUBLIC_X402_BACKEND_URL?.trim();
+  const raw =
+    env.X402_SERVER_URL?.trim() || env.NEXT_PUBLIC_X402_BACKEND_URL?.trim();
   if (!raw) return null;
   try {
     const url = new URL(raw);
@@ -65,12 +66,19 @@ export function readX402ServerUrl(env: Env = process.env): URL | null {
 }
 
 function endpoint(base: URL, path: string): string {
-  return new URL(path, `${base.origin}${base.pathname.replace(/\/+$/, "")}/`).toString();
+  return new URL(
+    path,
+    `${base.origin}${base.pathname.replace(/\/+$/, "")}/`,
+  ).toString();
 }
 
-const healthSchema = z.object({ status: z.string().max(40), mode: z.string().max(60).optional() });
+const healthSchema = z.object({
+  status: z.string().max(40),
+  mode: z.string().max(60).optional(),
+});
 
-const text = (max: number) => z.string().transform((value) => value.slice(0, max));
+const text = (max: number) =>
+  z.string().transform((value) => value.slice(0, max));
 
 const datasetSchema = z.object({
   id: text(80),
@@ -86,7 +94,10 @@ const datasetSchema = z.object({
 
 const catalogSchema = z.object({ datasets: z.array(z.unknown()).max(500) });
 
-async function getJson(url: string, fetchImpl: typeof fetch): Promise<{ status: number; body: unknown } | null> {
+async function getJson(
+  url: string,
+  fetchImpl: typeof fetch,
+): Promise<{ status: number; body: unknown } | null> {
   try {
     const response = await fetchImpl(url, {
       headers: { accept: "application/json" },
@@ -107,38 +118,90 @@ async function getJson(url: string, fetchImpl: typeof fetch): Promise<{ status: 
 }
 
 /** GET <server>/health. One request. Never throws. */
-export async function fetchX402Health(options: FetchOptions = {}): Promise<X402Health> {
+export async function fetchX402Health(
+  options: FetchOptions = {},
+): Promise<X402Health> {
   const base = readX402ServerUrl(options.env);
-  if (!base) return { state: "unconfigured", origin: null, mode: null, latencyMs: null, httpStatus: null };
-  return memo(`x402-health:${base.href}`, HEALTH_TTL_MS, async (): Promise<X402Health> => {
-    const now = options.now ?? Date.now;
-    const started = now();
-    const answer = await getJson(endpoint(base, "health"), options.fetchImpl ?? fetch);
-    const latencyMs = now() - started;
-    if (!answer) return { state: "unreachable", origin: base.origin, mode: null, latencyMs: null, httpStatus: null };
-    const parsed = healthSchema.safeParse(answer.body);
-    if (answer.status !== 200 || !parsed.success || parsed.data.status !== "ok") {
-      return { state: "invalid", origin: base.origin, mode: null, latencyMs, httpStatus: answer.status };
-    }
-    return { state: "ok", origin: base.origin, mode: parsed.data.mode ?? null, latencyMs, httpStatus: 200 };
-  }, { fresh: options.fresh, now: options.now });
+  if (!base)
+    return {
+      state: "unconfigured",
+      origin: null,
+      mode: null,
+      latencyMs: null,
+      httpStatus: null,
+    };
+  return memo(
+    `x402-health:${base.href}`,
+    HEALTH_TTL_MS,
+    async (): Promise<X402Health> => {
+      const now = options.now ?? Date.now;
+      const started = now();
+      const answer = await getJson(
+        endpoint(base, "health"),
+        options.fetchImpl ?? fetch,
+      );
+      const latencyMs = now() - started;
+      if (!answer)
+        return {
+          state: "unreachable",
+          origin: base.origin,
+          mode: null,
+          latencyMs: null,
+          httpStatus: null,
+        };
+      const parsed = healthSchema.safeParse(answer.body);
+      if (
+        answer.status !== 200 ||
+        !parsed.success ||
+        parsed.data.status !== "ok"
+      ) {
+        return {
+          state: "invalid",
+          origin: base.origin,
+          mode: null,
+          latencyMs,
+          httpStatus: answer.status,
+        };
+      }
+      return {
+        state: "ok",
+        origin: base.origin,
+        mode: parsed.data.mode ?? null,
+        latencyMs,
+        httpStatus: 200,
+      };
+    },
+    { fresh: options.fresh, now: options.now },
+  );
 }
 
 /** GET <server>/agent-demo/catalog. One request. Never throws. Entries that do not parse are dropped. */
-export async function fetchX402Catalog(options: FetchOptions = {}): Promise<X402Catalog> {
+export async function fetchX402Catalog(
+  options: FetchOptions = {},
+): Promise<X402Catalog> {
   const base = readX402ServerUrl(options.env);
   if (!base) return { state: "unconfigured", origin: null, datasets: [] };
-  return memo(`x402-catalog:${base.href}`, CATALOG_TTL_MS, async (): Promise<X402Catalog> => {
-    const answer = await getJson(endpoint(base, "agent-demo/catalog"), options.fetchImpl ?? fetch);
-    if (!answer) return { state: "unreachable", origin: base.origin, datasets: [] };
-    const parsed = catalogSchema.safeParse(answer.body);
-    if (answer.status !== 200 || !parsed.success) return { state: "invalid", origin: base.origin, datasets: [] };
-    const datasets: X402Dataset[] = [];
-    for (const item of parsed.data.datasets) {
-      const dataset = datasetSchema.safeParse(item);
-      if (dataset.success) datasets.push(dataset.data);
-      if (datasets.length >= MAX_DATASETS) break;
-    }
-    return { state: "ok", origin: base.origin, datasets };
-  }, { fresh: options.fresh, now: options.now });
+  return memo(
+    `x402-catalog:${base.href}`,
+    CATALOG_TTL_MS,
+    async (): Promise<X402Catalog> => {
+      const answer = await getJson(
+        endpoint(base, "agent-demo/catalog"),
+        options.fetchImpl ?? fetch,
+      );
+      if (!answer)
+        return { state: "unreachable", origin: base.origin, datasets: [] };
+      const parsed = catalogSchema.safeParse(answer.body);
+      if (answer.status !== 200 || !parsed.success)
+        return { state: "invalid", origin: base.origin, datasets: [] };
+      const datasets: X402Dataset[] = [];
+      for (const item of parsed.data.datasets) {
+        const dataset = datasetSchema.safeParse(item);
+        if (dataset.success) datasets.push(dataset.data);
+        if (datasets.length >= MAX_DATASETS) break;
+      }
+      return { state: "ok", origin: base.origin, datasets };
+    },
+    { fresh: options.fresh, now: options.now },
+  );
 }

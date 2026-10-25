@@ -1,14 +1,19 @@
 /** Formatting helpers for the ops console. Pure, shared by sections and tests. */
 
 export function shortAddress(address: string): string {
-  return address.length > 12 ? `${address.slice(0, 6)}…${address.slice(-4)}` : address;
+  return address.length > 12
+    ? `${address.slice(0, 6)}…${address.slice(-4)}`
+    : address;
 }
 
 export function shortHash(hash: string): string {
   return hash.length > 20 ? `${hash.slice(0, 10)}…${hash.slice(-6)}` : hash;
 }
 
-export function formatAmount(value: string | null | undefined, digits = 5): string {
+export function formatAmount(
+  value: string | null | undefined,
+  digits = 5,
+): string {
   if (value === null || value === undefined) return "n/a";
   const number = Number(value);
   if (!Number.isFinite(number)) return value;
@@ -16,13 +21,22 @@ export function formatAmount(value: string | null | undefined, digits = 5): stri
 }
 
 export function formatInteger(value: number | null | undefined): string {
-  return value === null || value === undefined ? "n/a" : value.toLocaleString("en-US");
+  return value === null || value === undefined
+    ? "n/a"
+    : value.toLocaleString("en-US");
 }
 
-const UNITS: [number, string][] = [[86_400, "d"], [3_600, "h"], [60, "m"]];
+const UNITS: [number, string][] = [
+  [86_400, "d"],
+  [3_600, "h"],
+  [60, "m"],
+];
 
 /** "12s ago", "4m ago", "3h ago", "2d ago", or "in 5m" for a future time. */
-export function relativeTime(iso: string | null | undefined, now: number = Date.now()): string {
+export function relativeTime(
+  iso: string | null | undefined,
+  now: number = Date.now(),
+): string {
   if (!iso) return "n/a";
   const then = Date.parse(iso);
   if (!Number.isFinite(then)) return "n/a";
@@ -56,5 +70,7 @@ export function clockTime(epochMs: number | null): string {
 export function absoluteTime(iso: string | null | undefined): string {
   if (!iso) return "";
   const date = new Date(iso);
-  return Number.isNaN(date.getTime()) ? "" : `${date.toISOString().slice(0, 19).replace("T", " ")} UTC`;
+  return Number.isNaN(date.getTime())
+    ? ""
+    : `${date.toISOString().slice(0, 19).replace("T", " ")} UTC`;
 }

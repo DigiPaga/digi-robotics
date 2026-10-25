@@ -4,7 +4,9 @@ import { OPS_SECTIONS, sectionForKey, sectionForPath } from "./sections";
 describe("ops sections", () => {
   it("gives every section a unique route, endpoint and shortcut", () => {
     for (const field of ["id", "href", "api", "key"] as const) {
-      expect(new Set(OPS_SECTIONS.map((section) => section[field])).size).toBe(OPS_SECTIONS.length);
+      expect(new Set(OPS_SECTIONS.map((section) => section[field])).size).toBe(
+        OPS_SECTIONS.length,
+      );
     }
     for (const section of OPS_SECTIONS) {
       expect(section.href).toMatch(/^\/ops(\/[a-z]+)?$/);

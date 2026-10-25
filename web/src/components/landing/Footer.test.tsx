@@ -5,14 +5,21 @@ import { Footer } from "./Footer";
 describe("Footer", () => {
   it("does not render separate Privacy and Terms links to the same anchor", () => {
     render(<Footer />);
-    expect(screen.queryByRole("link", { name: "Privacy" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Terms" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Privacy" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Terms" }),
+    ).not.toBeInTheDocument();
     const combined = screen.getByRole("link", { name: "Privacy & Terms" });
     expect(combined).toHaveAttribute("href", "/#privacy-note");
   });
 
   it("links to the agent demo for extra discoverability", () => {
     render(<Footer />);
-    expect(screen.getByRole("link", { name: "Agent Demo" })).toHaveAttribute("href", "/agent-demo");
+    expect(screen.getByRole("link", { name: "Agent Demo" })).toHaveAttribute(
+      "href",
+      "/agent-demo",
+    );
   });
 });

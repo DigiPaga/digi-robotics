@@ -1,6 +1,15 @@
 import "server-only";
 
-import { decodeEventLog, formatUnits, getAddress, parseAbi, toEventSelector, zeroAddress, type Address, type Hex } from "viem";
+import {
+  decodeEventLog,
+  formatUnits,
+  getAddress,
+  parseAbi,
+  toEventSelector,
+  zeroAddress,
+  type Address,
+  type Hex,
+} from "viem";
 import { memo } from "./cache";
 import { OPS_CHAINS, type OpsChainId } from "./chains";
 import { getOpsDeployment, MUSDG_DECIMALS, MUSDG_SYMBOL } from "./deployments";
@@ -16,7 +25,9 @@ export const PAYMENT_EVENTS_ABI = parseAbi([
   "event AuthorizationUsed(address indexed authorizer, bytes32 indexed nonce)",
 ]);
 
-const TOPIC_SETTLED = toEventSelector("PaymentSettled(bytes32,address,address,uint256,bytes32,address)");
+const TOPIC_SETTLED = toEventSelector(
+  "PaymentSettled(bytes32,address,address,uint256,bytes32,address)",
+);
 const TOPIC_TRANSFER = toEventSelector("Transfer(address,address,uint256)");
 const TOPIC_AUTH_USED = toEventSelector("AuthorizationUsed(address,bytes32)");
 
@@ -117,13 +128,28 @@ interface Decoded {
 
 function isRawLog(value: unknown): value is RawLog {
   const log = value as RawLog | null;
-  return !!log && typeof log === "object" && typeof log.address === "string" && Array.isArray(log.topics)
-    && typeof log.data === "string" && typeof log.transactionHash === "string"
-    && typeof log.blockNumber === "string" && typeof log.logIndex === "string";
+  return (
+    !!log &&
+    typeof log === "object" &&
+    typeof log.address === "string" &&
+    Array.isArray(log.topics) &&
+    typeof log.data === "string" &&
+    typeof log.transactionHash === "string" &&
+    typeof log.blockNumber === "string" &&
+    typeof log.logIndex === "string"
+  );
 }
 
-function decode<Name extends "PaymentSettled" | "Transfer" | "AuthorizationUsed">(log: RawLog, eventName: Name) {
-  return decodeEventLog({ abi: PAYMENT_EVENTS_ABI, eventName, topics: log.topics as [Hex, ...Hex[]], data: log.data as Hex, strict: true });
+function decode<
+  Name extends "PaymentSettled" | "Transfer" | "AuthorizationUsed",
+>(log: RawLog, eventName: Name) {
+  return decodeEventLog({
+    abi: PAYMENT_EVENTS_ABI,
+    eventName,
+    topics: log.topics as [Hex, ...Hex[]],
+    data: log.data as Hex,
+    strict: true,
+  });
 }
 
 /**
@@ -150,8 +176,10 @@ export function decodePaymentLogs(
     const topic = raw.topics[0];
     if (index === null || block === null || typeof topic !== "string") continue;
     const address = raw.address.toLowerCase();
-    const relevant = (address === token && (topic === TOPIC_TRANSFER || topic === TOPIC_AUTH_USED))
-      || (address === facilitator && topic === TOPIC_SETTLED);
+    const relevant =
+      (address === token &&
+        (topic === TOPIC_TRANSFER || topic === TOPIC_AUTH_USED)) ||
+      (address === facilitator && topic === TOPIC_SETTLED);
     if (!relevant) continue;
     const list = byTx.get(raw.transactionHash) ?? [];
     list.push({ log: raw, index, block, topic });
@@ -161,16 +189,32 @@ export function decodePaymentLogs(
   const rows: PaymentRow[] = [];
   for (const [txHash, entries] of byTx) {
     entries.sort((a, b) => a.index - b.index);
-    const authorizations: { authorizer: string; nonce: Hex; index: number; used: boolean }[] = [];
-    const settlements = new Map<string, { resourceId: Hex; settler: Address }>();
+    const authorizations: {
+      authorizer: string;
+      nonce: Hex;
+      index: number;
+      used: boolean;
+    }[] = [];
+    const settlements = new Map<
+      string,
+      { resourceId: Hex; settler: Address }
+    >();
     for (const entry of entries) {
       try {
         if (entry.topic === TOPIC_AUTH_USED) {
           const { args } = decode(entry.log, "AuthorizationUsed");
-          authorizations.push({ authorizer: args.authorizer.toLowerCase(), nonce: args.nonce, index: entry.index, used: false });
+          authorizations.push({
+            authorizer: args.authorizer.toLowerCase(),
+            nonce: args.nonce,
+            index: entry.index,
+            used: false,
+          });
         } else if (entry.topic === TOPIC_SETTLED) {
           const { args } = decode(entry.log, "PaymentSettled");
-          settlements.set(args.nonce.toLowerCase(), { resourceId: args.resourceId, settler: getAddress(args.settler) });
+          settlements.set(args.nonce.toLowerCase(), {
+            resourceId: args.resourceId,
+            settler: getAddress(args.settler),
+          });
         }
       } catch {
         // Not the event shape we know: leave it out rather than guess.
@@ -186,20 +230,35 @@ export function decodePaymentLogs(
       }
       const from = args.from.toLowerCase();
       // OpenZeppelin-style EIP-3009 emits AuthorizationUsed right before the Transfer it authorizes.
-      const authorization = authorizations.find((item) => !item.used && item.authorizer === from && item.index < entry.index);
+      const authorization = authorizations.find(
+        (item) =>
+          !item.used && item.authorizer === from && item.index < entry.index,
+      );
       if (authorization) authorization.used = true;
-      const settlement = authorization ? settlements.get(authorization.nonce.toLowerCase()) : undefined;
-      const kind: PaymentKind = settlement ? "settled" : authorization ? "authorization" : args.from === zeroAddress ? "mint" : "transfer";
+      const settlement = authorization
+        ? settlements.get(authorization.nonce.toLowerCase())
+        : undefined;
+      const kind: PaymentKind = settlement
+        ? "settled"
+        : authorization
+          ? "authorization"
+          : args.from === zeroAddress
+            ? "mint"
+            : "transfer";
       // Some nodes put blockTimestamp on logs, some omit it, and Arbitrum's eth_getLogs sends 0x0.
       const reported = hexToNumber(entry.log.blockTimestamp);
-      const seconds = reported !== null && reported > 0 ? reported : timestamps.get(entry.block) ?? null;
+      const seconds =
+        reported !== null && reported > 0
+          ? reported
+          : (timestamps.get(entry.block) ?? null);
       rows.push({
         chainId,
         kind,
         txHash: txHash as Hex,
         logIndex: entry.index,
         blockNumber: entry.block,
-        timestamp: seconds === null ? null : new Date(seconds * 1000).toISOString(),
+        timestamp:
+          seconds === null ? null : new Date(seconds * 1000).toISOString(),
         from: getAddress(args.from),
         to: getAddress(args.to),
         amountAtomic: args.value.toString(),
@@ -210,7 +269,9 @@ export function decodePaymentLogs(
       });
     }
   }
-  return rows.sort((a, b) => b.blockNumber - a.blockNumber || b.logIndex - a.logIndex);
+  return rows.sort(
+    (a, b) => b.blockNumber - a.blockNumber || b.logIndex - a.logIndex,
+  );
 }
 
 function isPayment(row: PaymentRow): boolean {
@@ -245,7 +306,14 @@ const EMPTY_TOTALS: PaymentTotals = summarizePayments([]);
 function logsCall(addresses: readonly Address[], fromBlock: number) {
   return {
     method: "eth_getLogs",
-    params: [{ address: addresses, topics: [[TOPIC_SETTLED, TOPIC_TRANSFER, TOPIC_AUTH_USED]], fromBlock: toHex(fromBlock), toBlock: "latest" }],
+    params: [
+      {
+        address: addresses,
+        topics: [[TOPIC_SETTLED, TOPIC_TRANSFER, TOPIC_AUTH_USED]],
+        fromBlock: toHex(fromBlock),
+        toBlock: "latest",
+      },
+    ],
   };
 }
 
@@ -261,27 +329,48 @@ interface ChainRead {
  * logs from the deploy block), at most FALLBACK_WINDOWS.length more when the
  * node limits the range, and 1 more only when the node omits log timestamps.
  */
-export async function readChainPayments(chainId: OpsChainId, options: RpcOptions = {}): Promise<ChainRead> {
+export async function readChainPayments(
+  chainId: OpsChainId,
+  options: RpcOptions = {},
+): Promise<ChainRead> {
   const chain = OPS_CHAINS.find((item) => item.id === chainId)!;
   const deployment = getOpsDeployment(chainId);
   const token = deployment.MockUSDG.address;
   const facilitator = deployment.X402Facilitator.address;
   const addresses = [facilitator, token];
   const url = rpcUrl(chain);
-  const deployBlock = Math.min(deployment.MockUSDG.deployBlock, deployment.X402Facilitator.deployBlock);
+  const deployBlock = Math.min(
+    deployment.MockUSDG.deployBlock,
+    deployment.X402Facilitator.deployBlock,
+  );
 
-  const first = await rpcBatch(url, [{ method: "eth_blockNumber", params: [] }, logsCall(addresses, deployBlock)], options);
+  const first = await rpcBatch(
+    url,
+    [
+      { method: "eth_blockNumber", params: [] },
+      logsCall(addresses, deployBlock),
+    ],
+    options,
+  );
   const [headResult, logsResult] = first.results;
   const head = headResult.ok ? hexToNumber(headResult.result) : null;
-  if (head === null) return { ok: false, error: "RPC unavailable", range: null, rows: [] };
+  if (head === null)
+    return { ok: false, error: "RPC unavailable", range: null, rows: [] };
 
-  let logs: unknown[] | null = logsResult.ok && Array.isArray(logsResult.result) ? logsResult.result : null;
+  let logs: unknown[] | null =
+    logsResult.ok && Array.isArray(logsResult.result)
+      ? logsResult.result
+      : null;
   let fromBlock = deployBlock;
   let truncated = false;
   if (logs === null && !logsResult.ok && logsResult.reason === "limit") {
     for (const window of FALLBACK_WINDOWS) {
       fromBlock = Math.max(deployBlock, head - window);
-      const retry = await rpcBatch(url, [logsCall(addresses, fromBlock)], options);
+      const retry = await rpcBatch(
+        url,
+        [logsCall(addresses, fromBlock)],
+        options,
+      );
       const result = retry.results[0];
       if (result.ok && Array.isArray(result.result)) {
         logs = result.result;
@@ -293,48 +382,91 @@ export async function readChainPayments(chainId: OpsChainId, options: RpcOptions
   }
   if (logs === null) {
     const limited = !logsResult.ok && logsResult.reason === "limit";
-    return { ok: false, error: limited ? "RPC refused the log range" : "Log query failed", range: null, rows: [] };
+    return {
+      ok: false,
+      error: limited ? "RPC refused the log range" : "Log query failed",
+      range: null,
+      rows: [],
+    };
   }
 
   let rows = decodePaymentLogs(chainId, logs, { token, facilitator });
-  const missing = [...new Set(rows.filter((row) => row.timestamp === null).map((row) => row.blockNumber))].slice(0, MAX_TIMESTAMP_LOOKUPS);
+  const missing = [
+    ...new Set(
+      rows
+        .filter((row) => row.timestamp === null)
+        .map((row) => row.blockNumber),
+    ),
+  ].slice(0, MAX_TIMESTAMP_LOOKUPS);
   if (missing.length > 0) {
-    const blocks = await rpcBatch(url, missing.map((block) => ({ method: "eth_getBlockByNumber", params: [toHex(block), false] })), options);
+    const blocks = await rpcBatch(
+      url,
+      missing.map((block) => ({
+        method: "eth_getBlockByNumber",
+        params: [toHex(block), false],
+      })),
+      options,
+    );
     const timestamps = new Map<number, number>();
     blocks.results.forEach((result, index) => {
-      const seconds = result.ok ? hexToNumber((result.result as { timestamp?: unknown } | null)?.timestamp) : null;
+      const seconds = result.ok
+        ? hexToNumber(
+            (result.result as { timestamp?: unknown } | null)?.timestamp,
+          )
+        : null;
       if (seconds !== null) timestamps.set(missing[index], seconds);
     });
     rows = decodePaymentLogs(chainId, logs, { token, facilitator }, timestamps);
   }
-  return { ok: true, error: null, range: { fromBlock, toBlock: head, truncated }, rows };
+  return {
+    ok: true,
+    error: null,
+    range: { fromBlock, toBlock: head, truncated },
+    rows,
+  };
 }
 
-export async function fetchPayments(options: RpcOptions & { fresh?: boolean } = {}): Promise<PaymentsSnapshot> {
+export async function fetchPayments(
+  options: RpcOptions & { fresh?: boolean } = {},
+): Promise<PaymentsSnapshot> {
   const { fresh, ...rpcOptions } = options;
-  return memo("payments", PAYMENTS_TTL_MS, async () => {
-    const reads = await Promise.all(OPS_CHAINS.map((chain) => readChainPayments(chain.id, rpcOptions).catch((): ChainRead => ({ ok: false, error: "RPC unavailable", range: null, rows: [] }))));
-    const chains = OPS_CHAINS.map((chain, index): ChainPayments => {
-      const read = reads[index];
+  return memo(
+    "payments",
+    PAYMENTS_TTL_MS,
+    async () => {
+      const reads = await Promise.all(
+        OPS_CHAINS.map((chain) =>
+          readChainPayments(chain.id, rpcOptions).catch((): ChainRead => ({
+            ok: false,
+            error: "RPC unavailable",
+            range: null,
+            rows: [],
+          })),
+        ),
+      );
+      const chains = OPS_CHAINS.map((chain, index): ChainPayments => {
+        const read = reads[index];
+        return {
+          chainId: chain.id,
+          name: chain.name,
+          explorer: chain.blockExplorers.default.url,
+          ok: read.ok,
+          error: read.error,
+          range: read.range,
+          totals: read.ok ? summarizePayments(read.rows) : EMPTY_TOTALS,
+          lastSettlement: read.rows.find(isPayment) ?? null,
+          rows: read.rows.slice(0, MAX_ROWS_PER_CHAIN),
+          rowCount: read.rows.length,
+        };
+      });
       return {
-        chainId: chain.id,
-        name: chain.name,
-        explorer: chain.blockExplorers.default.url,
-        ok: read.ok,
-        error: read.error,
-        range: read.range,
-        totals: read.ok ? summarizePayments(read.rows) : EMPTY_TOTALS,
-        lastSettlement: read.rows.find(isPayment) ?? null,
-        rows: read.rows.slice(0, MAX_ROWS_PER_CHAIN),
-        rowCount: read.rows.length,
+        refreshedAt: new Date().toISOString(),
+        token: { symbol: MUSDG_SYMBOL, decimals: MUSDG_DECIMALS },
+        chains,
+        // Over every decoded row, not only the capped ones, so a payer on both chains counts once.
+        totals: summarizePayments(reads.flatMap((read) => read.rows)),
       };
-    });
-    return {
-      refreshedAt: new Date().toISOString(),
-      token: { symbol: MUSDG_SYMBOL, decimals: MUSDG_DECIMALS },
-      chains,
-      // Over every decoded row, not only the capped ones, so a payer on both chains counts once.
-      totals: summarizePayments(reads.flatMap((read) => read.rows)),
-    };
-  }, { fresh });
+    },
+    { fresh },
+  );
 }

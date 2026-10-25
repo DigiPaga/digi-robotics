@@ -8,7 +8,8 @@ import "server-only";
 
 import { b64urlDecode } from "./crypto";
 
-export const GOOGLE_AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/v2/auth";
+export const GOOGLE_AUTHORIZE_URL =
+  "https://accounts.google.com/o/oauth2/v2/auth";
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 const JWKS_URL = "https://www.googleapis.com/oauth2/v3/certs";
 const ISSUERS = new Set(["https://accounts.google.com", "accounts.google.com"]);
@@ -71,8 +72,16 @@ type Jwk = JsonWebKey & { kid?: string };
 let jwksCache: { keys: Jwk[]; fetchedAt: number } | null = null;
 
 async function googleKeys(forceRefresh: boolean): Promise<Jwk[]> {
-  if (!forceRefresh && jwksCache && Date.now() - jwksCache.fetchedAt < JWKS_TTL_MS) return jwksCache.keys;
-  const res = await fetch(JWKS_URL, { cache: "no-store", signal: AbortSignal.timeout(10_000) });
+  if (
+    !forceRefresh &&
+    jwksCache &&
+    Date.now() - jwksCache.fetchedAt < JWKS_TTL_MS
+  )
+    return jwksCache.keys;
+  const res = await fetch(JWKS_URL, {
+    cache: "no-store",
+    signal: AbortSignal.timeout(10_000),
+  });
   if (!res.ok) throw new Error("jwks unavailable");
   const { keys } = (await res.json()) as { keys?: Jwk[] };
   jwksCache = { keys: Array.isArray(keys) ? keys : [], fetchedAt: Date.now() };
@@ -81,11 +90,22 @@ async function googleKeys(forceRefresh: boolean): Promise<Jwk[]> {
 
 async function googleKey(kid: string): Promise<CryptoKey | null> {
   try {
-    let jwk = (await googleKeys(false)).find((key) => key.kid === kid && key.kty === "RSA");
+    let jwk = (await googleKeys(false)).find(
+      (key) => key.kid === kid && key.kty === "RSA",
+    );
     // Google rotates keys; a miss on a cached set gets one fresh fetch.
-    if (!jwk) jwk = (await googleKeys(true)).find((key) => key.kid === kid && key.kty === "RSA");
+    if (!jwk)
+      jwk = (await googleKeys(true)).find(
+        (key) => key.kid === kid && key.kty === "RSA",
+      );
     if (!jwk) return null;
-    return await crypto.subtle.importKey("jwk", jwk, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["verify"]);
+    return await crypto.subtle.importKey(
+      "jwk",
+      jwk,
+      { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+      false,
+      ["verify"],
+    );
   } catch {
     return null;
   }
@@ -121,22 +141,34 @@ const GOOGLE_CONSUMER_DOMAINS = new Set(["gmail.com", "googlemail.com"]);
  * Workspace domain, which the signed `hd` claim names. Anything else is refused,
  * even when the address is on the allowlist.
  */
-export function isGoogleAuthoritative(email: string, hostedDomain: unknown): boolean {
+export function isGoogleAuthoritative(
+  email: string,
+  hostedDomain: unknown,
+): boolean {
   const domain = email.slice(email.lastIndexOf("@") + 1);
   if (!domain) return false;
   if (GOOGLE_CONSUMER_DOMAINS.has(domain)) return true;
-  return typeof hostedDomain === "string" && hostedDomain.trim().toLowerCase() === domain;
+  return (
+    typeof hostedDomain === "string" &&
+    hostedDomain.trim().toLowerCase() === domain
+  );
 }
 
 /**
  * Checks iss, aud, exp, iat, nonce, email_verified and that Google is
  * authoritative for the address. Returns the lowercase email or null.
  */
-export function validateIdTokenClaims(claims: IdTokenClaims, clientId: string, nonce: string, now = Math.floor(Date.now() / 1000)): string | null {
+export function validateIdTokenClaims(
+  claims: IdTokenClaims,
+  clientId: string,
+  nonce: string,
+  now = Math.floor(Date.now() / 1000),
+): string | null {
   if (typeof claims.iss !== "string" || !ISSUERS.has(claims.iss)) return null;
   if (claims.aud !== clientId) return null;
   if (typeof claims.exp !== "number" || claims.exp <= now) return null;
-  if (typeof claims.iat !== "number" || claims.iat > now + CLOCK_SKEW_SECONDS) return null;
+  if (typeof claims.iat !== "number" || claims.iat > now + CLOCK_SKEW_SECONDS)
+    return null;
   if (typeof claims.nonce !== "string" || claims.nonce !== nonce) return null;
   if (claims.email_verified !== true) return null;
   if (typeof claims.email !== "string") return null;
@@ -146,16 +178,26 @@ export function validateIdTokenClaims(claims: IdTokenClaims, clientId: string, n
 }
 
 /** Verifies the RS256 signature against Google's JWKS, then the claims. */
-export async function verifyIdToken(idToken: string, clientId: string, nonce: string): Promise<string | null> {
+export async function verifyIdToken(
+  idToken: string,
+  clientId: string,
+  nonce: string,
+): Promise<string | null> {
   const parts = idToken.split(".");
   if (parts.length !== 3) return null;
   const [h, p, s] = parts;
   const header = decodeJson<{ alg?: string; kid?: string }>(h);
-  if (!header || header.alg !== "RS256" || typeof header.kid !== "string") return null;
+  if (!header || header.alg !== "RS256" || typeof header.kid !== "string")
+    return null;
   const key = await googleKey(header.kid);
   const sig = b64urlDecode(s);
   if (!key || !sig) return null;
-  const ok = await crypto.subtle.verify("RSASSA-PKCS1-v1_5", key, sig, new TextEncoder().encode(`${h}.${p}`));
+  const ok = await crypto.subtle.verify(
+    "RSASSA-PKCS1-v1_5",
+    key,
+    sig,
+    new TextEncoder().encode(`${h}.${p}`),
+  );
   if (!ok) return null;
   const claims = decodeJson<IdTokenClaims>(p);
   return claims ? validateIdTokenClaims(claims, clientId, nonce) : null;

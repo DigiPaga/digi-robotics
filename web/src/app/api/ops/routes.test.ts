@@ -13,20 +13,70 @@ const loaders = {
 
 vi.mock("@/lib/ops/overview", () => ({ fetchOverview: loaders.fetchOverview }));
 vi.mock("@/lib/ops/payments", () => ({ fetchPayments: loaders.fetchPayments }));
-vi.mock("@/lib/ops/contracts", () => ({ fetchContracts: loaders.fetchContracts }));
-vi.mock("@/lib/ops/marketplace", () => ({ fetchMarketplace: loaders.fetchMarketplace }));
+vi.mock("@/lib/ops/contracts", () => ({
+  fetchContracts: loaders.fetchContracts,
+}));
+vi.mock("@/lib/ops/marketplace", () => ({
+  fetchMarketplace: loaders.fetchMarketplace,
+}));
 vi.mock("@/lib/ops/infra", () => ({ fetchInfra: loaders.fetchInfra }));
-vi.mock("@/lib/ops/balances", () => ({ fetchOpsBalancesCached: loaders.fetchOpsBalancesCached }));
+vi.mock("@/lib/ops/balances", () => ({
+  fetchOpsBalancesCached: loaders.fetchOpsBalancesCached,
+}));
 
 const SECRET = "x".repeat(40);
 
 const ROUTES = [
-  { path: "/api/ops/overview", load: () => import("./overview/route"), loader: loaders.fetchOverview, body: { refreshedAt: "now", checks: [], counts: { ok: 0, warn: 0, bad: 0, unknown: 0 } } },
-  { path: "/api/ops/balances", load: () => import("./balances/route"), loader: loaders.fetchOpsBalancesCached, body: { refreshedAt: "now", chains: [], rows: [], warning: null } },
-  { path: "/api/ops/payments", load: () => import("./payments/route"), loader: loaders.fetchPayments, body: { refreshedAt: "now", token: { symbol: "mUSDG", decimals: 6 }, chains: [], totals: {} } },
-  { path: "/api/ops/contracts", load: () => import("./contracts/route"), loader: loaders.fetchContracts, body: { refreshedAt: "now", settler: "0x0", chains: [] } },
-  { path: "/api/ops/marketplace", load: () => import("./marketplace/route"), loader: loaders.fetchMarketplace, body: { refreshedAt: "now", catalog: { state: "ok", datasets: [] }, gear: { total: 0 }, orders: { state: "empty" } } },
-  { path: "/api/ops/infra", load: () => import("./infra/route"), loader: loaders.fetchInfra, body: { refreshedAt: "now", rpc: [], config: { items: [], checks: [] } } },
+  {
+    path: "/api/ops/overview",
+    load: () => import("./overview/route"),
+    loader: loaders.fetchOverview,
+    body: {
+      refreshedAt: "now",
+      checks: [],
+      counts: { ok: 0, warn: 0, bad: 0, unknown: 0 },
+    },
+  },
+  {
+    path: "/api/ops/balances",
+    load: () => import("./balances/route"),
+    loader: loaders.fetchOpsBalancesCached,
+    body: { refreshedAt: "now", chains: [], rows: [], warning: null },
+  },
+  {
+    path: "/api/ops/payments",
+    load: () => import("./payments/route"),
+    loader: loaders.fetchPayments,
+    body: {
+      refreshedAt: "now",
+      token: { symbol: "mUSDG", decimals: 6 },
+      chains: [],
+      totals: {},
+    },
+  },
+  {
+    path: "/api/ops/contracts",
+    load: () => import("./contracts/route"),
+    loader: loaders.fetchContracts,
+    body: { refreshedAt: "now", settler: "0x0", chains: [] },
+  },
+  {
+    path: "/api/ops/marketplace",
+    load: () => import("./marketplace/route"),
+    loader: loaders.fetchMarketplace,
+    body: {
+      refreshedAt: "now",
+      catalog: { state: "ok", datasets: [] },
+      gear: { total: 0 },
+      orders: { state: "empty" },
+    },
+  },
+  {
+    path: "/api/ops/infra",
+    load: () => import("./infra/route"),
+    loader: loaders.fetchInfra,
+    body: { refreshedAt: "now", rpc: [], config: { items: [], checks: [] } },
+  },
 ] as const;
 
 function configure() {
@@ -64,8 +114,22 @@ describe.each(ROUTES)("GET $path", ({ path, load, loader, body }) => {
   it("returns 401 for a forged session and for an email that is not allowlisted", async () => {
     configure();
     const { GET } = await load();
-    expect((await GET(new Request(url, { headers: await session("ottodevs@gmail.com", "y".repeat(40)) }))).status).toBe(401);
-    expect((await GET(new Request(url, { headers: await session("intruder@gmail.com") }))).status).toBe(401);
+    expect(
+      (
+        await GET(
+          new Request(url, {
+            headers: await session("ottodevs@gmail.com", "y".repeat(40)),
+          }),
+        )
+      ).status,
+    ).toBe(401);
+    expect(
+      (
+        await GET(
+          new Request(url, { headers: await session("intruder@gmail.com") }),
+        )
+      ).status,
+    ).toBe(401);
     expect(loader).not.toHaveBeenCalled();
   });
 
@@ -102,7 +166,9 @@ describe.each(ROUTES)("GET $path", ({ path, load, loader, body }) => {
 
   it("returns a generic 502 when the loader throws, with no detail in the body", async () => {
     configure();
-    loader.mockRejectedValue(new Error("upstream said: token ghp_secret at 10.0.0.4"));
+    loader.mockRejectedValue(
+      new Error("upstream said: token ghp_secret at 10.0.0.4"),
+    );
     const { GET } = await load();
     const response = await GET(new Request(url, { headers: await session() }));
     expect(response.status).toBe(502);

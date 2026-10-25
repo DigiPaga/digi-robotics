@@ -26,7 +26,12 @@ export interface MemoOptions {
  *
  * Rejections are not cached. Concurrent callers share one load.
  */
-export async function memo<T>(key: string, ttlMs: number, load: () => Promise<T>, options: MemoOptions = {}): Promise<T> {
+export async function memo<T>(
+  key: string,
+  ttlMs: number,
+  load: () => Promise<T>,
+  options: MemoOptions = {},
+): Promise<T> {
   const now = options.now ?? Date.now;
   if (!options.fresh) {
     const hit = store.get(key);
@@ -37,7 +42,8 @@ export async function memo<T>(key: string, ttlMs: number, load: () => Promise<T>
   const task = (async () => {
     try {
       const value = await load();
-      if (store.size >= MAX_ENTRIES && !store.has(key)) store.delete(store.keys().next().value as string);
+      if (store.size >= MAX_ENTRIES && !store.has(key))
+        store.delete(store.keys().next().value as string);
       store.set(key, { expires: now() + ttlMs, value });
       return value;
     } finally {

@@ -1,10 +1,23 @@
 import type { NextFunction, Request, RequestHandler, Response } from "express";
 import { ExpressAdapter } from "@x402/express";
-import { HTTPFacilitatorClient, x402HTTPResourceServer, x402ResourceServer, withPrivateCacheControl } from "@x402/core/server";
-import type { FacilitatorClient, HTTPRequestContext, RoutesConfig } from "@x402/core/server";
+import {
+  HTTPFacilitatorClient,
+  x402HTTPResourceServer,
+  x402ResourceServer,
+  withPrivateCacheControl,
+} from "@x402/core/server";
+import type {
+  FacilitatorClient,
+  HTTPRequestContext,
+  RoutesConfig,
+} from "@x402/core/server";
 import type { SettleResponse } from "@x402/core/types";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
-import { bazaarResourceServerExtension, declareDiscoveryExtension, validateBazaarRouteExtensions } from "@x402/extensions/bazaar";
+import {
+  bazaarResourceServerExtension,
+  declareDiscoveryExtension,
+  validateBazaarRouteExtensions,
+} from "@x402/extensions/bazaar";
 import type { AgentDemoEnv } from "../config/env";
 import { displayAmountToAtomic } from "../agent/policy";
 import { createLocalFacilitator } from "./localFacilitator";
@@ -20,7 +33,10 @@ export interface X402SettlementLocals {
  */
 export function defaultFacilitator(env: AgentDemoEnv): FacilitatorClient {
   if (env.mode === "REAL_MUSDG_X402") return createLocalFacilitator(env);
-  return new HTTPFacilitatorClient({ url: env.facilitatorUrl, timeoutMs: env.requestTimeoutMs });
+  return new HTTPFacilitatorClient({
+    url: env.facilitatorUrl,
+    timeoutMs: env.requestTimeoutMs,
+  });
 }
 
 const DATASET_CONTENT_PATH = /^\/x402\/datasets\/([^/]+)\/content\/?$/i;
@@ -30,11 +46,18 @@ const DATASET_CONTENT_PATH = /^\/x402\/datasets\/([^/]+)\/content\/?$/i;
  * matched. The settlement contract records keccak256 of this URL, so it must come from the server,
  * never from the client-supplied payload.resource (which @x402/core does not validate).
  */
-export function datasetResourceUrl(resourceBaseUrl: string, requestPath: string): string {
+export function datasetResourceUrl(
+  resourceBaseUrl: string,
+  requestPath: string,
+): string {
   const match = DATASET_CONTENT_PATH.exec(requestPath);
   if (!match) throw new Error(`Not a dataset content path: ${requestPath}`);
   let id: string;
-  try { id = decodeURIComponent(match[1]!); } catch { id = match[1]!; }
+  try {
+    id = decodeURIComponent(match[1]!);
+  } catch {
+    id = match[1]!;
+  }
   return `${resourceBaseUrl}/x402/datasets/${encodeURIComponent(id)}/content`;
 }
 
@@ -42,7 +65,10 @@ export function createProtectedDatasetMiddleware(
   env: AgentDemoEnv,
   facilitator: FacilitatorClient = defaultFacilitator(env),
 ): RequestHandler {
-  const amount = displayAmountToAtomic(env.priceDisplay, env.assetDecimals).toString();
+  const amount = displayAmountToAtomic(
+    env.priceDisplay,
+    env.assetDecimals,
+  ).toString();
   const resourceServer = new x402ResourceServer(facilitator)
     .register(env.network, new ExactEvmScheme())
     .registerExtension(bazaarResourceServerExtension);
@@ -59,7 +85,11 @@ export function createProtectedDatasetMiddleware(
         price: (context: HTTPRequestContext) => ({
           asset: env.assetAddress,
           amount,
-          extra: { resourceId: resourceIdFor(datasetResourceUrl(env.resourceBaseUrl, context.path)) },
+          extra: {
+            resourceId: resourceIdFor(
+              datasetResourceUrl(env.resourceBaseUrl, context.path),
+            ),
+          },
         }),
         maxTimeoutSeconds: Math.floor(env.requestTimeoutMs / 1_000),
         extra: {
@@ -70,22 +100,45 @@ export function createProtectedDatasetMiddleware(
         },
       },
       resource: `${env.resourceBaseUrl}/x402/datasets/:id/content`,
-      description: "Purchase access to a DigiRobotics egocentric manipulation dataset.",
+      description:
+        "Purchase access to a DigiRobotics egocentric manipulation dataset.",
       mimeType: "application/vnd.digirobotics.dataset+json",
       serviceName: "DigiRobotics Dataset Exchange",
-      tags: ["robotics", "training-data", "egocentric", "manipulation", "engine-assembly"],
+      tags: [
+        "robotics",
+        "training-data",
+        "egocentric",
+        "manipulation",
+        "engine-assembly",
+      ],
       unpaidResponseBody: async () => ({
         contentType: "application/json",
-        body: { error: "PAYMENT_REQUIRED", message: "A valid x402 v2 payment is required before dataset access is issued." },
+        body: {
+          error: "PAYMENT_REQUIRED",
+          message:
+            "A valid x402 v2 payment is required before dataset access is issued.",
+        },
       }),
       settlementFailedResponseBody: async (_context, result) => ({
         contentType: "application/json",
-        body: { error: "SETTLEMENT_FAILURE", message: result.errorMessage ?? result.errorReason },
+        body: {
+          error: "SETTLEMENT_FAILURE",
+          message: result.errorMessage ?? result.errorReason,
+        },
       }),
       extensions: declareDiscoveryExtension({
         pathParams: { id: "engine-assembly-pov" },
         pathParamsSchema: {
-          properties: { id: { type: "string", enum: ["engine-assembly-pov", "kitchen-cooking-pov", "warehouse-picking-pov"] } },
+          properties: {
+            id: {
+              type: "string",
+              enum: [
+                "engine-assembly-pov",
+                "kitchen-cooking-pov",
+                "warehouse-picking-pov",
+              ],
+            },
+          },
           required: ["id"],
         },
         output: {
@@ -98,7 +151,13 @@ export function createProtectedDatasetMiddleware(
               expiresAt: { type: "string" },
               payment: { type: "object" },
             },
-            required: ["datasetId", "title", "signedUrl", "expiresAt", "payment"],
+            required: [
+              "datasetId",
+              "title",
+              "signedUrl",
+              "expiresAt",
+              "payment",
+            ],
           },
         },
       }),
@@ -109,7 +168,7 @@ export function createProtectedDatasetMiddleware(
   let initialization: Promise<void> | undefined;
 
   const initialize = () => {
-    initialization ??= httpServer.initialize().catch(error => {
+    initialization ??= httpServer.initialize().catch((error) => {
       initialization = undefined;
       throw error;
     });
@@ -121,25 +180,45 @@ export function createProtectedDatasetMiddleware(
     const context = {
       adapter,
       path: req.path,
-      decodedPath: (() => { try { return decodeURIComponent(req.path); } catch { return req.path; } })(),
+      decodedPath: (() => {
+        try {
+          return decodeURIComponent(req.path);
+        } catch {
+          return req.path;
+        }
+      })(),
       method: req.method,
-      paymentHeader: adapter.getHeader("payment-signature") || adapter.getHeader("x-payment"),
+      paymentHeader:
+        adapter.getHeader("payment-signature") ||
+        adapter.getHeader("x-payment"),
     };
     if (!httpServer.requiresPayment(context)) return next();
 
     try {
       await initialize();
-      const result = await httpServer.processHTTPRequest(context, { appName: "DigiRobotics", testnet: true });
+      const result = await httpServer.processHTTPRequest(context, {
+        appName: "DigiRobotics",
+        testnet: true,
+      });
       if (result.type === "no-payment-required") return next();
       if (result.type === "payment-error") {
         res.status(result.response.status);
-        for (const [key, value] of Object.entries(result.response.headers)) res.setHeader(key, value);
-        res.type(result.response.isHtml ? "html" : "json").send(result.response.body ?? {});
+        for (const [key, value] of Object.entries(result.response.headers))
+          res.setHeader(key, value);
+        res
+          .type(result.response.isHtml ? "html" : "json")
+          .send(result.response.body ?? {});
         return;
       }
 
       if (!result.beforeHandlerSettlement?.result.success) {
-        res.status(402).json({ error: "SETTLEMENT_REQUIRED", message: "Dataset access requires confirmed settlement before the handler runs." });
+        res
+          .status(402)
+          .json({
+            error: "SETTLEMENT_REQUIRED",
+            message:
+              "Dataset access requires confirmed settlement before the handler runs.",
+          });
         return;
       }
       const settlement = await httpServer.processSettlement(
@@ -152,12 +231,19 @@ export function createProtectedDatasetMiddleware(
       );
       if (!settlement.success) {
         res.status(settlement.response.status);
-        for (const [key, value] of Object.entries(settlement.response.headers)) res.setHeader(key, value);
+        for (const [key, value] of Object.entries(settlement.response.headers))
+          res.setHeader(key, value);
         res.json(settlement.response.body ?? {});
         return;
       }
-      for (const [key, value] of Object.entries(settlement.headers)) res.setHeader(key, value);
-      res.setHeader("Cache-Control", withPrivateCacheControl(res.getHeader("Cache-Control")?.toString() ?? null));
+      for (const [key, value] of Object.entries(settlement.headers))
+        res.setHeader(key, value);
+      res.setHeader(
+        "Cache-Control",
+        withPrivateCacheControl(
+          res.getHeader("Cache-Control")?.toString() ?? null,
+        ),
+      );
       (res.locals as X402SettlementLocals).settlement = settlement;
       next();
     } catch (error) {

@@ -5,11 +5,7 @@ import path from "path";
 import matter from "gray-matter";
 
 export type BlogCategory =
-  | "Robotics"
-  | "AI Agents"
-  | "Stablecoins"
-  | "x402"
-  | "RWA";
+  "Robotics" | "AI Agents" | "Stablecoins" | "x402" | "RWA";
 
 export interface BlogPostMetadata {
   slug: string;
@@ -56,7 +52,10 @@ function requireString(
 ): string {
   const value = data[key];
   if (typeof value !== "string" || value.trim().length === 0) {
-    throw new BlogContentError(fileName, `frontmatter field "${key}" must be a non-empty string.`);
+    throw new BlogContentError(
+      fileName,
+      `frontmatter field "${key}" must be a non-empty string.`,
+    );
   }
   return value.trim();
 }
@@ -70,12 +69,21 @@ function requireIsoDate(
   const value = data[key];
   if (optional && value === undefined) return undefined;
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    throw new BlogContentError(fileName, `frontmatter field "${key}" must use YYYY-MM-DD format.`);
+    throw new BlogContentError(
+      fileName,
+      `frontmatter field "${key}" must use YYYY-MM-DD format.`,
+    );
   }
 
   const parsed = new Date(`${value}T00:00:00.000Z`);
-  if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) {
-    throw new BlogContentError(fileName, `frontmatter field "${key}" is not a valid calendar date.`);
+  if (
+    Number.isNaN(parsed.getTime()) ||
+    parsed.toISOString().slice(0, 10) !== value
+  ) {
+    throw new BlogContentError(
+      fileName,
+      `frontmatter field "${key}" is not a valid calendar date.`,
+    );
   }
   return value;
 }
@@ -88,15 +96,25 @@ function optionalBoolean(
   const value = data[key];
   if (value === undefined) return undefined;
   if (typeof value !== "boolean") {
-    throw new BlogContentError(fileName, `frontmatter field "${key}" must be true or false.`);
+    throw new BlogContentError(
+      fileName,
+      `frontmatter field "${key}" must be true or false.`,
+    );
   }
   return value;
 }
 
-function optionalCoverImage(data: Record<string, unknown>, fileName: string): string | undefined {
+function optionalCoverImage(
+  data: Record<string, unknown>,
+  fileName: string,
+): string | undefined {
   const value = data.coverImage;
   if (value === undefined) return undefined;
-  if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//")) {
+  if (
+    typeof value !== "string" ||
+    !value.startsWith("/") ||
+    value.startsWith("//")
+  ) {
     throw new BlogContentError(
       fileName,
       'frontmatter field "coverImage" must be a site-local path beginning with "/".',
@@ -112,10 +130,16 @@ function validateMetadata(
 ): BlogPostMetadata {
   const slug = requireString(data, "slug", fileName);
   if (!SLUG_PATTERN.test(slug)) {
-    throw new BlogContentError(fileName, 'frontmatter field "slug" must be lowercase kebab-case.');
+    throw new BlogContentError(
+      fileName,
+      'frontmatter field "slug" must be lowercase kebab-case.',
+    );
   }
   if (slug !== fileSlug) {
-    throw new BlogContentError(fileName, `frontmatter slug must match the filename slug "${fileSlug}".`);
+    throw new BlogContentError(
+      fileName,
+      `frontmatter slug must match the filename slug "${fileSlug}".`,
+    );
   }
 
   const category = requireString(data, "category", fileName);
@@ -129,7 +153,10 @@ function validateMetadata(
   const publishedAt = requireIsoDate(data, "publishedAt", fileName);
   const updatedAt = requireIsoDate(data, "updatedAt", fileName, true);
   if (updatedAt && publishedAt && updatedAt < publishedAt) {
-    throw new BlogContentError(fileName, 'frontmatter field "updatedAt" cannot predate "publishedAt".');
+    throw new BlogContentError(
+      fileName,
+      'frontmatter field "updatedAt" cannot predate "publishedAt".',
+    );
   }
 
   return {
@@ -166,7 +193,10 @@ async function readPostFile(fileName: string): Promise<BlogPost> {
   const filePath = path.resolve(BLOG_DIRECTORY, fileName);
   const expectedParent = `${path.resolve(BLOG_DIRECTORY)}${path.sep}`;
   if (!filePath.startsWith(expectedParent)) {
-    throw new BlogContentError(fileName, "resolved path falls outside the blog content directory.");
+    throw new BlogContentError(
+      fileName,
+      "resolved path falls outside the blog content directory.",
+    );
   }
 
   let source: string;
@@ -183,7 +213,10 @@ async function readPostFile(fileName: string): Promise<BlogPost> {
   try {
     parsed = matter(source);
   } catch (error) {
-    const detail = error instanceof Error ? error.message : "frontmatter could not be parsed";
+    const detail =
+      error instanceof Error
+        ? error.message
+        : "frontmatter could not be parsed";
     throw new BlogContentError(fileName, detail);
   }
 
@@ -192,7 +225,11 @@ async function readPostFile(fileName: string): Promise<BlogPost> {
   }
 
   const fileSlug = fileName.slice(0, -3);
-  const metadata = validateMetadata(parsed.data as Record<string, unknown>, fileName, fileSlug);
+  const metadata = validateMetadata(
+    parsed.data as Record<string, unknown>,
+    fileName,
+    fileSlug,
+  );
   return { ...metadata, content: parsed.content.trim() };
 }
 
@@ -216,7 +253,10 @@ export async function getBlogPost(slug: string): Promise<BlogPost | null> {
   try {
     return await readPostFile(fileName);
   } catch (error) {
-    if (error instanceof BlogContentError && error.message.endsWith("file could not be found.")) {
+    if (
+      error instanceof BlogContentError &&
+      error.message.endsWith("file could not be found.")
+    ) {
       return null;
     }
     throw error;

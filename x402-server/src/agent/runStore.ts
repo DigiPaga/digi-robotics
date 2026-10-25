@@ -1,5 +1,11 @@
 import { randomUUID } from "node:crypto";
-import type { AgentDemoMode, AgentRun, AgentRunEvent, ErrorCode, RunState } from "../types/agentDemo";
+import type {
+  AgentDemoMode,
+  AgentRun,
+  AgentRunEvent,
+  ErrorCode,
+  RunState,
+} from "../types/agentDemo";
 
 type Listener = (event: AgentRunEvent) => void;
 
@@ -16,18 +22,25 @@ export class RunStore {
     private readonly maxConcurrentRuns: number,
     private readonly maxTotalSpendAtomic: bigint,
   ) {
-    this.cleanupTimer = setInterval(() => this.cleanup(), Math.min(ttlMs, 60_000));
+    this.cleanupTimer = setInterval(
+      () => this.cleanup(),
+      Math.min(ttlMs, 60_000),
+    );
     this.cleanupTimer.unref();
   }
 
-  create(idempotencyKey: string, mode: AgentDemoMode): { run: AgentRun; created: boolean } {
+  create(
+    idempotencyKey: string,
+    mode: AgentDemoMode,
+  ): { run: AgentRun; created: boolean } {
     this.cleanup();
     const existingId = this.idempotency.get(idempotencyKey);
     if (existingId) {
       const existing = this.runs.get(existingId);
       if (existing) return { run: existing, created: false };
     }
-    if (this.activeRuns >= this.maxConcurrentRuns) throw new Error("CONCURRENCY_LIMIT");
+    if (this.activeRuns >= this.maxConcurrentRuns)
+      throw new Error("CONCURRENCY_LIMIT");
     const now = new Date();
     const run: AgentRun = {
       id: randomUUID(),
@@ -52,7 +65,12 @@ export class RunStore {
     return this.runs.get(id);
   }
 
-  emit(id: string, state: RunState, message: string, detail: Partial<AgentRunEvent> = {}): AgentRunEvent {
+  emit(
+    id: string,
+    state: RunState,
+    message: string,
+    detail: Partial<AgentRunEvent> = {},
+  ): AgentRunEvent {
     const run = this.runs.get(id);
     if (!run) throw new Error("Run not found");
     run.state = state;
@@ -67,14 +85,16 @@ export class RunStore {
     };
     run.events.push(event);
     for (const listener of this.listeners.get(id) ?? []) listener(event);
-    if (state === "unlocked" || state === "failed") this.activeRuns = Math.max(0, this.activeRuns - 1);
+    if (state === "unlocked" || state === "failed")
+      this.activeRuns = Math.max(0, this.activeRuns - 1);
     return event;
   }
 
   claimPayment(id: string, amountAtomic: bigint): boolean {
     const run = this.runs.get(id);
     if (!run || run.paymentStarted || amountAtomic <= 0n) return false;
-    if (this.reservedSpendAtomic + amountAtomic > this.maxTotalSpendAtomic) return false;
+    if (this.reservedSpendAtomic + amountAtomic > this.maxTotalSpendAtomic)
+      return false;
     run.paymentStarted = true;
     this.reservedSpendAtomic += amountAtomic;
     return true;
@@ -104,7 +124,8 @@ export class RunStore {
       this.runs.delete(id);
       this.idempotency.delete(run.idempotencyKey);
       this.listeners.delete(id);
-      if (run.state !== "failed" && run.state !== "unlocked") this.activeRuns = Math.max(0, this.activeRuns - 1);
+      if (run.state !== "failed" && run.state !== "unlocked")
+        this.activeRuns = Math.max(0, this.activeRuns - 1);
     }
   }
 }

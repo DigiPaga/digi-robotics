@@ -8,14 +8,36 @@ import {
 } from "./agent-demo-chains";
 
 const hash = `0x${"ab".repeat(32)}`;
-const both = getAgentDemoChains({ arbitrum: "https://x402.digirobotics.xyz/", robinhood: "https://x402-rh.digirobotics.xyz" });
-const arbitrumOnly = getAgentDemoChains({ arbitrum: "https://x402.digirobotics.xyz" });
+const both = getAgentDemoChains({
+  arbitrum: "https://x402.digirobotics.xyz/",
+  robinhood: "https://x402-rh.digirobotics.xyz",
+});
+const arbitrumOnly = getAgentDemoChains({
+  arbitrum: "https://x402.digirobotics.xyz",
+});
 
 describe("getAgentDemoChains", () => {
   it("lists Arbitrum Sepolia first and Robinhood Chain Testnet second, with their backends", () => {
-    expect(both.map((chain) => [chain.id, chain.name, chain.chainId, chain.backendUrl])).toEqual([
-      ["arbitrum-sepolia", "Arbitrum Sepolia", 421614, "https://x402.digirobotics.xyz"],
-      ["robinhood-testnet", "Robinhood Chain Testnet", 46630, "https://x402-rh.digirobotics.xyz"],
+    expect(
+      both.map((chain) => [
+        chain.id,
+        chain.name,
+        chain.chainId,
+        chain.backendUrl,
+      ]),
+    ).toEqual([
+      [
+        "arbitrum-sepolia",
+        "Arbitrum Sepolia",
+        421614,
+        "https://x402.digirobotics.xyz",
+      ],
+      [
+        "robinhood-testnet",
+        "Robinhood Chain Testnet",
+        46630,
+        "https://x402-rh.digirobotics.xyz",
+      ],
     ]);
   });
 
@@ -27,7 +49,12 @@ describe("getAgentDemoChains", () => {
   });
 
   it("treats blank or malformed Robinhood URLs as not configured", () => {
-    for (const robinhood of ["", "   ", "not a url", "ftp://x402-rh.digirobotics.xyz"]) {
+    for (const robinhood of [
+      "",
+      "   ",
+      "not a url",
+      "ftp://x402-rh.digirobotics.xyz",
+    ]) {
       expect(getAgentDemoChains({ robinhood })[1]?.backendUrl).toBeUndefined();
     }
   });
@@ -46,7 +73,9 @@ describe("resolveAgentDemoChain", () => {
   });
 
   it("falls back to Arbitrum Sepolia when Robinhood is not configured", () => {
-    expect(resolveAgentDemoChain(arbitrumOnly, "robinhood-testnet").id).toBe("arbitrum-sepolia");
+    expect(resolveAgentDemoChain(arbitrumOnly, "robinhood-testnet").id).toBe(
+      "arbitrum-sepolia",
+    );
   });
 
   it("ignores unknown chain ids", () => {
@@ -55,23 +84,36 @@ describe("resolveAgentDemoChain", () => {
 });
 
 describe("getAgentDemoTransactionUrl", () => {
-  const [arbitrum, robinhood] = both as [typeof both[number], typeof both[number]];
+  const [arbitrum, robinhood] = both as [
+    (typeof both)[number],
+    (typeof both)[number],
+  ];
 
   it("links Arbitrum Sepolia settlements to Arbiscan", () => {
-    expect(getAgentDemoTransactionUrl(arbitrum, hash, "eip155:421614")).toBe(`https://sepolia.arbiscan.io/tx/${hash}`);
+    expect(getAgentDemoTransactionUrl(arbitrum, hash, "eip155:421614")).toBe(
+      `https://sepolia.arbiscan.io/tx/${hash}`,
+    );
   });
 
   it("links Robinhood Chain Testnet settlements to the Robinhood explorer", () => {
-    expect(getAgentDemoTransactionUrl(robinhood, hash, "eip155:46630")).toBe(`https://explorer.testnet.chain.robinhood.com/tx/${hash}`);
+    expect(getAgentDemoTransactionUrl(robinhood, hash, "eip155:46630")).toBe(
+      `https://explorer.testnet.chain.robinhood.com/tx/${hash}`,
+    );
   });
 
   it("uses the selected chain when the payload has no network", () => {
-    expect(getAgentDemoTransactionUrl(robinhood, hash)).toBe(`https://explorer.testnet.chain.robinhood.com/tx/${hash}`);
-    expect(getAgentDemoTransactionUrl(arbitrum, hash)).toBe(`https://sepolia.arbiscan.io/tx/${hash}`);
+    expect(getAgentDemoTransactionUrl(robinhood, hash)).toBe(
+      `https://explorer.testnet.chain.robinhood.com/tx/${hash}`,
+    );
+    expect(getAgentDemoTransactionUrl(arbitrum, hash)).toBe(
+      `https://sepolia.arbiscan.io/tx/${hash}`,
+    );
   });
 
   it("follows the network the backend reported over the selected chain", () => {
-    expect(getAgentDemoTransactionUrl(arbitrum, hash, "eip155:46630")).toBe(`https://explorer.testnet.chain.robinhood.com/tx/${hash}`);
+    expect(getAgentDemoTransactionUrl(arbitrum, hash, "eip155:46630")).toBe(
+      `https://explorer.testnet.chain.robinhood.com/tx/${hash}`,
+    );
   });
 
   it("returns nothing for a malformed hash", () => {
@@ -81,7 +123,11 @@ describe("getAgentDemoTransactionUrl", () => {
 
 describe("agentDemoRunStorageKey", () => {
   it("keeps the original key for Arbitrum and a separate key for Robinhood", () => {
-    expect(agentDemoRunStorageKey("arbitrum-sepolia")).toBe("digirobotics:agent-demo-run:v1");
-    expect(agentDemoRunStorageKey("robinhood-testnet")).toBe("digirobotics:agent-demo-run:v1:robinhood-testnet");
+    expect(agentDemoRunStorageKey("arbitrum-sepolia")).toBe(
+      "digirobotics:agent-demo-run:v1",
+    );
+    expect(agentDemoRunStorageKey("robinhood-testnet")).toBe(
+      "digirobotics:agent-demo-run:v1:robinhood-testnet",
+    );
   });
 });

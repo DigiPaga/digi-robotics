@@ -1,24 +1,70 @@
 import { ArrowUpRight } from "lucide-react";
 import type { AnchorHTMLAttributes, ReactNode } from "react";
 
-export const shell = "mx-auto w-full max-w-[1440px] px-5 sm:px-8 lg:px-12 xl:px-16";
-export const primaryAction = "transition-all duration-300 ease-out hover:-translate-y-0.5 hover:opacity-90 hover:shadow-[0_10px_30px_-14px_var(--primary)]";
-export const secondaryAction = "transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[var(--primary)]/50 hover:bg-white/5";
-export const inlineLink = "relative transition-colors duration-300 ease-out after:absolute after:inset-x-0 after:bottom-1 after:h-px after:origin-left after:scale-x-0 after:bg-[var(--primary)] after:transition-transform after:duration-300 after:ease-out hover:text-[var(--primary)] hover:after:scale-x-100";
+export const shell =
+  "mx-auto w-full max-w-[1440px] px-5 sm:px-8 lg:px-12 xl:px-16";
+export const primaryAction =
+  "transition-all duration-300 ease-out hover:-translate-y-0.5 hover:opacity-90 hover:shadow-[0_10px_30px_-14px_var(--primary)]";
+export const secondaryAction =
+  "transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[var(--primary)]/50 hover:bg-white/5";
+export const inlineLink =
+  "relative transition-colors duration-300 ease-out after:absolute after:inset-x-0 after:bottom-1 after:h-px after:origin-left after:scale-x-0 after:bg-[var(--primary)] after:transition-transform after:duration-300 after:ease-out hover:text-[var(--primary)] hover:after:scale-x-100";
 
 export function Eyebrow({ children }: { children: ReactNode }) {
-  return <p className="font-mono text-[12px] font-medium uppercase tracking-[0.18em] text-[var(--primary)] sm:text-[13px]">{children}</p>;
+  return (
+    <p className="font-mono text-[12px] font-medium uppercase tracking-[0.18em] text-[var(--primary)] sm:text-[13px]">
+      {children}
+    </p>
+  );
 }
 
-export function SectionTitle({ children, className = "", as = "h2" }: { children: ReactNode; className?: string; as?: "h1" | "h2" | "h3" }) {
+export function SectionTitle({
+  children,
+  className = "",
+  as = "h2",
+}: {
+  children: ReactNode;
+  className?: string;
+  as?: "h1" | "h2" | "h3";
+}) {
   const Tag = as;
-  return <Tag className={`max-w-4xl font-heading text-[clamp(2.45rem,5vw,5.4rem)] font-medium leading-[.94] tracking-[-.045em] text-[var(--foreground)] ${className}`}>{children}</Tag>;
+  return (
+    <Tag
+      className={`max-w-4xl font-heading text-[clamp(2.45rem,5vw,5.4rem)] font-medium leading-[.94] tracking-[-.045em] text-[var(--foreground)] ${className}`}
+    >
+      {children}
+    </Tag>
+  );
 }
 
-export function PrimaryLink({ children, className = "", ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) {
-  return <a className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-6 py-3 text-[15px] font-semibold uppercase tracking-[.04em] text-[var(--page-bg)] ${primaryAction} ${className}`} {...props}>{children}<ArrowUpRight aria-hidden="true" size={18} /></a>;
+export function PrimaryLink({
+  children,
+  className = "",
+  ...props
+}: AnchorHTMLAttributes<HTMLAnchorElement>) {
+  return (
+    <a
+      className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-6 py-3 text-[15px] font-semibold uppercase tracking-[.04em] text-[var(--page-bg)] ${primaryAction} ${className}`}
+      {...props}
+    >
+      {children}
+      <ArrowUpRight aria-hidden="true" size={18} />
+    </a>
+  );
 }
 
-export function SecondaryLink({ children, className = "", ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) {
-  return <a className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/25 px-6 py-3 text-[15px] font-semibold uppercase tracking-[.04em] text-white ${secondaryAction} hover:text-[var(--primary)] ${className}`} {...props}>{children}<ArrowUpRight aria-hidden="true" size={18} /></a>;
+export function SecondaryLink({
+  children,
+  className = "",
+  ...props
+}: AnchorHTMLAttributes<HTMLAnchorElement>) {
+  return (
+    <a
+      className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/25 px-6 py-3 text-[15px] font-semibold uppercase tracking-[.04em] text-white ${secondaryAction} hover:text-[var(--primary)] ${className}`}
+      {...props}
+    >
+      {children}
+      <ArrowUpRight aria-hidden="true" size={18} />
+    </a>
+  );
 }

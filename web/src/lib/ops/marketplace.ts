@@ -2,7 +2,13 @@ import "server-only";
 
 import { gearItems, type GearItem } from "@/data/gear";
 import { getOrderStore, type OrderCount } from "@/lib/order-store";
-import { fetchX402Catalog, fetchX402Health, type FetchOptions, type X402Catalog, type X402Health } from "./x402-server";
+import {
+  fetchX402Catalog,
+  fetchX402Health,
+  type FetchOptions,
+  type X402Catalog,
+  type X402Health,
+} from "./x402-server";
 
 export interface GearSummary {
   total: number;
@@ -30,9 +36,12 @@ export interface MarketplaceSnapshot {
 }
 
 /** Pure. */
-export function summarizeGear(items: readonly GearItem[] = gearItems): GearSummary {
+export function summarizeGear(
+  items: readonly GearItem[] = gearItems,
+): GearSummary {
   const counts = new Map<string, number>();
-  for (const item of items) counts.set(item.category, (counts.get(item.category) ?? 0) + 1);
+  for (const item of items)
+    counts.set(item.category, (counts.get(item.category) ?? 0) + 1);
   return {
     total: items.length,
     priced: items.filter((item) => Boolean(item.price)).length,
@@ -48,7 +57,9 @@ export type OrdersCounter = () => Promise<OrderCount>;
  */
 const countStoredOrders: OrdersCounter = () => getOrderStore().count();
 
-export async function readOrdersSummary(counter: OrdersCounter = countStoredOrders): Promise<OrdersSummary> {
+export async function readOrdersSummary(
+  counter: OrdersCounter = countStoredOrders,
+): Promise<OrdersSummary> {
   try {
     const { total, latestAt } = await counter();
     return { state: total > 0 ? "ok" : "empty", count: total, latestAt };
@@ -62,11 +73,19 @@ export interface MarketplaceOptions extends FetchOptions {
 }
 
 /** Request budget: two calls to the x402 server (/health and the catalog). No RPC. */
-export async function fetchMarketplace(options: MarketplaceOptions = {}): Promise<MarketplaceSnapshot> {
+export async function fetchMarketplace(
+  options: MarketplaceOptions = {},
+): Promise<MarketplaceSnapshot> {
   const [x402, catalog, orders] = await Promise.all([
     fetchX402Health(options),
     fetchX402Catalog(options),
     readOrdersSummary(options.ordersCounter),
   ]);
-  return { refreshedAt: new Date().toISOString(), x402, catalog, gear: summarizeGear(), orders };
+  return {
+    refreshedAt: new Date().toISOString(),
+    x402,
+    catalog,
+    gear: summarizeGear(),
+    orders,
+  };
 }

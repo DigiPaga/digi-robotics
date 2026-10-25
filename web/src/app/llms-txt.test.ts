@@ -19,6 +19,8 @@ describe("/llms.txt", () => {
   });
 
   it("is listed in robots.txt", () => {
-    expect(readFileSync(path.join(webDir, "public", "robots.txt"), "utf8")).toMatch(/^Allow: \/llms\.txt$/m);
+    expect(
+      readFileSync(path.join(webDir, "public", "robots.txt"), "utf8"),
+    ).toMatch(/^Allow: \/llms\.txt$/m);
   });
 });
