@@ -654,3 +654,10 @@ This project is released under the [MIT License](LICENSE).
 *Submission date: October 4, 2026 · Prize pool: $115,000 USD*
 
 </div>
+
+---
+### 🚀 Status
+- **Frontend:** Live at [digirobotics.xyz](https://digirobotics.xyz)
+- **Backend:** x402 Agent running on Arbitrum Sepolia Testnet
+- **Database:** Neon PostgreSQL + Prisma ORM
+- **Buildathon:** Founder House Singapore 2026 Submission ✅
