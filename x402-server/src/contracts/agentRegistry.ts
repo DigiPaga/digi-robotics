@@ -66,6 +66,7 @@ export const agentRegistry = {
   },
 
   async register(agentAddress: string, agentType: string, metadataURI: string): Promise<string | null> {
+    if (!walletClient) {
       logger.error('Wallet client not configured');
       return null;
     }
