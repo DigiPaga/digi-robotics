@@ -51,9 +51,9 @@ export default async function BlogPage() {
           </div>
           <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(280px,420px)] lg:items-end">
             <h1 className="max-w-5xl font-display text-[clamp(3.4rem,9vw,8.4rem)] font-bold leading-[0.82] tracking-[-0.03em]">
-              Field
+              Latest
               <br />
-              <span className="text-[var(--primary)]">notes.</span>
+              <span className="text-[var(--primary)]">Articles.</span>
             </h1>
             <div className="border-l border-[var(--primary)]/55 pl-6 sm:pl-8">
               <p className="text-xl leading-8 text-[var(--muted-foreground)]">
@@ -133,7 +133,7 @@ export default async function BlogPage() {
                 Archive
               </p>
               <h2 className="mt-3 font-heading text-3xl tracking-[-0.035em] sm:text-4xl">
-                Latest observations
+                Explore the archive
               </h2>
             </div>
             <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--muted-foreground)]">
