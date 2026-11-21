@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[4816],{4816:(e,r,a)=>{a.r(r),a.d(r,{default:()=>c});let c={connecting:"Conectando a Smart Account",failedToConnect:"Error al conectar con Smart Account",wrongNetworkScreen:{failedToSwitch:"Error al cambiar de red",subtitle:"Tu cartera no est\xe1 conectada a la red requerida",title:"Red incorrecta"}}}}]);

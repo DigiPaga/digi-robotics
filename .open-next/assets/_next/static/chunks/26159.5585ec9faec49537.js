@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[26159],{26159:(t,e,n)=>{n.r(e),n.d(e,{default:()=>o});let o={connecting:"Connecting to Smart Account",failedToConnect:"Failed to connect to Smart Account",wrongNetworkScreen:{failedToSwitch:"Failed to switch network",subtitle:"Your wallet is not connected to the required network",title:"Wrong Network"}}}}]);

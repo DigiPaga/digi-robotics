@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DigiRobotics — Pitch Deck</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&family=Ubuntu:wght@500&family=Inter+Tight:wght@400&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{ --page:#0e1118; --ink:#ffffff; --body:#d0d0d0; --muted:#a0a0a0; --lime:#84cc16; --hair:rgba(255,255,255,0.08); --dash:rgba(255,255,255,0.2); }
+  *{ box-sizing:border-box; margin:0; padding:0; font-style:normal; }
+  html,body{ height:100%; background:var(--page); color:var(--ink); overflow:hidden; }
+  body{ font-family:'Inter Tight',sans-serif; font-weight:400; }
+  .font-brand{ font-family:'Syne',sans-serif; font-weight:800; text-transform:uppercase; letter-spacing:-0.02em; line-height:0.95; }
+  .font-display{ font-family:'Ubuntu',sans-serif; font-weight:500; letter-spacing:-0.01em; line-height:1.25; }
+  .font-sans{ font-family:'Inter Tight',sans-serif; font-weight:400; line-height:1.5; }
+  .font-mono{ font-family:'JetBrains Mono',monospace; font-weight:500; text-transform:uppercase; letter-spacing:0.15em; }
+  .t1{ font-size:clamp(3.5rem, 6vw, 5rem); }
+  .t2{ font-size:clamp(2.5rem, 4.5vw, 3.5rem); }
+  .t2-lg{ font-size:clamp(2.75rem, 5vw, 4rem); }
+  .t3{ font-size:clamp(1.25rem, 2vw, 1.5rem); color:var(--body); max-width:65ch; line-height:1.5; }
+  .t4{ font-size:clamp(4rem, 8vw, 7rem); line-height:1; }
+  .muted{ color:var(--muted); } .lime{ color:var(--lime); }
+  .hair-t{ border-top:1px solid var(--hair); } .hair-b{ border-bottom:1px solid var(--hair); }
+  #track{ display:flex; transition:transform 650ms cubic-bezier(0.77,0,0.18,1); will-change:transform; }
+  .slide{ min-width:100vw; width:100vw; height:100vh; flex-shrink:0; position:relative; display:flex; flex-direction:column; overflow:hidden; }
+  .img-frame{ border:1px solid var(--hair); background-color:var(--page); overflow:hidden; display:flex; align-items:center; justify-content:center; }
+  .img-frame img{ width:100%; height:100%; object-fit:contain; }
+  .cta{ display:inline-flex; align-items:center; gap:0.75rem; font-family:'JetBrains Mono',monospace; font-weight:500; font-size:0.9rem; letter-spacing:0.18em; text-transform:uppercase; border:1px solid var(--hair); color:var(--ink); padding:1rem 2rem; background:transparent; transition:all 250ms ease; cursor:pointer; text-decoration:none; }
+  .cta:hover{ background:var(--lime); color:var(--page); border-color:var(--lime); }
+  .nav-arrow{ position:fixed; top:50%; transform:translateY(-50%); z-index:50; width:3.25rem; height:3.25rem; display:flex; align-items:center; justify-content:center; background:transparent; border:1px solid var(--hair); color:var(--ink); font-family:'JetBrains Mono',monospace; font-size:1.25rem; cursor:pointer; transition:all 250ms ease; }
+  .nav-arrow:hover{ background:var(--lime); color:var(--page); border-color:var(--lime); }
+  .nav-arrow:disabled{ opacity:0.25; cursor:default; } .nav-arrow:disabled:hover{ background:transparent; color:var(--ink); border-color:var(--hair); }
+  #prev{ left:1.5rem; } #next{ right:1.5rem; }
+  .ledger-row{ display:flex; align-items:baseline; border-top:1px solid var(--hair); padding:1.35rem 0; gap:1.5rem; }
+  .ledger-row:last-of-type{ border-bottom:1px solid var(--hair); }
+  .ledger-label{ flex:0 0 22%; font-family:'JetBrains Mono',monospace; font-weight:500; font-size:0.9rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--muted); }
+  .ledger-items{ flex:1; font-family:'JetBrains Mono',monospace; font-weight:500; font-size:0.95rem; letter-spacing:0.12em; text-transform:uppercase; line-height:2; color:#ffffff; }
+  .step-num{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:0.95rem; letter-spacing:0.18em; color:var(--lime); }
+  .stat-cap{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:0.9rem; letter-spacing:0.14em; color:var(--muted); text-transform:uppercase; margin-top:0.75rem; line-height:1.6; }
+  .page-num{ position:absolute; bottom:1.5rem; right:2rem; font-family:'JetBrains Mono',monospace; font-weight:500; font-size:0.85rem; letter-spacing:0.15em; color:var(--muted); z-index:20; }
+  .logo-img{ position:absolute; top:1.5rem; right:2rem; height:2.5rem; object-fit:contain; z-index:20; }
+  .brand-lockup{ display:flex; align-items:center; gap:0.9rem; border:1px solid var(--hair); padding:0.8rem 1.4rem; }
+  .brand-lockup span{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:0.95rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--ink); }
+  @media (min-width:768px){ .logo-img{ top:1.5rem; right:5rem; } .page-num{ bottom:1.5rem; right:5rem; } }
+  @keyframes drift{ from{ transform:translate(0,0) } to{ transform:translate(3%, -4%) } }
+  .motif circle{ animation:drift 26s ease-in-out infinite alternate; transform-origin:center; }
+  .motif circle:nth-child(2){ animation-duration:34s; animation-direction:alternate-reverse; }
+  .motif circle:nth-child(3){ animation-duration:41s; }
+  .reveal{ opacity:0; transform:translateY(28px); transition:opacity 700ms cubic-bezier(0.22,0.61,0.36,1), transform 700ms cubic-bezier(0.22,0.61,0.36,1); }
+  .slide.active .reveal{ opacity:1; transform:translateY(0); }
+  .slide.active .reveal.d1{ transition-delay:120ms; } .slide.active .reveal.d2{ transition-delay:240ms; }
+  .slide.active .reveal.d3{ transition-delay:360ms; } .slide.active .reveal.d4{ transition-delay:480ms; }
+  .slide.active .reveal.d5{ transition-delay:600ms; } .slide.active .reveal.d6{ transition-delay:720ms; }
+  #progress-wrap{ position:fixed; top:0; left:0; right:0; height:2px; z-index:60; background:rgba(255,255,255,0.06); }
+  #progress{ height:100%; background:var(--lime); width:10%; transition:width 650ms cubic-bezier(0.77,0,0.18,1); }
+  @media (max-width:767px){ .ledger-row{ flex-direction:column; gap:0.5rem; } .ledger-label{ flex-basis:auto; } .nav-arrow{ width:2.75rem; height:2.75rem; top:auto; bottom:1rem; transform:none; } #prev{ left:1rem; } #next{ right:1rem; } }
+  .wordmark{ position:absolute; top:1.5rem; left:2rem; z-index:30; font-family:'Syne',sans-serif; font-weight:800; text-transform:uppercase; letter-spacing:-0.02em; line-height:1; color:var(--lime); font-size:clamp(2.25rem, 4vw, 3.25rem); }
+  @media (min-width:768px){ .wordmark{ top:1.75rem; left:5rem; } }
+  .check-row{ display:flex; align-items:flex-start; gap:1rem; padding:1rem 0; }
+  .check-row .chk{ color:var(--lime); font-size:1.25rem; line-height:1.4; flex-shrink:0; }
+  .check-row .chk-txt{ font-family:'Inter Tight',sans-serif; font-weight:400; font-size:clamp(1.05rem, 1.6vw, 1.25rem); line-height:1.45; color:var(--ink); }
+  .pend-row{ display:flex; align-items:flex-start; gap:1rem; padding:0.85rem 0; }
+  .pend-row .pend{ color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:0.95rem; letter-spacing:0.18em; flex-shrink:0; margin-top:0.2rem; }
+  .pend-row .pend-txt{ font-family:'Inter Tight',sans-serif; font-weight:400; font-size:clamp(1rem, 1.5vw, 1.15rem); line-height:1.45; color:var(--body); }
+</style>
+<base target="_blank">
+</head>
+<body>
+<div id="progress-wrap"><div id="progress"></div></div>
+<button class="nav-arrow" id="prev" aria-label="Previous slide">&#8592;</button>
+<button class="nav-arrow" id="next" aria-label="Next slide">&#8594;</button>
+<div class="overflow-x-hidden w-screen h-screen" id="viewport">
+<div id="track">
+
+<!-- ================= SLIDE 01: THE HOOK ================= -->
+<section class="slide">
+  <span class="wordmark reveal">DigiRobotics</span>
+  <span class="page-num"></span>
+  <svg class="motif" style="position:absolute; right:-12vw; top:-18vh; width:55vw; height:55vw; opacity:0.05; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2">
+    <circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="34"/><circle cx="50" cy="50" r="20"/>
+  </svg>
+  <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-10 px-8 md:px-20 pt-40 md:pt-48 pb-10 items-center">
+    <div class="md:col-span-7 flex flex-col gap-6">
+      <h1 class="font-brand t1 reveal d1">Record Videos<br/>for Robots,<br/><span class="lime">Get Paid in USDG Stablecoin</span></h1>
+      <p class="font-sans reveal d2" style="font-size:clamp(1.3rem, 2vw, 1.6rem); color:var(--ink); line-height:1.4;">The <span class="lime">World&rsquo;s first</span> stablecoin-native marketplace for Physical AI.</p>
+      <p class="font-sans t3 reveal d3">We turn first-person audio-visual tutorials into verified real-world data collection for robots to function. Automated review and payout by x402 and paymaster system.</p>
+      <div class="flex flex-wrap items-center gap-4 reveal d3">
+        <div class="brand-lockup">
+          <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/digirobotics/partners/arbitrum.png" alt="Arbitrum" style="height: 4.2rem; width: auto; object-fit: contain;">
+        </div>
+        <div class="brand-lockup">
+          <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/digirobotics/partners/robinhood-chain.png" alt="Robinhood Chain" style="height: 1.5rem; width: auto; object-fit: contain;">
+        </div>
+        <div class="brand-lockup">
+          <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/digirobotics/partners/zerodev.png" alt="ZeroDev" style="height: 1.5rem; width: auto; object-fit: contain;">
+        </div>
+        <div class="brand-lockup">
+          <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/digirobotics/partners/paxos.png" alt="Paxos" style="height: 1.5rem; width: auto; object-fit: contain;">
+        </div>
+      </div>
+    </div>
+    <div class="md:col-span-5 h-72 md:h-[69%] reveal d2 img-frame">
+      <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/pitch-deck/slide-01-autonomous-commerce.jpg" alt="Autonomous Commerce" class="p-4">
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 02: PROBLEM ================= -->
+<section class="slide">
+  <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
+  <span class="page-num"></span>
+  <svg class="motif" style="position:absolute; left:-15vw; bottom:-22vh; width:50vw; height:50vw; opacity:0.05; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2">
+    <circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="30"/>
+  </svg>
+  <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-10 px-8 md:px-20 pt-40 md:pt-48 pb-10 items-center">
+    <div class="md:col-span-5 h-72 md:h-[63%] order-2 md:order-1 reveal d2 img-frame">
+      <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/pitch-deck/slide-02-problem.png" alt="Problem" class="p-4">
+    </div>
+    <div class="md:col-span-7 flex flex-col gap-7 order-1 md:order-2">
+      <h1 class="font-brand t1 lime reveal absolute z-10 top-14 left-8 md:top-16 md:left-20">Problem</h1>
+      <h2 class="font-brand t2 reveal d1">Physical AI needs billions of human tutorials.<br/><span class="lime">5.4 billion smartphones make influencers instead.</span></h2>
+      <p class="font-sans t3 reveal d2">Traditional content creation is saturated, and capture platforms are locked to a single payout jurisdiction. Meanwhile, the global labor force holds the exact first-person data humanoid robots need to learn &mdash; but they lack embedded wallets, and legacy data marketplaces are too complex, non-agentic, and riddled with fiat friction.</p>
+      <div class="reveal d3 hair-t pt-8" style="align-self:flex-start;">
+        <p class="font-brand lime" style="font-size:clamp(3rem, 6vw, 5rem); line-height:1;">1.5 Billion</p>
+        <p class="stat-cap text-xl">People in the global gig economy seeking instant, accessible side income.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 03: SOLUTION ================= -->
+<section class="slide">
+  <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
+  <span class="page-num"></span>
+  <svg class="motif" style="position:absolute; right:-10vw; bottom:-25vh; width:48vw; height:48vw; opacity:0.04; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2">
+    <circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="32"/><circle cx="50" cy="50" r="16"/>
+  </svg>
+  <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-10 px-8 md:px-20 pt-40 md:pt-48 pb-10 items-center">
+    <div class="md:col-span-7 flex flex-col gap-7">
+      <h1 class="font-brand t1 lime reveal absolute z-10 top-14 left-8 md:top-16 md:left-20">Solution</h1>
+      <h2 class="font-brand t2 reveal d1">DigiRobotics:<br/><span class="lime t2-lg">Capture. Train. Earn in $USDG</span></h2>
+      <div class="flex flex-col gap-6 reveal d2">
+        <div class="flex items-start gap-4">
+          <span class="step-num" style="margin-top:0.35rem;">01</span>
+          <p class="font-sans" style="color:var(--body); font-size:clamp(1.15rem, 1.9vw, 1.45rem); line-height:1.55;"><strong style="color:var(--ink);">Borderless payouts:</strong> Zero-friction embedded wallets (ZeroDev). No seed phrases, no borders. Creators get paid globally.</p>
+        </div>
+        <div class="flex items-start gap-4">
+          <span class="step-num" style="margin-top:0.35rem;">02</span>
+          <p class="font-sans" style="color:var(--body); font-size:clamp(1.15rem, 1.9vw, 1.45rem); line-height:1.55;"><strong style="color:var(--ink);">Agentic Commerce:</strong> Autonomous AI agents browse, verify, sell and purchase data 24/7 using the x402 protocol.</p>
+        </div>
+        <div class="flex items-start gap-4">
+          <span class="step-num" style="margin-top:0.35rem;">03</span>
+          <p class="font-sans" style="color:var(--body); font-size:clamp(1.15rem, 1.9vw, 1.45rem); line-height:1.55;"><strong style="color:var(--ink);">Robotics Knowledge Tokenization:</strong> Storing the new most valuable data, while creating an agentic marketplace.</p>
+        </div>
+      </div>
+    </div>
+    <div class="md:col-span-5 h-72 md:h-[80%] reveal d2 img-frame">
+      <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/pitch-deck/slide-03-solution.jpg" alt="Solution" class="p-4">
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 04: WHY NOW? ================= -->
+<section class="slide">
+  <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
+  <span class="page-num"></span>
+  <svg class="motif" style="position:absolute; left:-12vw; top:-15vh; width:52vw; height:52vw; opacity:0.05; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2">
+    <circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="30"/>
+  </svg>
+  <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-10 px-8 md:px-20 pt-40 md:pt-48 pb-10 items-center">
+    <div class="md:col-span-5 h-72 md:h-[69%] order-2 md:order-1 reveal d2 img-frame">
+      <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/pitch-deck/slide-04-why-now.jpg" alt="Why Now" class="p-4">
+    </div>
+    <div class="md:col-span-7 flex flex-col gap-7 order-1 md:order-2">
+      <h1 class="font-brand t1 lime reveal absolute z-10 top-14 left-8 md:top-16 md:left-20">Why Now?</h1>
+      <h2 class="font-brand t2 reveal d1">Robots Are Shipping.<br/><span class="lime">Their Data Isn&rsquo;t.</span></h2>
+      <p class="font-sans reveal d1" style="font-size:clamp(1.1rem, 1.7vw, 1.35rem); color:var(--muted); margin-top:-0.5rem; font-style:italic;">The <span class="lime">Physical AI</span> Inflection Point.</p>
+      <div class="hair-t pt-6 reveal d2" style="border-left:3px solid var(--lime); padding-left:1.5rem;">
+        <p class="font-sans" style="color:var(--body); font-size:clamp(1.2rem, 1.9vw, 1.5rem); line-height:1.5;">&ldquo;Physical AI represents a $40 to $50 trillion market opportunity. This is bigger than the internet itself.&rdquo;</p>
+        <p class="font-mono lime" style="font-size:0.95rem; letter-spacing:0.18em; margin-top:0.75rem;">&mdash; Jensen Huang, Nvidia CEO (2026)</p>
+      </div>
+      <div class="hair-t pt-6 reveal d3" style="border-left:3px solid var(--lime); padding-left:1.5rem;">
+        <p class="font-sans" style="color:var(--body); font-size:clamp(1.2rem, 1.9vw, 1.5rem); line-height:1.5;">&ldquo;Optimus humanoid robots could make Tesla worth $25 trillion. Humanoid robots will be the biggest product of all time.&rdquo;</p>
+        <p class="font-mono lime" style="font-size:0.95rem; letter-spacing:0.18em; margin-top:0.75rem;">&mdash; Elon Musk, Tesla CEO (2026)</p>
+      </div>
+      <p class="font-sans t3 reveal d4">Humanoid funding is at an all-time high. Vision-action models are converging. The missing input is <strong style="color:var(--ink);">egocentric human data at planetary scale</strong> &mdash; that is the bottleneck we unlock.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 05: MARKET SIZE ================= -->
+<section class="slide">
+  <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
+  <span class="page-num"></span>
+  <svg class="motif" style="position:absolute; right:-14vw; top:-16vh; width:50vw; height:50vw; opacity:0.04; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2">
+    <circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="32"/><circle cx="50" cy="50" r="16"/>
+  </svg>
+  <div class="flex-1 flex flex-col gap-6 px-8 md:px-20 pt-40 md:pt-48 pb-10 items-center justify-center">
+    <div class="w-full flex flex-col gap-3">
+      <h1 class="font-brand t1 lime reveal absolute z-10 top-14 left-8 md:top-16 md:left-20">Market Size</h1>
+      <h2 class="font-brand t2 reveal d1">A Massive, Underserved Market</h2>
+    </div>
+    <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-5 reveal d2">
+      <div class="text-center p-7" style="border:1px solid var(--hair); border-radius:0.5rem; background:rgba(255,255,255,0.02);">
+        <p class="font-brand" style="font-size:clamp(1.5rem, 2.5vw, 2rem); color:var(--muted);">TAM</p>
+        <p class="font-brand lime" style="font-size:clamp(2.25rem, 4vw, 3.25rem); line-height:1.1; margin-top:0.4rem;">$1.5 Trillion</p>
+        <p class="font-sans" style="color:var(--body); font-size:1rem; margin-top:0.6rem; line-height:1.4;">Total annual global freelance economy payment volume ($500B&ndash;$1.5T range).</p>
+      </div>
+      <div class="text-center p-7" style="border:1px solid var(--hair); border-radius:0.5rem; background:rgba(255,255,255,0.02);">
+        <p class="font-brand" style="font-size:clamp(1.5rem, 2.5vw, 2rem); color:var(--muted);">SAM</p>
+        <p class="font-brand lime" style="font-size:clamp(2.25rem, 4vw, 3.25rem); line-height:1.1; margin-top:0.4rem;">$674 Billion</p>
+        <p class="font-sans" style="color:var(--body); font-size:1rem; margin-top:0.6rem; line-height:1.4;">Global gig economy (rideshare, delivery, professional services).</p>
+      </div>
+      <div class="text-center p-7" style="border:1px solid var(--hair); border-radius:0.5rem; background:rgba(255,255,255,0.02);">
+        <p class="font-brand" style="font-size:clamp(1.5rem, 2.5vw, 2rem); color:var(--muted);">SOM</p>
+        <p class="font-brand lime" style="font-size:clamp(2.25rem, 4vw, 3.25rem); line-height:1.1; margin-top:0.4rem;">$9.9 Billion</p>
+        <p class="font-sans" style="color:var(--body); font-size:1rem; margin-top:0.6rem; line-height:1.4;">Online freelance platforms market (platform &amp; commission revenue).</p>
+      </div>
+    </div>
+    <div class="w-full reveal d3 grid grid-cols-1 md:grid-cols-3 gap-4" style="border:1px solid var(--hair); padding:1.25rem 1.5rem; background:rgba(255,255,255,0.015);">
+      <div class="flex flex-col gap-1">
+        <p class="font-mono" style="font-size:0.78rem; color:var(--muted);">Cross-Border Payments</p>
+        <p class="font-sans" style="color:var(--ink); font-size:0.95rem; line-height:1.4;">$554.4B digital-nomad cross-border volume projected by 2034 (CAGR 8.5%).</p>
+      </div>
+      <div class="flex flex-col gap-1 md:hair-t md:pt-0" style="border-left:none;">
+        <p class="font-mono" style="font-size:0.78rem; color:var(--muted);">Freelancer Population</p>
+        <p class="font-sans" style="color:var(--ink); font-size:0.95rem; line-height:1.4;">72.9M US freelancers driving billions of cross-border transactions annually.</p>
+      </div>
+      <div class="flex flex-col gap-1">
+        <p class="font-mono" style="font-size:0.78rem; color:var(--muted);">Crypto Adoption</p>
+        <p class="font-sans" style="color:var(--ink); font-size:0.95rem; line-height:1.4;">85% of Vietnam freelancers own digital currencies; 84% of Argentina open to crypto payouts.</p>
+      </div>
+    </div>
+    <p class="font-display reveal d4" style="font-size:clamp(1.3rem, 2.1vw, 1.75rem); text-align:center; margin-top:0.5rem;">
+      We are not just building a platform. We are unlocking the <span class="lime">largest untapped data source</span> on the planet.
+    </p>
+  </div>
+</section>
+
+<!-- ================= SLIDE 06: OUR UNFAIR ADVANTAGE ================= -->
+<section class="slide">
+  <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
+  <span class="page-num"></span>
+  <svg class="motif" style="position:absolute; right:-14vw; top:-16vh; width:50vw; height:50vw; opacity:0.04; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2">
+    <circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="32"/><circle cx="50" cy="50" r="16"/>
+  </svg>
+  <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-10 px-8 md:px-20 pt-40 md:pt-48 pb-10 items-center">
+    <h1 class="font-brand t1 lime reveal absolute z-10 top-14 left-8 md:top-16 md:left-20">Our Unfair<br/>Advantage</h1>
+    <div class="md:col-span-7 flex flex-col gap-4 justify-center">
+      <h2 class="font-brand t2 reveal d1">The Wedge &amp; The Moat</h2>
+      <div class="reveal d2" style="border-left:3px solid var(--lime); padding-left:1.5rem;">
+        <p class="font-sans" style="color:var(--ink); font-size:clamp(1rem, 1.5vw, 1.2rem); line-height:1.45;"><strong style="color:var(--lime);">Borderless payouts.</strong> No limitations &mdash; with stablecoins we enable global distribution of rewards.</p>
+      </div>
+      <div class="reveal d3 hair-t pt-4" style="border-left:3px solid var(--lime); padding-left:1.5rem;">
+        <p class="font-sans" style="color:var(--body); font-size:clamp(1rem, 1.5vw, 1.2rem); line-height:1.45;"><strong style="color:var(--lime);">Real agentic commerce.</strong> Our agents are learning and continuously improving the collection and revision of data.</p>
+      </div>
+      <div class="reveal d4 hair-t pt-4" style="border-left:3px solid var(--lime); padding-left:1.5rem;">
+        <p class="font-sans" style="color:var(--body); font-size:clamp(1rem, 1.5vw, 1.2rem); line-height:1.45;"><strong style="color:var(--lime);">Tailored campaigns.</strong> Campaigns are waiting in multiple countries and languages &mdash; our agents tailor content to the requested criteria.</p>
+      </div>
+      <div class="reveal d5 hair-t pt-4" style="border-left:3px solid var(--lime); padding-left:1.5rem;">
+        <p class="font-sans" style="color:var(--body); font-size:clamp(1rem, 1.5vw, 1.2rem); line-height:1.45;"><strong style="color:var(--lime);">13+ on/off ramps.</strong> We enable fiat &harr; stablecoin on-off ramps in 13+ countries.</p>
+      </div>
+      <div class="reveal d6 hair-t pt-4" style="border-left:3px solid var(--lime); padding-left:1.5rem;">
+        <p class="font-sans" style="color:var(--body); font-size:clamp(1rem, 1.5vw, 1.2rem); line-height:1.45;"><strong style="color:var(--lime);">x402 multi-sig custody.</strong> Robot manufacturers get an x402 AI agent system with multi-signature controls to self-guard and distribute payments.</p>
+      </div>
+    </div>
+    <div class="md:col-span-5 h-72 md:h-[80%] reveal d3 img-frame">
+      <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/refs/heads/main/web/public/pitch-deck/slide-06-flywheel.jpg" alt="DigiRobotics Flywheel" class="p-4">
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 07: WHY WE WIN ================= -->
+<section class="slide">
+  <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
+  <span class="page-num"></span>
+  <svg class="motif" style="position:absolute; right:-16vw; top:-10vh; width:50vw; height:50vw; opacity:0.04; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2">
+    <circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="30"/>
+  </svg>
+  <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-10 px-8 md:px-20 pt-40 md:pt-48 pb-10 items-center">
+    <div class="md:col-span-7 flex flex-col gap-7">
+      <h1 class="font-brand t1 lime reveal absolute z-10 top-14 left-8 md:top-16 md:left-20">Why We Win</h1>
+      <h2 class="font-brand t2 reveal d1">Fast execution.<br/><span class="lime">Global distribution. Automated commerce.</span></h2>
+      <div class="reveal d2" style="border:1px solid var(--hair); border-radius:0.5rem; padding:1.75rem; background:rgba(255,255,255,0.02);">
+        <div class="flex items-start gap-4 mb-5">
+          <span style="color:#ef4444; font-size:1.5rem; line-height:1;">&#10005;</span>
+          <div>
+            <p class="font-brand" style="font-size:1.2rem; color:var(--muted);">Traditional Data Marketplaces</p>
+            <p class="font-sans" style="color:var(--body); font-size:1.1rem; margin-top:0.35rem;">High fiat friction, small scale, manual approval, no AI agents.</p>
+          </div>
+        </div>
+        <div class="hair-t pt-5 flex items-start gap-4">
+          <span style="color:var(--lime); font-size:1.5rem; line-height:1;">&#10003;</span>
+          <div>
+            <p class="font-brand" style="font-size:1.2rem; color:var(--lime);">DigiRobotics</p>
+            <p class="font-sans" style="color:var(--ink); font-size:1.1rem; margin-top:0.35rem;">Ready to scale borderless, instant stablecoin payouts, zero-friction onboarding, native x402 agentic purchasing. For humans and AI agents. Available for everyone.</p>
+          </div>
+        </div>
+      </div>
+      <p class="font-display reveal d3" style="font-size:1.5rem;">Your camera is now a money printer. Literally.</p>
+    </div>
+    <div class="md:col-span-5 h-72 md:h-[80%] reveal d2 img-frame">
+      <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/pitch-deck/slide-06-innovation.jpg" alt="Innovation" class="p-4">
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 08: AGENTS ================= -->
+<section class="slide">
+  <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
+  <span class="page-num"></span>
+  <svg class="motif" style="position:absolute; left:-14vw; bottom:-20vh; width:54vw; height:54vw; opacity:0.05; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2">
+    <circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="30"/><circle cx="50" cy="50" r="14"/>
+  </svg>
+  <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-10 px-8 md:px-20 pt-40 md:pt-48 pb-10 items-center">
+    <div class="md:col-span-5 h-72 md:h-[63%] order-2 md:order-1 reveal d2 img-frame">
+      <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/pitch-deck/slide-07-agents.jpg" alt="Agents" class="p-4">
+    </div>
+    <div class="md:col-span-7 flex flex-col gap-7 order-1 md:order-2">
+      <h1 class="font-brand t1 lime reveal absolute z-10 top-14 left-8 md:top-16 md:left-20">Agents</h1>
+      <h2 class="font-brand t2 reveal d1">DigiAgent: The <span class="lime">24/7</span> Autonomous Matchmaker</h2>
+      <p class="font-sans t3 reveal d2">Our AI agent doesn&rsquo;t just wait for orders. It actively scouts and outreaches to robotics R&amp;D departments, inviting tailored data bounties. We onboard them to fund their wallet and assign a budget for specific data requests, streaming to the Community of Robotic content creators. It autonomously executes x402 micropayments. It&rsquo;s a CRM that never sleeps.</p>
+      <a href="#" class="cta reveal d3" style="align-self:flex-start;">Request Specific Knowledge &#8594;</a>
+      <p class="font-display reveal d4" style="font-size:1.5rem;">From shoe-sized robots to industrial-grade robotics. All welcome.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 09: HOW IT WORKS ================= -->
+<section class="slide">
+  <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
+  <span class="page-num"></span>
+  <svg class="motif" style="position:absolute; right:-12vw; bottom:-18vh; width:50vw; height:50vw; opacity:0.04; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2">
+    <circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="30"/>
+  </svg>
+  <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-10 px-8 md:px-20 pt-40 md:pt-48 pb-10 items-center">
+    <div class="md:col-span-7 flex flex-col gap-7">
+      <h1 class="font-brand t1 lime reveal absolute z-10 top-14 left-8 md:top-16 md:left-20">How It<br/>Works</h1>
+      <h2 class="font-brand t2 reveal d1">Frictionless Onboarding.<br/><span class="lime t2-lg">Three Steps.</span></h2>
+      <div class="flex flex-col reveal d2">
+        <div class="hair-t py-5" style="display:flex; gap:1.5rem; align-items:baseline;"><span class="step-num">01</span><p class="font-sans t3" style="max-width:none;"><strong style="color:var(--ink);">Login &mdash;</strong> Use Google or email, instant embedded paymaster wallet.</p></div>
+        <div class="hair-t py-5" style="display:flex; gap:1.5rem; align-items:baseline;"><span class="step-num">02</span><p class="font-sans t3" style="max-width:none;"><strong style="color:var(--ink);">Record &mdash;</strong> System captures video with visual and scanTech recognition for first-person tasks.</p></div>
+        <div class="hair-t hair-b py-5" style="display:flex; gap:1.5rem; align-items:baseline;"><span class="step-num">03</span><p class="font-sans t3" style="max-width:none;"><strong style="color:var(--ink);">Post &amp; Earn &mdash;</strong> User upload, build their database and wait for a buyer, get paid instantly.</p></div>
+      </div>
+    </div>
+    <div class="md:col-span-5 h-72 md:h-[80%] reveal d2 img-frame">
+      <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/pitch-deck/slide-08-how-it-works.jpg" alt="How It Works" class="p-4">
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 10: TEAM ================= -->
+<section class="slide">
+  <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
+  <span class="page-num"></span>
+  <svg class="motif" style="position:absolute; right:-14vw; top:-12vh; width:52vw; height:52vw; opacity:0.05; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2">
+    <circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="28"/>
+  </svg>
+  <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-10 px-8 md:px-20 pt-40 md:pt-48 pb-10 items-center">
+    <div class="md:col-span-7 flex flex-col gap-7">
+      <h1 class="font-brand t1 lime reveal absolute z-10 top-14 left-8 md:top-16 md:left-20">Team</h1>
+      <h2 class="font-brand t2 reveal d1">The <span class="lime">Builders</span></h2>
+      <div class="reveal d2">
+        <div class="hair-t py-5 flex items-center justify-between gap-6 flex-wrap">
+          <span class="font-sans" style="color:var(--ink); font-size:1.3rem;">Oscar &mdash; Product Design &amp; Development</span>
+          <a href="https://github.com/ozkite" class="flex items-center gap-3" style="text-decoration:none;"><span class="font-mono" style="font-size:0.95rem; color:var(--muted);">@ozkite</span><svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" style="color:var(--muted)"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg></a>
+        </div>
+        <div class="hair-t py-5 flex items-center justify-between gap-6 flex-wrap">
+          <span class="font-sans" style="color:var(--ink); font-size:1.3rem;">Otto &mdash; Full Stack AI & Web3 &amp; Deployment</span>
+          <a href="https://github.com/ottodevs" class="flex items-center gap-3" style="text-decoration:none;"><span class="font-mono" style="font-size:0.95rem; color:var(--muted);">@ottodevs</span><svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" style="color:var(--muted)"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg></a>
+        </div>
+        <div class="hair-t hair-b py-5 flex items-center justify-between gap-6 flex-wrap">
+          <span class="font-sans" style="color:var(--ink); font-size:1.3rem;">DigiAgent &mdash; Research &amp; Technical Assistance <span class="font-mono muted" style="font-size:0.8rem;">(autonomous AI team member)</span></span>
+          <a href="https://github.com/digiagent" class="flex items-center gap-3" style="text-decoration:none;"><span class="font-mono lime" style="font-size:0.95rem;">@digiagent</span><svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" style="color:var(--muted)"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg></a>
+        </div>
+      </div>
+      <p class="reveal d3" style="font-size:1.05rem;"><span class="font-mono muted" style="font-size:0.95rem; letter-spacing:0.15em;">Hosted at </span><a href="https://digirobotics.xyz" class="font-mono lime" style="font-size:0.95rem; letter-spacing:0.15em;" target="_blank">digirobotics.xyz &#8594;</a></p>
+      <p class="font-display reveal d4" style="font-size:1.5rem;">We&rsquo;re not building a platform. We&rsquo;re building the <span class="lime">agentic economy</span>.</p>
+    </div>
+    <div class="md:col-span-5 h-72 md:h-[63%] reveal d2 img-frame">
+      <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/pitch-deck/slide-10-team.jpg" alt="Team" class="p-4">
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 11: PRODUCT STAGE ================= -->
+<section class="slide">
+  <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
+  <span class="page-num"></span>
+  <svg class="motif" style="position:absolute; right:-14vw; top:-16vh; width:50vw; height:50vw; opacity:0.04; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2">
+    <circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="32"/><circle cx="50" cy="50" r="16"/>
+  </svg>
+  <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-10 px-8 md:px-20 pt-40 md:pt-48 pb-10 items-center">
+    <div class="md:col-span-12 flex flex-col gap-6">
+      <h1 class="font-brand t1 lime reveal absolute z-10 top-14 left-8 md:top-16 md:left-20">Product<br/>Stage</h1>
+      <h2 class="font-brand t2 reveal d1">Live &amp; <span class="lime">Shipping</span></h2>
+      <div class="reveal d2 flex flex-col" style="border:1px solid var(--hair); padding:1.25rem 1.5rem; background:rgba(255,255,255,0.02);">
+        <div class="check-row hair-b"><span class="chk">&#10003;</span><span class="chk-txt">Audio-Visual Capture system for mobile browser</span></div>
+        <div class="check-row hair-b"><span class="chk">&#10003;</span><span class="chk-txt">Marketplace and gear shop with $USDG &mdash; live at <span class="lime">digirobotics.xyz</span></span></div>
+        <div class="check-row hair-b"><span class="chk">&#10003;</span><span class="chk-txt">Embedded paymaster wallet login (ZeroDev + Thirdweb)</span></div>
+        <div class="check-row hair-b"><span class="chk">&#10003;</span><span class="chk-txt">Stablecoin checkout on testnet (mUSDG)</span></div>
+        <div class="check-row"><span class="chk">&#10003;</span><span class="chk-txt">x402 challenge, signature, on-chain settlement, and resource unlock &mdash; live on two testnets</span></div>
+      </div>
+      <div class="reveal d3 flex flex-col" style="border-left:3px solid var(--lime); padding-left:1.5rem;">
+        <div class="pend-row"><span class="pend">&rarr;</span><span class="pend-txt">Preparing campaigns for the first robot manufacturers.</span></div>
+        <div class="pend-row"><span class="pend">&rarr;</span><span class="pend-txt"><strong style="color:var(--ink);">First paid campaign is open for pre-registrations.</strong></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 12: TECH STACK ================= -->
+<section class="slide">
+  <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/digirobotics/brand/digirobotics-logo.png" class="logo-img reveal" alt="DigiRobotics Logo">
+  <span class="page-num"></span>
+  <svg class="motif" style="position:absolute; left:-10vw; top:-20vh; width:46vw; height:46vw; opacity:0.05; pointer-events:none;" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="0.2">
+    <circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="32"/>
+  </svg>
+  <div class="flex-1 flex flex-col gap-6 px-8 md:px-20 pt-20 md:pt-24 pb-10">
+    <h2 class="font-brand t2 lime reveal d1">The Time is Now</h2>
+    <p class="font-display reveal d2" style="font-size:clamp(1.375rem, 2.2vw, 1.875rem);">Robotic Training &amp; Education Economy at Scale</p>
+    <div class="mt-2 reveal d3">
+      <div class="ledger-row"><span class="ledger-label">L2 &amp; Payments</span><span class="ledger-items">Arbitrum &middot; Robinhood Chain &middot; <span class="lime">x402 Protocol</span> &middot; Paxos (USDG/PYUSD)</span></div>
+      <div class="ledger-row"><span class="ledger-label">Autonomy &amp; Identity</span><span class="ledger-items">ZeroDev (ERC-4337, session keys) &middot; ERC-8004 &middot; EIP-712 / EIP-1271</span></div>
+      <div class="ledger-row"><span class="ledger-label">Infrastructure</span><span class="ledger-items">Next.js &middot; Solidity &middot; Prisma &middot; IPFS/Pinata &middot; QuickNode RPC &middot; Dune Analytics</span></div>
+    </div>
+    <div class="reveal d4 w-full mb-10" style="max-height:50vh;">
+      <div class="img-frame w-full h-full" style="max-height:50vh;">
+        <img src="https://raw.githubusercontent.com/DigiPaga/digi-robotics/main/web/public/pitch-deck/slide-09-tech.jpg" alt="Tech Architecture" class="p-2" style="max-height:48vh; width:auto; max-width:100%;">
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+</div>
+<script>
+(function(){
+  const track = document.getElementById('track');
+  const slides = Array.from(track.children);
+  const total = slides.length;
+  const prev = document.getElementById('prev');
+  const next = document.getElementById('next');
+  const progress = document.getElementById('progress');
+  let index = 0;
+  function go(i){
+    index = Math.max(0, Math.min(total - 1, i));
+    track.style.transform = 'translateX(-' + (index * 100) + 'vw)';
+    slides.forEach((s, k) => {
+      s.classList.toggle('active', k === index);
+      const pn = s.querySelector('.page-num');
+      if (pn) pn.textContent = String(k + 1).padStart(2, '0') + ' / ' + String(total).padStart(2, '0');
+    });
+    progress.style.width = ((index + 1) / total * 100) + '%';
+    prev.disabled = index === 0;
+    next.disabled = index === total - 1;
+  }
+  prev.addEventListener('click', () => go(index - 1));
+  next.addEventListener('click', () => go(index + 1));
+  document.addEventListener('keydown', (e) => { if (e.key === 'ArrowLeft') go(index - 1); if (e.key === 'ArrowRight') go(index + 1); });
+  let startX = null;
+  document.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', (e) => { if (startX === null) return; const dx = e.changedTouches[0].clientX - startX; if (Math.abs(dx) > 60) go(index + (dx < 0 ? 1 : -1)); startX = null; }, {passive:true});
+  go(0);
+})();
+</script>
+</body>
+</html>

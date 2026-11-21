@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" role="img" aria-labelledby="title description">
+  <title id="title">Head strap POV capture gear</title>
+  <desc id="description">A simplified head profile with a secure strap, forward-facing camera, and first-person field-of-view lines.</desc>
+  <defs>
+    <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M30 0H0V30" fill="none" stroke="#84cc16" stroke-opacity=".08"/></pattern>
+    <linearGradient id="profile" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#161c29"/><stop offset="1" stop-color="#0e1118"/></linearGradient>
+  </defs>
+  <rect width="600" height="400" rx="24" fill="#0e1118"/>
+  <rect width="600" height="400" rx="24" fill="url(#grid)"/>
+  <path d="M34 86V40h46M520 40h46v46M34 276v46h46M520 322h46v-46" fill="none" stroke="#84cc16" stroke-width="2"/>
+  <text x="38" y="30" fill="#84cc16" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" letter-spacing="2">GEAR / 03</text>
+  <path d="M182 282c-16-24-25-57-25-94 0-79 55-137 132-137 66 0 116 41 127 100l35 35-35 20-8 66c-32 7-62 3-87-14l-7 64H199z" fill="url(#profile)" stroke="#ffffff" stroke-opacity=".44" stroke-width="2"/>
+  <path d="M173 131c72-35 153-33 239 7M177 132c-3 54 5 99 23 136" fill="none" stroke="#84cc16" stroke-width="13" stroke-linecap="round"/>
+  <path d="M284 56v77" stroke="#84cc16" stroke-width="12"/>
+  <rect x="255" y="92" width="91" height="67" rx="12" fill="#0e1118" stroke="#84cc16" stroke-width="3"/>
+  <circle cx="316" cy="126" r="20" fill="#161c29" stroke="#ffffff" stroke-opacity=".6" stroke-width="2"/>
+  <circle cx="311" cy="121" r="6" fill="#ffffff" fill-opacity=".32"/>
+  <circle cx="274" cy="112" r="5" fill="#84cc16"/>
+  <path d="M346 108l176-48M346 144l190 41M346 126h174" fill="none" stroke="#84cc16" stroke-opacity=".34" stroke-width="2" stroke-dasharray="7 8"/>
+  <path d="M522 60l-21-1 6 21M536 185l-20 5-1-21" fill="none" stroke="#84cc16" stroke-width="2"/>
+  <path d="M382 172h27" stroke="#ffffff" stroke-opacity=".35" stroke-width="2"/>
+  <text x="431" y="238" fill="#ffffff" fill-opacity=".56" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">EYE-LEVEL POV</text>
+  <text x="431" y="258" fill="#84cc16" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">FORWARD AXIS</text>
+  <rect x="34" y="340" width="532" height="1" fill="#ffffff" fill-opacity=".12"/>
+  <text x="34" y="370" fill="#ffffff" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="23" font-weight="700" letter-spacing="1">HEAD STRAP</text>
+  <text x="566" y="370" text-anchor="end" fill="#84cc16" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" letter-spacing="1">POV CAPTURE</text>
+  <text x="566" y="392" text-anchor="end" fill="#ffffff" fill-opacity=".34" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">DigiRobotics</text>
+</svg>

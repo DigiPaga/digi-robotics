@@ -1,0 +1,99 @@
+/*
+ * Ops console tokens and the few rules utilities cannot express.
+ * Imported from globals.css so Tailwind sees the @theme block. Everything is
+ * namespaced "ops" and only applies under .ops-root, so the public site is
+ * untouched. No inline styles anywhere in /ops: the CSP there blocks them.
+ */
+@theme {
+  /* Second neutral layer for the rail, a raised layer for hover and inputs. */
+  --color-ops-rail: #11151e;
+  --color-ops-canvas: #171b25;
+  --color-ops-raised: #1e2433;
+  --color-ops-line: oklch(0.98 0.01 260 / 9%);
+  --color-ops-line-2: oklch(0.98 0.01 260 / 17%);
+  --color-ops-fg: oklch(0.98 0.005 140);
+  --color-ops-fg-2: oklch(0.84 0.012 260);
+  --color-ops-fg-3: oklch(0.71 0.015 260);
+  /* Digi lime: primary action, current selection and healthy state only. */
+  --color-ops-accent: oklch(0.82 0.21 130);
+  --color-ops-ink: #10140e;
+  --color-ops-warn: oklch(0.83 0.14 82);
+  --color-ops-bad: oklch(0.74 0.17 27);
+  --font-ops-brand: "Syne", sans-serif;
+  --font-ops-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+}
+
+.ops-root {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--color-ops-fg);
+  background: var(--color-ops-canvas);
+  font-feature-settings: "tnum" 1, "cv11" 1;
+}
+
+.ops-root :focus-visible {
+  outline: 2px solid var(--color-ops-accent);
+  outline-offset: 2px;
+}
+
+/* Loading placeholders. Same box as the text they stand in for. */
+.ops-skeleton {
+  display: block;
+  border-radius: 3px;
+  background: oklch(0.98 0.01 260 / 7%);
+  animation: ops-pulse 1.4s ease-in-out infinite;
+}
+@keyframes ops-pulse {
+  50% { opacity: 0.45; }
+}
+
+@keyframes ops-spin {
+  to { transform: rotate(360deg); }
+}
+.ops-spin {
+  animation: ops-spin 0.8s linear infinite;
+}
+
+/*
+ * Section change: a short crossfade of the content region only. The document
+ * root is left out of the transition and the overlay does not take pointer
+ * events, so the rail and header stay live while it runs.
+ */
+:root:has(.ops-root) {
+  view-transition-name: none;
+}
+.ops-content {
+  view-transition-name: ops-content;
+}
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-group(ops-content) {
+  animation: none;
+}
+::view-transition-old(ops-content) {
+  height: auto;
+  animation: ops-fade-out 80ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+::view-transition-new(ops-content) {
+  height: auto;
+  animation: ops-fade-in 150ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes ops-fade-out {
+  to { opacity: 0; }
+}
+@keyframes ops-fade-in {
+  from { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+  .ops-skeleton,
+  .ops-spin {
+    animation: none;
+  }
+}

@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[83276],{83276:(i,e,s)=>{s.r(e),s.d(e,{assertInsightEnabled:()=>n});var a=s(14620);async function n(i){let e=await (0,a.T8)();if(!i.every(i=>e.includes(i.id)))throw Error(`Insight is not available for chains ${i.filter(i=>!e.includes(i.id)).map(i=>i.id).join(", ")}`)}}}]);

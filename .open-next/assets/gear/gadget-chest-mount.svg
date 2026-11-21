@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" role="img" aria-labelledby="title description">
+  <title id="title">Chest mount hands-free capture gear</title>
+  <desc id="description">A simplified torso wearing a secure chest harness with a centered camera and field-of-view indicators.</desc>
+  <defs>
+    <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M30 0H0V30" fill="none" stroke="#84cc16" stroke-opacity=".08"/></pattern>
+    <linearGradient id="torso" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#161c29"/><stop offset="1" stop-color="#0e1118"/></linearGradient>
+  </defs>
+  <rect width="600" height="400" rx="24" fill="#0e1118"/>
+  <rect width="600" height="400" rx="24" fill="url(#grid)"/>
+  <path d="M34 86V40h46M520 40h46v46M34 276v46h46M520 322h46v-46" fill="none" stroke="#84cc16" stroke-width="2"/>
+  <text x="38" y="30" fill="#84cc16" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" letter-spacing="2">GEAR / 02</text>
+  <path d="M226 69c22-14 44-21 74-21s52 7 74 21l51 45-27 206H202l-27-206z" fill="url(#torso)" stroke="#ffffff" stroke-opacity=".42" stroke-width="2"/>
+  <path d="M226 69l74 84 74-84M190 136l110 69 110-69" fill="none" stroke="#84cc16" stroke-width="13" stroke-linejoin="round"/>
+  <path d="M300 153v120" stroke="#84cc16" stroke-width="13"/>
+  <rect x="245" y="176" width="110" height="78" rx="14" fill="#0e1118" stroke="#84cc16" stroke-width="3"/>
+  <rect x="265" y="193" width="70" height="43" rx="9" fill="#161c29" stroke="#ffffff" stroke-opacity=".5"/>
+  <circle cx="303" cy="214" r="17" fill="#0e1118" stroke="#84cc16" stroke-width="2"/>
+  <circle cx="298" cy="209" r="5" fill="#ffffff" fill-opacity=".32"/>
+  <path d="M245 195l-128-47M355 195l128-47M245 237L102 280M355 237l143 43" fill="none" stroke="#84cc16" stroke-opacity=".3" stroke-width="2" stroke-dasharray="7 8"/>
+  <path d="M117 148l23 9-9 23M483 148l-23 9 9 23M102 280l25-7 7 25M498 280l-25-7-7 25" fill="none" stroke="#84cc16" stroke-opacity=".72" stroke-width="2"/>
+  <text x="438" y="94" fill="#ffffff" fill-opacity=".56" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">FOV 112°</text>
+  <text x="438" y="113" fill="#84cc16" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">CENTERED</text>
+  <rect x="34" y="340" width="532" height="1" fill="#ffffff" fill-opacity=".12"/>
+  <text x="34" y="370" fill="#ffffff" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="23" font-weight="700" letter-spacing="1">CHEST MOUNT</text>
+  <text x="566" y="370" text-anchor="end" fill="#84cc16" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">HANDS-FREE CAPTURE</text>
+  <text x="566" y="392" text-anchor="end" fill="#ffffff" fill-opacity=".34" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">DigiRobotics</text>
+</svg>

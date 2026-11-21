@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[88981],{88981:(e,t,n)=>{n.r(t),n.d(t,{default:()=>c});let c={connecting:"スマートアカウントに接続中",failedToConnect:"スマートアカウントへの接続に失敗しました",wrongNetworkScreen:{failedToSwitch:"ネットワークの切り替えに失敗しました",subtitle:"ウォレットが必要なネットワークに接続されていません",title:"ネットワークが違います"}}}}]);

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" role="img" aria-labelledby="title description">
+  <title id="title">Action camera capture gear</title>
+  <desc id="description">A compact action camera with a lens, recording light, and mounting connector in a technical product frame.</desc>
+  <defs>
+    <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M30 0H0V30" fill="none" stroke="#84cc16" stroke-opacity=".08"/></pattern>
+    <linearGradient id="body" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#161c29"/><stop offset="1" stop-color="#0e1118"/></linearGradient>
+  </defs>
+  <rect width="600" height="400" rx="24" fill="#0e1118"/>
+  <rect width="600" height="400" rx="24" fill="url(#grid)"/>
+  <ellipse cx="300" cy="245" rx="206" ry="82" fill="#161c29" fill-opacity=".5"/>
+  <circle cx="300" cy="196" r="145" fill="none" stroke="#84cc16" stroke-opacity=".1"/>
+  <circle cx="300" cy="196" r="118" fill="none" stroke="#84cc16" stroke-opacity=".1" stroke-dasharray="4 9"/>
+  <path d="M34 86V40h46M520 40h46v46M34 276v46h46M520 322h46v-46" fill="none" stroke="#84cc16" stroke-width="2"/>
+  <text x="38" y="30" fill="#84cc16" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" letter-spacing="2">GEAR / 01</text>
+  <rect x="165" y="91" width="273" height="190" rx="28" fill="url(#body)" stroke="#ffffff" stroke-opacity=".5" stroke-width="2"/>
+  <rect x="187" y="113" width="89" height="54" rx="9" fill="#0e1118" stroke="#ffffff" stroke-opacity=".24"/>
+  <path d="M202 140h55" stroke="#84cc16" stroke-width="3" stroke-dasharray="7 6"/>
+  <circle cx="354" cy="184" r="68" fill="#0e1118" stroke="#84cc16" stroke-width="3"/>
+  <circle cx="354" cy="184" r="48" fill="#161c29" stroke="#ffffff" stroke-opacity=".45" stroke-width="2"/>
+  <circle cx="354" cy="184" r="27" fill="#0e1118" stroke="#84cc16" stroke-opacity=".5"/>
+  <circle cx="342" cy="172" r="9" fill="#ffffff" fill-opacity=".22"/>
+  <circle cx="207" cy="218" r="8" fill="#84cc16"/>
+  <text x="224" y="223" fill="#ffffff" fill-opacity=".66" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">REC</text>
+  <path d="M263 281v28h76v-28M278 309v20h46v-20" fill="#161c29" stroke="#84cc16" stroke-width="2"/>
+  <path d="M240 70h122" stroke="#84cc16" stroke-opacity=".42" stroke-width="2"/>
+  <path d="M285 61h32v18h-32z" fill="#161c29" stroke="#ffffff" stroke-opacity=".3"/>
+  <text x="476" y="114" fill="#ffffff" fill-opacity=".55" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">4K / POV</text>
+  <path d="M470 126h72" stroke="#84cc16" stroke-opacity=".45"/>
+  <rect x="34" y="340" width="532" height="1" fill="#ffffff" fill-opacity=".12"/>
+  <text x="34" y="370" fill="#ffffff" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="23" font-weight="700" letter-spacing="1">ACTION CAMERA</text>
+  <text x="566" y="370" text-anchor="end" fill="#84cc16" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" letter-spacing="1.5">CAPTURE GEAR</text>
+  <text x="566" y="392" text-anchor="end" fill="#ffffff" fill-opacity=".34" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">DigiRobotics</text>
+</svg>
