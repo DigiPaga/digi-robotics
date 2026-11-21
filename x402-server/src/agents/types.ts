@@ -25,3 +25,14 @@ export interface AgentToAgentMessage {
   signature: string;
   timestamp: number;
 }
+
+export interface MarketplaceInvitation {
+  marketplaceName: string;
+  marketplaceURL: string;
+  sampleDatasetCID: string;
+  supportedProtocols: string[];
+  contractAddresses: {
+    agentRegistry: string;
+    marketplace: string;
+  };
+}
