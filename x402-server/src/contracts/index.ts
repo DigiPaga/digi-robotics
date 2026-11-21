@@ -1,6 +1,8 @@
-export { agentRegistry } from "./agentRegistry";
-export { marketplace } from "./marketplace";
-export { usdc } from "./usdc";
+import { agentRegistry } from "./agentRegistry";
+import { marketplace } from "./marketplace";
+import { usdc } from "./usdc";
+
+export { agentRegistry, marketplace, usdc };
 
 export const contractAddresses = {
   arbitrumSepolia: {
