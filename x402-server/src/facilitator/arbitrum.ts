@@ -3,7 +3,7 @@ import { arbitrumSepolia } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 
 const RPC_URL = process.env.ARBITRUM_SEPOLIA_RPC || 'https://sepolia-rollup.arbitrum.io/rpc';
-const PRIVATE_KEY = process.env.PRIVATE_KEY as ;
+const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;
 
 const publicClient = createPublicClient({
   chain: arbitrumSepolia,
@@ -26,14 +26,11 @@ export interface SettlementRequest {
 
 export const settleOnArbitrum = async (request: SettlementRequest): Promise<string> => {
   try {
-      throw new Error('Wallet client not configured');
-    }
-
     // In production, this would call the X402Facilitator contract
     // For now, we simulate the settlement
-    
+
     const txHash = await walletClient.sendTransaction({
-      to: request.buyer as ,
+      to: request.buyer as `0x${string}`,
       value: 0n, // USDC transfer would use contract call
     });
 
@@ -48,7 +45,7 @@ export const settleOnArbitrum = async (request: SettlementRequest): Promise<stri
 export const verifyTransaction = async (txHash: string): Promise<boolean> => {
   try {
     const receipt = await publicClient.getTransactionReceipt({
-      hash: txHash as ,
+      hash: txHash as `0x${string}`,
     });
     return receipt.status === 'success';
   } catch (error) {
