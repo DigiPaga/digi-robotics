@@ -30,10 +30,9 @@ export const settleOnArbitrum = async (request: SettlementRequest): Promise<stri
     // For now, we simulate the settlement
 
     const txHash = await walletClient.sendTransaction({
-      account: PRIVATE_KEY ? privateKeyToAccount(PRIVATE_KEY) : undefined,
       to: request.buyer as `0x${string}`,
       value: 0n, // USDC transfer would use contract call
-    });
+    } as any);
 
     console.log();
     return txHash;
