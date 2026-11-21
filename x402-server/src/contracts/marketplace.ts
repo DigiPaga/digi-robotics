@@ -55,6 +55,7 @@ export const marketplace = {
   },
 
   async listAsset(ipfsURI: string, priceUSDC: string): Promise<string | null> {
+    if (!walletClient) {
       logger.error('Wallet client not configured');
       return null;
     }
