@@ -2,7 +2,7 @@ import { createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 
 const RPC_URL = process.env.ROBINHOOD_TESTNET_RPC || 'https://rpc.testnet.chain.robinhood.com';
-const PRIVATE_KEY = process.env.PRIVATE_KEY as ;
+const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;
 
 // Robinhood Chain configuration
 const robinhoodChain = {
@@ -34,14 +34,11 @@ export interface RobinhoodSettlementRequest {
 
 export const settleOnRobinhood = async (request: RobinhoodSettlementRequest): Promise<string> => {
   try {
-      throw new Error('Wallet client not configured');
-    }
-
     // Simulate settlement on Robinhood Chain
     const txHash = await walletClient.sendTransaction({
-      to: request.buyer as ,
+      to: request.buyer as `0x${string}`,
       value: 0n,
-    });
+    } as any);
 
     console.log();
     return txHash;
@@ -54,7 +51,7 @@ export const settleOnRobinhood = async (request: RobinhoodSettlementRequest): Pr
 export const verifyRobinhoodTransaction = async (txHash: string): Promise<boolean> => {
   try {
     const receipt = await publicClient.getTransactionReceipt({
-      hash: txHash as ,
+      hash: txHash as `0x${string}`,
     });
     return receipt.status === 'success';
   } catch (error) {
